@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-16 — Function 08 flow audit
+
+### Changed
+
+- Confirmed the existing Learner workspace, onboarding validation, option controls, persistence, editable return state, and Pre-Assessment handoff against the Function 08 requirements.
+- Marked the learner demo course as Published and added the Pre-Assessment entry to the Function 08 development preview group.
+
+No Creator Function 01–07 behavior or later Learner implementation was changed.
+
 ## 2026-08-16 — Skill evidence, portfolio, and credential
 
 ### Added

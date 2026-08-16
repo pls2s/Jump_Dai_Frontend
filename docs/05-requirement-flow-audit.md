@@ -117,7 +117,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 - **Requirement IDs:** 08
 - **Current routes:** `/learner`, `/learner/courses/[courseId]/learning-profile`; `/learner/onboarding` redirects to the workspace.
 - **Current status:** Needs Review.
-- **Implemented behavior:** Minimal Learner workspace; available-course start; one primary goal plus optional Other/detail; familiarity; multi-select content preferences; required pace; optional session length; inline validation; per-learner/course local persistence; editable return state; and Function 09 handoff.
+- **Implemented behavior:** Minimal Learner workspace; explicit Published-course start; one primary goal plus optional Other/detail; familiarity; multi-select content preferences; required pace; optional session length; inline validation; per-learner/course local persistence; editable return state; Function 08 preview handoff; and Function 09 navigation.
 - **Missing behavior:** Backend profile API, enrollment/catalog authority, server persistence, and integration into future personalization logic.
 - **Flow problems found:** Learner selection previously ended at a placeholder and collected none of the context required before assessment.
 - **Changes made:** Added a role-separated Learner shell, course entry, complete Function 08 form/state, and a valid pre-assessment destination.

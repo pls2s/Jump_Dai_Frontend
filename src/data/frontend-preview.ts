@@ -89,6 +89,7 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
     routes: [
       { label: "Learner Workspace", href: "/learner", description: "Available course and learner entry point" },
       { label: "Learning Profile", href: `${learnerCourseRoot}/learning-profile`, description: "Goal, familiarity, content preferences, and pace" },
+      { label: "Pre-Assessment Entry", href: `${learnerCourseRoot}/pre-assessment?view=intro`, description: "Valid next-step destination after saving learning preferences" },
     ],
   },
   {
