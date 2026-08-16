@@ -11,6 +11,7 @@ Learner.
 ## Routes and flow
 
 - Result: `/learner/courses/[courseId]/result`
+- Bypass previews: `?state=completed` and `?state=more-practice`
 - Function 16 handoff: `/learner/courses/[courseId]/skill-evidence`
 - Practical result → Skill Result → Skill Evidence / Portfolio
 
@@ -20,7 +21,7 @@ Learner.
 
 ## States and validation
 
-Loading, not ready, Completed/Verified, and More practice recommended. Results include before/after skills, practical evidence, strengths, improvements, and next steps.
+Loading, not ready, Completed/Verified, and More practice recommended. Direct bypass fixtures expose both result outcomes. Results include before/after skills, practical evidence, strengths, improvements, and next steps.
 
 ## Mock logic and persistence
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-16 — Functions 12–15 flow audit
+
+### Changed
+
+- Kept completed lesson content visible until the learner intentionally chooses the next personalized activity, while preserving resume-at-next-incomplete behavior.
+- Exposed personalized activity formats, lesson completion counts, and accessible Not started/In progress/Completed navigation state.
+- Added a persisted staged Post-Assessment analysis state and exact-answer result count.
+- Added clearer practical strengths/improvement feedback and deterministic task/draft preview states.
+- Added direct bypass previews for completed/missing learning, quiz results, Post-Assessment analysis, practical task/draft, and completed/more-practice Skill Result outcomes.
+- Re-audited centralized completion and verification rules without changing Creator Functions 01–07, Learner Functions 08–11, or the existing Function 16 implementation.
+
+Lesson content, scoring, practical evaluation, and verification remain frontend simulations; no backend grading, AI evaluation, or skill authority is claimed.
+
 ## 2026-08-16 — Functions 09–11 flow audit
 
 ### Changed

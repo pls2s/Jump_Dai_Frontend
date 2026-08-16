@@ -161,10 +161,10 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 - **Requirement IDs:** 12
 - **Current routes:** `/learner/courses/[courseId]/learn`, `/learn/[lessonId]`.
 - **Current status:** Needs Review.
-- **Implemented behavior:** Personalized-order lessons, compact responsive navigation, objective/explanation/concepts/example/source/practice content, explicit completion, current position, next recommendation, course progress, refresh resume, unavailable-item recovery, and quick-check handoff.
+- **Implemented behavior:** Personalized-order lessons, compact responsive navigation, objective/explanation/concepts/example/source/practice content, visible preferred activity formats, explicit completion followed by an intentional Next action, current position, completed count/course progress, refresh resume, text navigation states, unavailable-item recovery, and quick-check handoff.
 - **Missing behavior:** Backend progress, enrollment authority, prerequisites, rich media, offline sync, and optional/mandatory policy configuration.
 - **Flow problems found:** Function 11 previously ended at a placeholder and Learner Home could not resume lesson progress.
-- **Changes made:** Replaced the placeholder with a progress-aware learning workspace and updated Home to resolve the latest stage.
+- **Changes made:** Replaced the placeholder with a progress-aware learning workspace and updated Home to resolve the latest stage. The flow audit also fixed premature visual advancement after completion and added direct completed/missing-lesson previews.
 - **Remaining work:** Product/mobile acceptance and backend learning-progress contracts.
 
 ### 13 — Quiz / Post-Assessment
@@ -172,10 +172,10 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 - **Requirement IDs:** 13
 - **Current routes:** `/learner/courses/[courseId]/quiz/[quizId]`, `/post-assessment`.
 - **Current status:** Needs Review.
-- **Implemented behavior:** One-question navigation, MCQ/multi-select, autosaved attempt, unanswered validation, submission feedback, quick quiz, eight-question Post-Assessment, centralized 60%/70% criteria, pass/needs-practice states, retry, and pre/post skill comparison.
+- **Implemented behavior:** One-question navigation, MCQ/multi-select, autosaved attempt, unanswered validation, quick feedback, exact-answer count, quick quiz, eight-question Post-Assessment, persisted staged analysis, centralized 60%/70% criteria, pass/needs-practice states, retry, and pre/post skill comparison.
 - **Missing behavior:** Backend question bank/grading, enforced timer, attempt policy, and course-authored configuration.
 - **Flow problems found:** Learning completion produced no post-learning evidence or improvement comparison.
-- **Changes made:** Added a reusable knowledge-check workspace and scoring engine separate from Pre-Assessment state.
+- **Changes made:** Added a reusable knowledge-check workspace and scoring engine separate from Pre-Assessment state. Post-Assessment now persists an evaluating state and communicates comparison/criteria analysis before showing the result.
 - **Remaining work:** Product acceptance and documented attempt/submission/result APIs.
 
 ### 14 — Practical Assessment & Submission
@@ -183,10 +183,10 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 - **Requirement IDs:** 14
 - **Current routes:** `/learner/courses/[courseId]/practical-assessment`.
 - **Current status:** Needs Review.
-- **Implemented behavior:** Visible task brief/outcome/time/requirements, five structured response fields, learner-friendly weighted rubric, validation, Save draft, submission confirmation, staged evaluation, passing and needs-practice results, feedback, evidence summary, and retry.
+- **Implemented behavior:** Visible task brief/outcome/time/requirements, five structured response fields, learner-friendly weighted rubric, validation, Save draft, submission confirmation, staged evaluation, passing and needs-practice results, criterion plus strongest/improvement feedback, evidence summary, and retry.
 - **Missing behavior:** Real file evidence, backend AI/SME grading, creator review, resubmission history, and server storage.
 - **Flow problems found:** Knowledge score alone could not demonstrate applied competency.
-- **Changes made:** Added deterministic frontend evaluation and persisted draft/submission/result states behind the shared service boundary.
+- **Changes made:** Added deterministic frontend evaluation and persisted draft/submission/result states behind the shared service boundary. Task, saved-draft, evaluating, pass, and needs-practice states now have deterministic bypass previews.
 - **Remaining work:** Product acceptance plus secure submission and reviewer APIs.
 
 ### 15 — Skill Result & Feedback
@@ -194,7 +194,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 - **Requirement IDs:** 15
 - **Current routes:** `/learner/courses/[courseId]/result`.
 - **Current status:** Needs Review.
-- **Implemented behavior:** Overall competency score, pre/post improvement, skill-level comparison, practical score/evidence, concise strengths/improvements/next steps, Completed/More practice status, and centralized Verified eligibility.
+- **Implemented behavior:** Overall competency score, pre/post improvement, skill-level comparison, practical score/evidence, concise strengths/improvements/next steps, directly previewable Completed/More practice status, and centralized Verified eligibility.
 - **Missing behavior:** Backend competency authority, reviewer verification, standardized scoring, and credential issuance.
 - **Flow problems found:** No single outcome combined lesson completion, knowledge, and applied evidence.
 - **Changes made:** Added one result engine and completion checklist outside JSX; quiz score alone cannot mark a skill Verified.

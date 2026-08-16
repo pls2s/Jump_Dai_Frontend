@@ -11,6 +11,7 @@ Learner.
 ## Route and flow
 
 - `/learner/courses/[courseId]/practical-assessment`
+- Bypass states: `?state=task`, `draft`, `evaluating`, `passed`, and `needs-practice`
 - Passing Post-Assessment → task/draft → confirmation → evaluation → pass or improve/retry → Skill Result
 
 ## Components and data model
@@ -19,7 +20,7 @@ Learner.
 
 ## States and validation
 
-Not started, draft, submitted/evaluating, passed, and needs more practice. Every structured field needs sufficient content before submission. The confirmation dialog prevents accidental final submission.
+Not started, saved draft, submitted/evaluating, passed, and needs more practice. Every structured field needs sufficient content before submission. The confirmation dialog prevents accidental final submission. Result feedback calls out the strongest rubric area and the clearest improvement priority in addition to criterion-level feedback.
 
 ## Mock logic and persistence
 

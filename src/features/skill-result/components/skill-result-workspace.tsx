@@ -7,11 +7,11 @@ import { ArrowLeft, ArrowRight, Award, CheckCircle2, ClipboardCheck, FileCheck2,
 import { ContentContainer, PageHeader } from "@/components/layout";
 import { Badge, ButtonLink, Card, Progress, Spinner } from "@/components/ui";
 import { getAuthSession } from "@/features/auth/lib/auth-session";
-import { loadLearningExperience, saveSkillResult } from "@/features/learner-journey/services/learning-experience-service";
+import { loadSkillResultExperience, saveSkillResult } from "@/features/learner-journey/services/learning-experience-service";
 import type { LearnerJourneyState, LearnerSkillResult } from "@/features/learner-journey/types";
 import { courseCompletionChecks, createLearnerSkillResult } from "@/features/skill-result/lib/skill-result-engine";
 
-export function SkillResultWorkspace({ courseId, courseTitle }: { courseId: string; courseTitle: string }) {
+export function SkillResultWorkspace({ courseId, courseTitle, previewState }: { courseId: string; courseTitle: string; previewState?: string }) {
   const router = useRouter();
   const [journey, setJourney] = useState<LearnerJourneyState | null>(null);
   const [result, setResult] = useState<LearnerSkillResult | null>(null);
@@ -23,14 +23,14 @@ export function SkillResultWorkspace({ courseId, courseTitle }: { courseId: stri
         router.replace("/sign-in");
         return;
       }
-      const loaded = loadLearningExperience(session.user.id, courseId, "result-ready");
+      const loaded = loadSkillResultExperience(session.user.id, courseId, previewState === "more-practice" ? "more-practice" : "completed");
       const calculated = loaded.journey.skillResult ?? createLearnerSkillResult(loaded.journey);
       const nextJourney = calculated && !loaded.journey.skillResult ? saveSkillResult(session.user.id, courseId, calculated) : loaded.journey;
       setJourney(nextJourney);
       setResult(calculated);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [courseId, router]);
+  }, [courseId, previewState, router]);
 
   if (!journey) return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Preparing your skill result…</div></ContentContainer>;
 

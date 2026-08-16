@@ -17,10 +17,11 @@ const emphasisBadge: Record<LearningPathItemEmphasis, { label: string; variant: 
   "quick-refresher": { label: "Quick refresher", variant: "success" },
 };
 
-export function LearningWorkspace({ courseId, courseTitle, requestedLessonId }: { courseId: string; courseTitle: string; requestedLessonId?: string }) {
+export function LearningWorkspace({ courseId, courseTitle, requestedLessonId, previewState }: { courseId: string; courseTitle: string; requestedLessonId?: string; previewState?: string }) {
   const router = useRouter();
   const [journey, setJourney] = useState<LearnerJourneyState | null>(null);
   const [lessons, setLessons] = useState<LearnerLesson[]>([]);
+  const [activeLessonId, setActiveLessonId] = useState<string | undefined>(requestedLessonId);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -29,19 +30,28 @@ export function LearningWorkspace({ courseId, courseTitle, requestedLessonId }: 
         router.replace("/sign-in");
         return;
       }
-      const loaded = loadLearningExperience(session.user.id, courseId, "path-ready");
+      const loaded = loadLearningExperience(session.user.id, courseId, previewState === "completed" ? "learning-complete" : "path-ready");
       setJourney(loaded.journey);
       setLessons(loaded.lessons);
-      const selectedId = requestedLessonId ?? loaded.journey.learningProgress?.currentLessonId ?? loaded.lessons[0]?.id;
+      const completedIds = loaded.journey.learningProgress?.completedLessonIds ?? [];
+      const savedLessonId = loaded.journey.learningProgress?.currentLessonId;
+      const savedLessonIsIncomplete = savedLessonId && !completedIds.includes(savedLessonId);
+      const selectedId = requestedLessonId
+        ?? (savedLessonIsIncomplete ? savedLessonId : undefined)
+        ?? loaded.lessons.find((lesson) => !completedIds.includes(lesson.id))?.id
+        ?? savedLessonId
+        ?? loaded.lessons[0]?.id;
       if (selectedId && loaded.lessons.some((lesson) => lesson.id === selectedId)) {
+        setActiveLessonId(selectedId);
         setJourney(beginLessonProgress(session.user.id, courseId, loaded.journey, selectedId));
       }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [courseId, requestedLessonId, router]);
+  }, [courseId, previewState, requestedLessonId, router]);
 
-  const selectedLessonId = requestedLessonId ?? journey?.learningProgress?.currentLessonId ?? lessons[0]?.id;
+  const selectedLessonId = activeLessonId ?? requestedLessonId ?? lessons[0]?.id;
   const selectedLesson = lessons.find((lesson) => lesson.id === selectedLessonId);
+  const selectedPathItem = journey?.learningPath?.items.find((item) => item.id === selectedLesson?.pathItemId);
   const selectedIndex = lessons.findIndex((lesson) => lesson.id === selectedLessonId);
   const nextLesson = lessons[selectedIndex + 1];
   const completedIds = journey?.learningProgress?.completedLessonIds ?? [];
@@ -81,7 +91,7 @@ export function LearningWorkspace({ courseId, courseTitle, requestedLessonId }: 
     <ContentContainer className="max-w-[88rem]">
       <div className="mb-6 flex flex-col gap-4 rounded-lg border border-border-default bg-surface-default p-4 sm:flex-row sm:items-center sm:justify-between">
         <div><p className="type-caption text-text-tertiary">{courseTitle}</p><p className="font-semibold">Learning experience</p></div>
-        <div className="min-w-56"><Progress value={courseProgress} label="Course progress" showValue size="sm" /></div>
+        <div className="min-w-56"><Progress value={courseProgress} label="Course progress" showValue size="sm" /><p className="type-caption mt-1.5 text-right text-text-tertiary">{completedIds.length} of {lessons.length} lessons completed</p></div>
       </div>
 
       <details className="mb-5 rounded-lg border border-border-default bg-surface-default lg:hidden">
@@ -101,13 +111,13 @@ export function LearningWorkspace({ courseId, courseTitle, requestedLessonId }: 
           <h1 className="type-h1 mt-2 max-w-4xl">{selectedLesson.title}</h1>
           <div className="type-body-small mt-4 flex flex-wrap gap-x-5 gap-y-2 text-text-secondary"><span className="flex items-center gap-1.5"><Clock3 className="size-4" aria-hidden="true" />{selectedLesson.estimatedMinutes} min</span><span className="flex items-center gap-1.5"><Target className="size-4" aria-hidden="true" />{selectedLesson.learningObjective}</span></div>
 
-          <Card className="mt-6 border-blue-200 bg-blue-50 p-4 sm:p-5"><p className="type-label text-blue-900">Why this is in your path</p><p className="type-body-small mt-1 text-blue-900">{selectedLesson.personalizationReason}</p></Card>
+          <Card className="mt-6 border-blue-200 bg-blue-50 p-4 sm:p-5"><p className="type-label text-blue-900">Why this is in your path</p><p className="type-body-small mt-1 text-blue-900">{selectedLesson.personalizationReason}</p>{selectedPathItem && <div className="mt-3 flex flex-wrap gap-2" aria-label="Recommended activity formats">{selectedPathItem.activities.map((activity) => <Badge key={activity} variant="neutral">{activity}</Badge>)}</div>}</Card>
 
           <div className="mt-7 grid gap-6">
             <LessonSection icon={Target} title="Learning objective"><p>{selectedLesson.learningObjective}</p></LessonSection>
             <LessonSection icon={BookOpen} title="Short explanation"><p>{selectedLesson.summary}</p></LessonSection>
-            <LessonSection icon={Lightbulb} title="Key concepts"><ul className="grid gap-2 sm:grid-cols-2">{selectedLesson.keyConcepts.map((concept) => <li key={concept} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-status-success" aria-hidden="true" />{concept}</li>)}</ul></LessonSection>
-            <LessonSection icon={Flag} title="Example"><p>{selectedLesson.example}</p></LessonSection>
+            <LessonSection icon={Lightbulb} title={selectedPathItem?.activities.includes("Visual summary") ? "Visual summary" : "Key concepts"}><ul className="grid gap-2 sm:grid-cols-2">{selectedLesson.keyConcepts.map((concept) => <li key={concept} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-status-success" aria-hidden="true" />{concept}</li>)}</ul></LessonSection>
+            <LessonSection icon={Flag} title={selectedPathItem?.activities.includes("Step-by-step example") ? "Step-by-step example" : "Example"}><p>{selectedLesson.example}</p></LessonSection>
             {selectedLesson.practicePrompt && <LessonSection icon={BookOpen} title="Practice prompt"><p>{selectedLesson.practicePrompt}</p></LessonSection>}
             {selectedLesson.sourceNames.length > 0 && <div className="type-body-small flex flex-wrap items-center gap-2 text-text-secondary"><FileText className="size-4" aria-hidden="true" /><span>Learned from:</span>{selectedLesson.sourceNames.map((source) => <Badge key={source} variant="neutral">{source}</Badge>)}</div>}
           </div>
@@ -128,7 +138,7 @@ export function LearningWorkspace({ courseId, courseTitle, requestedLessonId }: 
 }
 
 function LearningNavigation({ groups, courseId, selectedLessonId, completedIds }: { groups: Array<{ pathItemId: string; moduleTitle: string; lessons: LearnerLesson[] }>; courseId: string; selectedLessonId: string; completedIds: string[] }) {
-  return <nav className="grid gap-3">{groups.map((group, index) => <div key={group.pathItemId}><p className="type-caption px-2 text-text-tertiary">Path {index + 1}</p><p className="px-2 py-1 text-sm font-semibold">{group.moduleTitle}</p><div className="mt-1 grid gap-1">{group.lessons.map((lesson) => { const selected = lesson.id === selectedLessonId; const complete = completedIds.includes(lesson.id); return <a key={lesson.id} href={`/learner/courses/${courseId}/learn/${lesson.id}`} aria-current={selected ? "page" : undefined} className={cn("flex min-h-11 items-center gap-2 rounded-md border-l-3 px-2.5 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-border-focus/30", selected ? "border-blue-700 bg-blue-50 font-semibold text-blue-950" : "border-transparent text-text-secondary hover:bg-neutral-50")}><span className={cn("flex size-5 shrink-0 items-center justify-center rounded-full border", complete ? "border-status-success bg-status-success text-white" : "border-border-strong")} >{complete && <Check className="size-3" aria-hidden="true" />}</span><span className="min-w-0 flex-1 line-clamp-2">{lesson.title}</span>{lesson.quickCheckId && <span className="sr-only">Includes quiz</span>}</a>; })}</div></div>)}</nav>;
+  return <nav className="grid gap-3">{groups.map((group, index) => <div key={group.pathItemId}><p className="type-caption px-2 text-text-tertiary">Path {index + 1}</p><p className="px-2 py-1 text-sm font-semibold">{group.moduleTitle}</p><div className="mt-1 grid gap-1">{group.lessons.map((lesson) => { const selected = lesson.id === selectedLessonId; const complete = completedIds.includes(lesson.id); const status = complete ? "Completed" : selected ? "In progress" : "Not started"; return <a key={lesson.id} href={`/learner/courses/${courseId}/learn/${lesson.id}`} aria-current={selected ? "page" : undefined} className={cn("flex min-h-11 items-center gap-2 rounded-md border-l-3 px-2.5 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-border-focus/30", selected ? "border-blue-700 bg-blue-50 font-semibold text-blue-950" : "border-transparent text-text-secondary hover:bg-neutral-50")}><span className={cn("flex size-5 shrink-0 items-center justify-center rounded-full border", complete ? "border-status-success bg-status-success text-white" : "border-border-strong")} >{complete && <Check className="size-3" aria-hidden="true" />}</span><span className="min-w-0 flex-1 line-clamp-2">{lesson.title}</span><span className="sr-only">{status}{lesson.quickCheckId ? ". Includes quiz" : ""}</span></a>; })}</div></div>)}</nav>;
 }
 
 function LessonSection({ icon: Icon, title, children }: { icon: typeof Target; title: string; children: React.ReactNode }) {

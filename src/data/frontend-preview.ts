@@ -124,14 +124,20 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
     routes: [
       { label: "Resume Learning", href: `${learnerCourseRoot}/learn`, description: "Current personalized lesson and saved course progress" },
       { label: "Priority Lesson", href: `${learnerCourseRoot}/learn/lesson-customer-journey`, description: "Readable lesson content and compact path navigation" },
+      { label: "Completed Lesson", href: `${learnerCourseRoot}/learn?state=completed`, description: "Completed status, saved progress, and next activity" },
+      { label: "Missing Lesson", href: `${learnerCourseRoot}/learn/missing-lesson`, description: "Unavailable activity recovery state" },
     ],
   },
   {
     functionId: "13",
     title: "Quiz / Post-Assessment",
     routes: [
-      { label: "Quick Quiz", href: `${learnerCourseRoot}/quiz/quick-quiz-customer-journey?view=question`, description: "Lesson knowledge check with feedback" },
-      { label: "Post-Assessment", href: `${learnerCourseRoot}/post-assessment?view=question`, description: "Final eight-question knowledge check" },
+      { label: "Quick Quiz", href: `${learnerCourseRoot}/quiz/quick-quiz-customer-journey?view=question`, description: "Lesson knowledge check with validation" },
+      { label: "Quick Quiz Result", href: `${learnerCourseRoot}/quiz/quick-quiz-customer-journey?view=result&result=passed`, description: "Score, exact-answer count, feedback, and continuation" },
+      { label: "Post-Assessment Entry", href: `${learnerCourseRoot}/post-assessment?view=intro`, description: "Final knowledge-check context and start action" },
+      { label: "Post-Assessment Questions", href: `${learnerCourseRoot}/post-assessment?view=question`, description: "Final eight-question knowledge check" },
+      { label: "Post-Assessment Submitting", href: `${learnerCourseRoot}/post-assessment?view=submitting`, description: "Saved submission handoff before analysis" },
+      { label: "Post-Assessment Analysis", href: `${learnerCourseRoot}/post-assessment?view=analyzing`, description: "Staged comparison and passing-criteria analysis" },
       { label: "Passed Result", href: `${learnerCourseRoot}/post-assessment?view=result&result=passed`, description: "Before/after score comparison" },
       { label: "Needs Practice", href: `${learnerCourseRoot}/post-assessment?view=result&result=needs-practice`, description: "Failed criteria and retry path" },
     ],
@@ -140,7 +146,8 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
     functionId: "14",
     title: "Practical Assessment",
     routes: [
-      { label: "Practical Task", href: `${learnerCourseRoot}/practical-assessment`, description: "Structured campaign-plan draft and rubric" },
+      { label: "Practical Task", href: `${learnerCourseRoot}/practical-assessment?state=task`, description: "Empty structured campaign-plan task and rubric" },
+      { label: "Saved Draft", href: `${learnerCourseRoot}/practical-assessment?state=draft`, description: "Persisted structured response ready to continue" },
       { label: "Evaluation", href: `${learnerCourseRoot}/practical-assessment?state=evaluating`, description: "Meaningful rubric evaluation stages" },
       { label: "Passed Result", href: `${learnerCourseRoot}/practical-assessment?state=passed`, description: "Rubric score and captured evidence" },
       { label: "Needs Practice", href: `${learnerCourseRoot}/practical-assessment?state=needs-practice`, description: "Improvement feedback and retry" },
@@ -150,7 +157,8 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
     functionId: "15",
     title: "Skill Result & Feedback",
     routes: [
-      { label: "Skill Result", href: `${learnerCourseRoot}/result`, description: "Competency, improvement, evidence, and verification" },
+      { label: "Completed Result", href: `${learnerCourseRoot}/result?state=completed`, description: "Competency, improvement, evidence, and verification" },
+      { label: "More Practice Result", href: `${learnerCourseRoot}/result?state=more-practice`, description: "Incomplete verification and recommended next steps" },
     ],
   },
   {
