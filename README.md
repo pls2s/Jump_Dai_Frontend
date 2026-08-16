@@ -93,7 +93,7 @@ npm run dev
 
 [http://localhost:3000/dev/frontend-preview](http://localhost:3000/dev/frontend-preview)
 
-When enabled, SkillSync accepts any non-empty Sign In email/password into a persistent `Frontend Preview` Creator session, allows protected route guards to resolve locally, and supplies structured fixtures for direct route review. No credential fixture is checked and no backend authentication request is made. The preview index links directly to Functions 01–15, including processing, result, and failure variants.
+When enabled, SkillSync accepts any non-empty Sign In email/password into a persistent `Frontend Preview` Creator session, allows protected route guards to resolve locally, and supplies structured fixtures for direct route review. No login credential fixture is checked and no backend authentication request is made. The preview index links directly to Functions 01–16, including processing, result, evidence, eligibility, and failure variants.
 
 To restore normal behavior:
 
@@ -198,10 +198,13 @@ Learner workspace
 → Quick Quiz / Post-Assessment
 → Practical Assessment
 → Skill Result
-→ Skill Evidence placeholder
+→ Skill Portfolio
+→ Skill Detail and Evidence
+→ Credential Requirements
+→ Credential Preview
 ```
 
-Assessment scoring, practical evaluation, and path generation are deterministic frontend simulations. Learner Home resumes the latest saved stage. Function 16 portfolio and credentials are intentionally not implemented.
+Assessment scoring, practical evaluation, path generation, portfolio evidence, and credential eligibility are deterministic frontend simulations. Learner Home resumes the latest saved stage. Credential links are frontend preview URLs and Print / Save as PDF uses the browser print dialog; there is no public verification or issuance backend.
 
 ## Project structure
 
@@ -231,6 +234,7 @@ src/
     learner-quiz/            Function 13 reusable quiz and Post-Assessment workspace
     practical-assessment/    Function 14 draft, rubric, and mock evaluation
     skill-result/            Function 15 completion and verification result logic
+    skill-portfolio/         Function 16 evidence, eligibility, and credential preview
     knowledge-sources/       Source upload and management workspace
     knowledge-analysis/      Mock AI processing and analysis result workspace
     course-generation/       Generated-course state, generator, outline, and content detail

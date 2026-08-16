@@ -17,9 +17,11 @@ Learner.
 
 ## Flow
 
-Learner authentication → Learner workspace → Start course → Learning Goal & Style → save → Pre-Assessment.
+Learner authentication → Learner workspace → Published course → Start learning → Learning Goal & Style → save → Pre-Assessment.
 
 Returning to the learning-profile route restores saved selections for editing.
+
+The development preview index exposes the Learner workspace, Learning Profile, and Pre-Assessment entry together under Function 08 so the handoff can be reviewed without completing unrelated screens.
 
 ## Form fields
 

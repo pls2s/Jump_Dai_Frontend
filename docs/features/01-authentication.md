@@ -47,7 +47,7 @@ Create or access an account, reach the correct workspace, retain a safe frontend
 - Sign out from `/creator/account` returns to `/sign-in`
 - `NEXT_PUBLIC_FRONTEND_BYPASS=true` makes the shared session lookup synthesize the development-only `Frontend Preview` identity, so existing guards allow direct UI review without backend calls
 - Sign In and OTP expose small bypass-only preview actions; account type remains limited to Learner, Creator, and Organization
-- `/dev/frontend-preview` lists Functions 01–15 only while bypass is enabled and returns Not Found otherwise
+- `/dev/frontend-preview` lists Functions 01–16 only while bypass is enabled and returns Not Found otherwise
 
 ## States
 
@@ -68,6 +68,6 @@ The bypass identity also lives in `src/data/mock/auth.ts`, contains no credentia
 - Demo sessions and API tokens are stored in browser storage and routes are guarded client-side; production requires an HTTP-only server session and server authorization
 - Google OAuth, password reset, OTP, OTP resend, workspace selection, logout/revocation, profile updates, and roles in auth responses are not documented
 - API mode cannot perform authoritative role-based landing-page routing because the documented response has no role/workspace data; backend permissions remain authoritative
-- Organization remains a placeholder; Learner Functions 08–15 use frontend-only state
+- Organization remains a placeholder; Learner Functions 08–16 use frontend-only state
 - Bypass mode intentionally recreates its preview identity after sign-out until the environment flag is turned off
 - The backend was not available at `localhost:8000` during the 16 August 2026 frontend QA run, so seeded-account and registration integration could not be live-verified

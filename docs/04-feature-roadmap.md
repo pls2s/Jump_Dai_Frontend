@@ -12,7 +12,7 @@ Status reflects whether a complete frontend user goal can be achieved—not whet
 | 05 | AI Course Generator | Needs Review | Generation entry, seven-stage progress, failure/retry, structured modules/lessons/exercises/quizzes/tasks/assessment, result inspection, grounding, and review handoff work with persisted frontend mocks. |
 | 06 | Creator Review / Human Verification | Needs Review | Creator can inspect, edit, save/cancel, trace sources, mark required items Verified/Needs changes, retain review progress, and preview without bypassing publish readiness. Backend verification is not connected. |
 | 07 | Course Preview & Publishing | Needs Review | Responsive learner preview, readiness validation, disabled reasons, confirmation, publish failure/retry, published success, copy link, unpublish, republish, and My Courses lifecycle actions work locally. No backend publication/public learner URL exists. |
-| 08 | Learning Goal & Learning Style | Needs Review | Learner workspace, course start, primary goal, optional detail, familiarity, multi-select content preferences, pace, optional session length, validation, local persistence, editing, and pre-assessment handoff work without a backend. |
+| 08 | Learning Goal & Learning Style | Needs Review | Learner workspace, Published course entry, primary goal, optional detail, familiarity, multi-select content preferences, pace, optional session length, validation, local persistence, editing, and pre-assessment handoff work without a backend. |
 | 09 | Pre-Assessment | Needs Review | Intro, eight-question MCQ/multi-select attempt, autosaved progress, unanswered validation, answer review, submission confirmation, staged evaluation, and per-skill scoring work locally. |
 | 10 | Skill Gap Analysis | Needs Review | Constructive readiness summary, centralized competency bands, priority gaps, strengths, and read-only answer review are derived from the completed pre-assessment. |
 | 11 | Personalized / Adaptive Learning Path | Needs Review | Assessment-gated generation uses skill scores plus Function 08 goal/preferences/pace to order priority practice, recommended content, and quick refreshers; path evidence/version persist locally. |
@@ -20,7 +20,7 @@ Status reflects whether a complete frontend user goal can be achieved—not whet
 | 13 | Quiz / Post-Assessment | Needs Review | Reusable one-question flow supports MCQ/multi-select, validation, saved attempts, feedback, centralized pass criteria, post-assessment scoring, and pre/post skill comparison. |
 | 14 | Practical Assessment & Submission | Needs Review | Structured campaign-plan draft, Save draft, validation, confirmation, staged mock evaluation, learner-friendly rubric, pass/needs-practice results, and retry work locally. |
 | 15 | Skill Result & Feedback | Needs Review | Completion-gated result combines pre/post knowledge and practical evidence, shows improvement and feedback, and marks Verified only when all centralized rules pass. |
-| 16 | Skill Evidence / Portfolio / Credential | Not Started | An intentional handoff route exists. No portfolio, badge, certificate issuance, sharing, or credential verification is implemented. |
+| 16 | Skill Evidence / Portfolio / Credential | Needs Review | Course-scoped portfolio sections, per-skill evidence, incomplete/Verified states, evidence traceability, derived credential eligibility, requirements, issued/eligible/not-offered states, preview sharing, and browser print work from persisted frontend results. No backend issuance or public verification exists. |
 | 17 | Creator Dashboard & Analytics | Not Started | The current route is an honest empty destination, not analytics functionality. |
 | 18 | Organization Workspace | Not Started | Organization selection reaches an intentional placeholder with no Creator/Admin access. |
 | 19 | Administrator | Not Started | Admin cannot be self-selected and no Admin routes exist. |
@@ -36,4 +36,4 @@ Functions 05–07 now preserve the required sequence:
 
 `Generate → Creator Review / Human Verification → Preview → Publish → optional Unpublish`
 
-The Learner journey now runs through Functions 08–15 and stops at an intentional Function 16 destination. Backend integration for these learner features remains separate future work.
+The Learner journey now runs through Functions 08–16: preferences, assessment, Skill Gap, personalized path, learning, knowledge checks, practical evidence, Skill Result, and the derived Skill Portfolio/Credential flow. Backend integration for these learner features remains separate future work.

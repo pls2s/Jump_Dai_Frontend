@@ -117,7 +117,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 - **Requirement IDs:** 08
 - **Current routes:** `/learner`, `/learner/courses/[courseId]/learning-profile`; `/learner/onboarding` redirects to the workspace.
 - **Current status:** Needs Review.
-- **Implemented behavior:** Minimal Learner workspace; available-course start; one primary goal plus optional Other/detail; familiarity; multi-select content preferences; required pace; optional session length; inline validation; per-learner/course local persistence; editable return state; and Function 09 handoff.
+- **Implemented behavior:** Minimal Learner workspace; explicit Published-course start; one primary goal plus optional Other/detail; familiarity; multi-select content preferences; required pace; optional session length; inline validation; per-learner/course local persistence; editable return state; Function 08 preview handoff; and Function 09 navigation.
 - **Missing behavior:** Backend profile API, enrollment/catalog authority, server persistence, and integration into future personalization logic.
 - **Flow problems found:** Learner selection previously ended at a placeholder and collected none of the context required before assessment.
 - **Changes made:** Added a role-separated Learner shell, course entry, complete Function 08 form/state, and a valid pre-assessment destination.
@@ -203,13 +203,13 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 16 — Skill Evidence / Portfolio / Credential
 
 - **Requirement IDs:** 16
-- **Current routes:** `/learner/courses/[courseId]/skill-evidence` intentional handoff only.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** Intentional next-function destination explains the boundary; no credential is shown as issued.
-- **Missing behavior:** Evidence, verification, competency score, portfolio, mapping/sharing, badges, certificates, and verification.
-- **Flow problems found:** None; eligibility is not misrepresented.
-- **Changes made:** Added a valid Function 15 CTA destination without portfolio or credential functionality.
-- **Remaining work:** Enforce assessment/evidence and certificate eligibility before issuance.
+- **Current routes:** `/learner/courses/[courseId]/skill-evidence`, `/skill-evidence/skills/[skillId]`, `/skill-evidence/requirements`, `/skill-evidence/credentials/[credentialId]`.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Portfolio overview/skills/evidence/credentials sections; derived counts; per-skill competency, improvement, status, evidence count, and verification reason; assessment and learning result traceability; practical rubric evidence; evidence timeline; credential eligibility checklist; Not eligible/Eligible/Issued architecture; certificate-disabled state; frontend credential preview; copy feedback; browser print; empty/partial states; learner-home integration; and bypass fixtures.
+- **Missing behavior:** Backend evidence authority, production issuance/revocation, public verification URLs, production PDF generation, external sharing, and multi-course aggregation beyond the seeded prototype.
+- **Flow problems found:** The previous destination stopped at a placeholder; evidence existed in Functions 09–15 but was not mapped into a reusable learner record; no certificate setting or completion rule was applied to credential presentation; and a course-level result could have implied that every skill was Verified.
+- **Changes made:** Replaced the placeholder with one coherent Result → Portfolio → Skill Detail → Requirements → Credential flow. Extended the existing Function 15 verification engine so individual skill verification also requires the per-skill Post-Assessment threshold and applied evidence. Credential eligibility now derives from the same completion checks plus verified evidence and the course certificate setting.
+- **Remaining work:** Product acceptance, backend-authoritative evidence/credential contracts, public verification security, and production download/sharing.
 
 ### 17 — Creator Dashboard & Analytics
 
@@ -284,13 +284,13 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 | Learning Experience → Quiz / Post-Assessment | Needs Review |
 | Post-Assessment → Practical Assessment | Needs Review |
 | Practical Assessment → Skill Result | Needs Review |
-| Skill Result → Portfolio / Credential | Partial — intentional Function 16 destination only |
+| Skill Result → Portfolio / Credential | Needs Review — evidence, eligibility, and credential preview flow connected |
 
-A learning path is exposed only after assessment evidence. Verified requires completed learning plus passing knowledge and practical evidence; no badge or certificate is issued.
+A learning path is exposed only after assessment evidence. Verified requires completed learning plus passing knowledge, an individual skill threshold, and applied practical evidence. Credentials also require the course certificate setting. Issued credentials are clearly marked frontend demo records rather than public credentials.
 
 ## Role Flow
 
-- **Learner:** Selectable at account type; routes to `/learner`; uses a learner-only shell and can complete Functions 08–15 without Creator navigation.
+- **Learner:** Selectable at account type; routes to `/learner`; uses a learner-only shell and can complete Functions 08–16 without Creator navigation.
 - **Creator:** Selectable; routes to `/creator`; current Creator functions 01–07 are available.
 - **Organization:** Selectable; routes to `/organization/onboarding`; cannot enter Creator/Admin functionality.
 - **Admin:** Not selectable; no route exists; future access must be system-assigned and server-authorized.
@@ -316,7 +316,10 @@ A learning path is exposed only after assessment evidence. Verified requires com
 | `/learner/courses/[courseId]/post-assessment` | All required lessons complete | Passed result → Practical Assessment | Learning Experience | Unanswered question, failing score/retry | Learner | Learning progress complete |
 | `/learner/courses/[courseId]/practical-assessment` | Passing Post-Assessment | Passed evidence → Skill Result | Learning Experience | Validation, needs-practice result/retry | Learner | Passing Post-Assessment |
 | `/learner/courses/[courseId]/result` | Evaluated practical | Skill Evidence handoff | Practical Assessment | Completion checklist not ready | Learner | Learning complete, post result, practical result/evidence |
-| `/learner/courses/[courseId]/skill-evidence` | Skill Result | Learner Home | Skill Result | Unknown course | Learner | Intentional Function 16 placeholder only |
+| `/learner/courses/[courseId]/skill-evidence` | Skill Result/Learner Home | Portfolio sections, skill detail, credential requirements | Skill Result/Learner Home | Empty portfolio; incomplete evidence; unknown course | Learner | Persisted Function 09–15 evidence; bypass may hydrate consistent fixtures |
+| `/learner/courses/[courseId]/skill-evidence/skills/[skillId]` | Portfolio Skills | Evidence result or next required assessment | Portfolio Skills | Unknown skill; partial/non-verified explanation | Learner | Derived skill evidence and existing verification engine |
+| `/learner/courses/[courseId]/skill-evidence/requirements` | Credentials section | Credential preview or continue assessment | Credentials section | Not eligible; certificate not offered | Learner | Completion checks, verified evidence, certificate setting |
+| `/learner/courses/[courseId]/skill-evidence/credentials/[credentialId]` | Issued/eligible credential card | Evidence, requirements, copy, browser print | Portfolio Credentials | Unknown/unavailable credential | Learner | Eligible/issued derived credential; no public verification |
 | `/organization/onboarding` | Organization auth | Sign out | — | Wrong role redirects; future placeholder | Demo Organization | Organization demo session |
 | `/creator` | Creator login/demo access | Create/continue course | — | Missing/wrong-role demo session redirects | Creator | Matching demo session or API session |
 | `/creator/courses` | Sidebar/home | Create/manage documents | Creator home | Demo empty/local state or API loading/network errors | Creator | Mode-aware local list or `GET /api/courses` |
@@ -359,6 +362,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - Learner Home always returned a learner with saved progress to Function 08 instead of their latest completed stage.
 - Bypass Sign In still matched seeded credentials, contradicting true frontend access.
 - Function 12 was a placeholder; no lesson completion, post-learning evidence, applied evidence, or final result existed.
+- Function 16 stopped at a placeholder and did not connect saved evidence, per-skill verification, certificate settings, or credential eligibility.
 
 ### Resolution
 
@@ -387,6 +391,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - Made the Learner Home Continue action resolve from saved profile, assessment, result, and path state.
 - Made bypass Sign In accept any non-empty credentials into a Creator preview session before any fixture or API logic; normal demo/API branches remain intact.
 - Added personalized lesson delivery, saved completion/resume, quick checks, Post-Assessment, practical draft/evaluation, and completion-gated Skill Result.
+- Replaced the Function 16 placeholder with a derived portfolio, skill evidence mapping, incomplete/Verified explanations, credential requirements, simulated issued/eligible states, safe sharing feedback, and browser print.
 
 ## Business Rule Integrity
 
@@ -396,7 +401,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 4. Personalized learning cannot generate without a completed pre-assessment outside bypass preview mode.
 5. Weak topics use the centralized below-60% threshold; visible status bands remain separately centralized.
 6. Paths record assessment evidence and a version for future adaptation; live adaptation is not claimed.
-7. Verified requires lesson completion, a passing Post-Assessment, a passing Practical Assessment, and captured practical evidence.
+7. Verified requires lesson completion, a passing Post-Assessment, a passing Practical Assessment, captured practical evidence, and the individual skill threshold.
 8. Quick quiz, Post-Assessment, and Practical Assessment use centralized passing criteria; opening a screen never passes it.
-9. No credential is shown as issued.
+9. A frontend demo credential is shown as issued only when completion, assessment, applied evidence, per-skill verification, and certificate-setting requirements pass; it is explicitly not a public credential.
 10. Certificate criteria are shown whenever enabled and are included in publish readiness.

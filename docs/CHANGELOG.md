@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-08-16 — Function 08 flow audit
+
+### Changed
+
+- Confirmed the existing Learner workspace, onboarding validation, option controls, persistence, editable return state, and Pre-Assessment handoff against the Function 08 requirements.
+- Marked the learner demo course as Published and added the Pre-Assessment entry to the Function 08 development preview group.
+
+No Creator Function 01–07 behavior or later Learner implementation was changed.
+
+## 2026-08-16 — Skill evidence, portfolio, and credential
+
+### Added
+
+- Added a learner Skill Portfolio with Overview, Skills, Evidence, and Credentials sections derived from saved learner results.
+- Added per-skill evidence detail, before/after improvement, practical rubric traceability, result links, and an evidence timeline.
+- Added Verified, Proficient, Developing, and Needs more practice presentation with learner-friendly reasons and next actions.
+- Added credential eligibility checks, eligible/issued/not-eligible states, certificate-disabled behavior, and a professional credential preview.
+- Added copy-link feedback, browser Print / Save as PDF, empty portfolio, partial evidence, and direct bypass preview states.
+
+### Changed
+
+- Connected Skill Result and completed-course Learner Home states to the Skill Portfolio.
+- Extended the existing Function 15 verification engine for per-skill decisions instead of introducing a competing verification rule.
+- Added Portfolio to learner navigation and Function 16 to the frontend preview index.
+
+Portfolio evidence, credential eligibility, issue dates, and `SS-DEMO-*` identifiers are frontend-derived demo behavior. No backend credential issuance, public verification, production PDF, or external sharing integration is claimed.
+
 ## 2026-08-16 — Learning experience through skill result
 
 ### Added
