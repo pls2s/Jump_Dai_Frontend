@@ -26,7 +26,7 @@ Skill Gap → staged path generation → path result → intentional Learning Ex
 
 ## Data model
 
-`PersonalizedLearningPath` records `pathVersion`, `generatedAt`, `sourceAssessmentId`, status, pace, preferences used, estimates, and ordered items. Items carry Priority, Recommended, or Quick refresher emphasis plus reason, time, activities, and skill addressed.
+`PersonalizedLearningPath` records `pathVersion`, `generatedAt`, internal `sourceAssessmentId`, status, pace, preferences used, estimates, and ordered items. Items carry Priority, Recommended, or Quick refresher emphasis plus reason, time, activities, and skill addressed. The product UI presents assessment provenance as a completed assessment and date rather than exposing the internal attempt identifier.
 
 ## Personalization logic
 
@@ -46,7 +46,7 @@ Requires Functions 08–10. Function 12 now consumes the saved path while Functi
 
 ## Known limitations
 
-No backend generator, live adaptation, lesson completion, enrollment rules, prerequisite resolver, or server time estimate.
+No backend generator, live adaptation, enrollment rules, prerequisite resolver, or server time estimate. Lesson delivery and completion remain owned by Function 12.
 
 ## Future backend/API integration
 

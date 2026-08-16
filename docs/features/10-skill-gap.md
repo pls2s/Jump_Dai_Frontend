@@ -25,7 +25,7 @@ Completed assessment → skill snapshot → optional read-only answer review →
 
 ## Data model
 
-Question scores aggregate into typed `SkillScore` records. Central bands are: 0–39 Needs focus, 40–59 Developing, 60–79 Proficient, and 80–100 Strong. Scores below 60% are learning-path priorities.
+Question scores aggregate into typed `SkillScore` records. Central bands are: 0–39 Needs focus, 40–59 Developing, 60–79 Proficient, and 80–100 Strong. Scores below 60% are learning-path priorities; the result highlights at most the three lowest competencies while retaining all scores for path generation.
 
 ## Validation and states
 

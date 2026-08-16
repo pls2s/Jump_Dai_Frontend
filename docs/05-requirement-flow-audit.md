@@ -118,7 +118,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 - **Current routes:** `/learner`, `/learner/courses/[courseId]/learning-profile`; `/learner/onboarding` redirects to the workspace.
 - **Current status:** Needs Review.
 - **Implemented behavior:** Minimal Learner workspace; explicit Published-course start; one primary goal plus optional Other/detail; familiarity; multi-select content preferences; required pace; optional session length; inline validation; per-learner/course local persistence; editable return state; Function 08 preview handoff; and Function 09 navigation.
-- **Missing behavior:** Backend profile API, enrollment/catalog authority, server persistence, and integration into future personalization logic.
+- **Missing behavior:** Backend profile API, enrollment/catalog authority, server persistence, and a documented server-side personalization-input contract.
 - **Flow problems found:** Learner selection previously ended at a placeholder and collected none of the context required before assessment.
 - **Changes made:** Added a role-separated Learner shell, course entry, complete Function 08 form/state, and a valid pre-assessment destination.
 - **Remaining work:** Product/accessibility acceptance and future API integration. Self-reported familiarity must remain contextual and never replace assessment evidence.
@@ -139,7 +139,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 - **Requirement IDs:** 10
 - **Current routes:** `/learner/courses/[courseId]/skill-gap`, `/skill-gap/review`.
 - **Current status:** Needs Review.
-- **Implemented behavior:** Constructive overall readiness; per-competency score, progress, and text status; centralized 0–39/40–59/60–79/80–100 bands; below-60 priority gaps; strengths; learner-friendly rationale; and read-only submitted-answer review.
+- **Implemented behavior:** Constructive overall readiness; per-competency score, progress, and text status; centralized 0–39/40–59/60–79/80–100 bands; the three lowest below-60 priority gaps; strengths; learner-friendly rationale; and read-only submitted-answer review.
 - **Missing behavior:** Backend-verified scores, normative benchmarks, creator feedback, and configurable course-specific weights.
 - **Flow problems found:** No evidence-based learner result existed between assessment and path generation.
 - **Changes made:** Added deterministic aggregation outside JSX and gated the result on a completed pre-assessment outside bypass mode.
@@ -150,7 +150,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 - **Requirement IDs:** 11
 - **Current routes:** `/learner/courses/[courseId]/learning-path`; Function 12 entry at `/learn`; bypass previews use `?view=generating`, `result`, or `?state=failed`.
 - **Current status:** Needs Review.
-- **Implemented behavior:** Assessment-gated five-stage generation; priority/recommended/quick-refresher ordering; learner-facing reasons; activity selection influenced by content preferences; pace-adjusted estimates; path version, timestamp, and source-assessment evidence; failure/retry; persisted result.
+- **Implemented behavior:** Assessment-gated five-stage generation; priority/recommended/quick-refresher ordering; learner-facing reasons; activity selection influenced by content preferences; pace-adjusted estimates; path version, timestamp, and source-assessment evidence; failure/retry; persisted result. Assessment provenance is shown without exposing internal attempt identifiers.
 - **Missing behavior:** Backend generation, live adaptation after later results, and server enrollment/prerequisite rules.
 - **Flow problems found:** No path could consume Function 08 context or Function 09 evidence.
 - **Changes made:** Added a pure mock generator that increases support for weak skills, keeps strong required topics as concise refreshers, and refuses to generate without required dependencies outside bypass mode.

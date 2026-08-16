@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-16 — Functions 09–11 flow audit
+
+### Changed
+
+- Re-audited the complete Learning Goal & Style → Pre-Assessment → Skill Gap → Personalized Learning Path journey, including dependency gates, autosave, scoring, direct bypass previews, generation retry, and downstream handoff.
+- Limited the learner-facing priority summary to the three lowest competencies while preserving every score for personalized path generation.
+- Replaced an internal pre-assessment attempt identifier in the learning-path UI with understandable assessment provenance and completion date.
+- Updated Functions 09–11 roadmap, feature, and flow-audit documentation without changing later learner functions.
+
+Assessment scoring and learning-path generation remain deterministic frontend simulations; no backend assessment or personalization service is claimed.
+
 ## 2026-08-16 — Function 08 flow audit
 
 ### Changed
