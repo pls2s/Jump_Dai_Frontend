@@ -210,7 +210,17 @@ export function LearningPathWorkspace({
             <div className="flex items-center gap-2"><BookOpenCheck className="size-5 text-blue-800" aria-hidden="true" /><h2 className="font-semibold">Why this path?</h2></div>
             <details className="group mt-4"><summary className="cursor-pointer text-sm font-semibold text-action-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-border-focus/30">See personalization details</summary><div className="type-body-small mt-3 space-y-3 text-text-secondary"><p><strong className="text-text-primary">Assessment:</strong> Lower-scoring areas appear first with more practice.</p><p><strong className="text-text-primary">Goal:</strong> {path.goalLabel}</p><p><strong className="text-text-primary">Preferences:</strong> {path.preferencesUsed.length ? path.preferencesUsed.join(", ").replaceAll("-", " ") : "Balanced course activities"}.</p><p><strong className="text-text-primary">Future updates:</strong> New assessment results may create a later path version.</p></div></details>
           </Card>
-          <Card className="p-5"><p className="type-caption text-text-tertiary">Generated</p><p className="type-body-small mt-1 font-medium">{new Date(path.generatedAt).toLocaleString()}</p><p className="type-caption mt-4 text-text-tertiary">Evidence</p><p className="type-body-small mt-1">Pre-assessment {path.sourceAssessmentId}</p></Card>
+          <Card className="p-5">
+            <p className="type-caption text-text-tertiary">Generated</p>
+            <p className="type-body-small mt-1 font-medium">{new Date(path.generatedAt).toLocaleString()}</p>
+            <p className="type-caption mt-4 text-text-tertiary">Evidence used</p>
+            <p className="type-body-small mt-1 font-medium">Completed pre-assessment</p>
+            {journey?.result && (
+              <p className="type-caption mt-1 text-text-tertiary">
+                Completed {new Date(journey.result.completedAt).toLocaleDateString()}
+              </p>
+            )}
+          </Card>
         </aside>
       </div>
 

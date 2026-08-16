@@ -60,7 +60,8 @@ export function SkillGapWorkspace({ courseId, courseTitle }: { courseId: string;
   const { result } = journey;
   const priorities = result.prioritySkillIds
     .map((id) => ({ skill: assessmentSkills.find((item) => item.id === id), score: result.skillScores.find((item) => item.skillId === id) }))
-    .filter((item): item is { skill: NonNullable<typeof item.skill>; score: NonNullable<typeof item.score> } => Boolean(item.skill && item.score));
+    .filter((item): item is { skill: NonNullable<typeof item.skill>; score: NonNullable<typeof item.score> } => Boolean(item.skill && item.score))
+    .slice(0, 3);
   const strengths = result.strengthSkillIds
     .map((id) => ({ skill: assessmentSkills.find((item) => item.id === id), score: result.skillScores.find((item) => item.skillId === id) }))
     .filter((item): item is { skill: NonNullable<typeof item.skill>; score: NonNullable<typeof item.score> } => Boolean(item.skill && item.score));

@@ -39,6 +39,10 @@ Intro, in progress, resumed, answer review, evaluating, completed, missing learn
 
 Answers, position, attempt status, and result persist in one `skillsync-learner-journey:{learnerId}:{courseId}` localStorage record. Evaluation uses deterministic typed fixtures and a configurable scoring utility. Correct answers remain hidden until submission.
 
+## Scoring and rule logic
+
+Multiple-choice questions score 100 for an exact correct answer and 0 otherwise. Multiple-select questions award deterministic partial credit based on correctly classified options while retaining a separate exact-correctness flag for answer review. Question scores are averaged per competency and across the assessment; scores below the centralized 60% threshold become focus areas. A completed assessment result is required before Skill Gap or learning-path generation can continue outside bypass preview mode.
+
 ## Dependencies
 
 Requires a valid learner course and completed Function 08 profile. Completion supplies the evidence required by Functions 10 and 11.
