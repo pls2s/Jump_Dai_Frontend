@@ -1,6 +1,6 @@
 # SkillSync AI
 
-SkillSync AI is an AI-powered learning platform that helps creators turn trusted source material into structured, source-grounded learning experiences. This repository currently contains a front-end product prototype from authentication and course setup through AI generation, Human Verification, learner preview, and local publishing.
+SkillSync AI is an AI-powered learning platform that helps creators turn trusted source material into structured, source-grounded learning experiences. This repository contains the Creator prototype through local publishing and the Learner prototype through personalized learning, assessment, applied evidence, and skill feedback.
 
 The design system is an internal foundation. Its development-only reference is available at `/ui-preview`; the product entry route leads to the authentication journey.
 
@@ -93,7 +93,7 @@ npm run dev
 
 [http://localhost:3000/dev/frontend-preview](http://localhost:3000/dev/frontend-preview)
 
-When enabled, SkillSync synthesizes a non-credential preview identity (`Frontend Preview`, Creator workspace), allows protected route guards to resolve locally, and supplies existing structured fixtures. The preview index links directly to Functions 01–11, including loading, result, and failure variants where implemented. No backend authentication or API request is required.
+When enabled, SkillSync accepts any non-empty Sign In email/password into a persistent `Frontend Preview` Creator session, allows protected route guards to resolve locally, and supplies structured fixtures for direct route review. No credential fixture is checked and no backend authentication request is made. The preview index links directly to Functions 01–15, including processing, result, and failure variants.
 
 To restore normal behavior:
 
@@ -102,6 +102,8 @@ NEXT_PUBLIC_FRONTEND_BYPASS=false
 ```
 
 With bypass off, the existing `NEXT_PUBLIC_FRONTEND_DEMO_MODE` setting continues to choose between frontend demo authentication and the real API path. Set both flags to `false` for API-connected mode. Bypass defaults to off when the variable is missing and `/dev/frontend-preview` returns Not Found.
+
+To verify true bypass login, enter any non-empty values such as `test@test.com` and `abc`, then select **Sign in**. The default destination is `/creator`; role-specific preview buttons remain available and never expose Admin.
 
 ## Demo accounts
 
@@ -141,7 +143,7 @@ npm run start
 | Area | Routes |
 | --- | --- |
 | Entry and auth | `/`, `/sign-in`, `/create-account`, `/verify-otp`, `/account-type`, `/organization/onboarding` |
-| Learner workspace | `/learner`, `/learner/courses/[courseId]/learning-profile`, `/pre-assessment`, `/skill-gap`, `/skill-gap/review`, `/learning-path`, `/learn` |
+| Learner workspace | `/learner`, `/learner/courses/[courseId]/learning-profile`, `/pre-assessment`, `/skill-gap`, `/skill-gap/review`, `/learning-path`, `/learn/[lessonId]`, `/quiz/[quizId]`, `/post-assessment`, `/practical-assessment`, `/result`, `/skill-evidence` |
 | Creator workspace | `/creator`, `/creator/courses`, `/creator/analytics`, `/creator/account` |
 | Course setup | `/creator/courses/new/basics`, `/audience`, `/objectives`, `/certificate`, `/review` |
 | Knowledge sources | `/creator/courses/[courseId]/sources` |
@@ -192,10 +194,14 @@ Learner workspace
 → Pre-Assessment
 → Skill Gap
 → Personalized Learning Path
-→ Learning Experience placeholder
+→ Learning Experience
+→ Quick Quiz / Post-Assessment
+→ Practical Assessment
+→ Skill Result
+→ Skill Evidence placeholder
 ```
 
-Assessment scoring and path generation are deterministic frontend simulations. Learner Home resumes the latest saved stage, and Function 12 lesson delivery is intentionally not implemented.
+Assessment scoring, practical evaluation, and path generation are deterministic frontend simulations. Learner Home resumes the latest saved stage. Function 16 portfolio and credentials are intentionally not implemented.
 
 ## Project structure
 
@@ -221,6 +227,10 @@ src/
     learner-journey/         Shared assessment/result/path types, services, and persistence
     skill-gap/               Function 10 skill snapshot and answer review
     personalized-learning/   Function 11 mock path generator and learner path workspace
+    learning-experience/     Function 12 personalized lesson delivery and navigation
+    learner-quiz/            Function 13 reusable quiz and Post-Assessment workspace
+    practical-assessment/    Function 14 draft, rubric, and mock evaluation
+    skill-result/            Function 15 completion and verification result logic
     knowledge-sources/       Source upload and management workspace
     knowledge-analysis/      Mock AI processing and analysis result workspace
     course-generation/       Generated-course state, generator, outline, and content detail
@@ -251,7 +261,7 @@ NEXT_PUBLIC_FRONTEND_BYPASS=false
 ## Troubleshooting
 
 - **The app does not start:** confirm the Node.js version meets the prerequisite, then run `npm install` again.
-- **Demo access is missing:** set `NEXT_PUBLIC_FRONTEND_DEMO_MODE=true`, then restart `npm run dev`; public environment values are compiled into the frontend.
+- **Demo access is missing:** enable Demo Mode or Bypass Mode, then restart `npm run dev`; public environment values are compiled into the frontend.
 - **Frontend preview index returns Not Found:** set `NEXT_PUBLIC_FRONTEND_BYPASS=true` in `.env.local`, then restart `npm run dev`.
 - **API mode reports that SkillSync cannot be reached:** start the backend and confirm `NEXT_PUBLIC_API_URL`; restart `npm run dev` after changing a public environment variable.
 - **The browser reports a CORS error:** `API_doc.md` currently allows only the old Vite origin on port 5173. Add the current Next.js origin `http://localhost:3000` to the backend development CORS allowlist.
@@ -275,6 +285,10 @@ NEXT_PUBLIC_FRONTEND_BYPASS=false
 - [Pre-Assessment](docs/features/09-pre-assessment.md)
 - [Skill Gap](docs/features/10-skill-gap.md)
 - [Personalized Learning Path](docs/features/11-personalized-learning-path.md)
+- [Learning Experience](docs/features/12-learning-experience.md)
+- [Quiz / Post-Assessment](docs/features/13-quiz-post-assessment.md)
+- [Practical Assessment](docs/features/14-practical-assessment.md)
+- [Skill Result & Feedback](docs/features/15-skill-result.md)
 - [Feature roadmap](docs/04-feature-roadmap.md)
 - [Requirement and flow audit](docs/05-requirement-flow-audit.md)
 - [Changelog](docs/CHANGELOG.md)

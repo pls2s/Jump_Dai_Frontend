@@ -215,7 +215,7 @@ export function LearningPathWorkspace({
       </div>
 
       <Card className="mt-8 flex flex-col items-start justify-between gap-5 border-blue-200 bg-blue-50 p-5 sm:flex-row sm:items-center sm:p-6">
-        <div className="flex items-start gap-3"><Flag className="mt-0.5 size-5 shrink-0 text-blue-800" aria-hidden="true" /><div><h2 className="font-semibold text-blue-950">Your path is ready</h2><p className="type-body-small mt-1 text-blue-900">Start with your highest-priority skill area. Progress tracking begins in Function 12.</p></div></div>
+        <div className="flex items-start gap-3"><Flag className="mt-0.5 size-5 shrink-0 text-blue-800" aria-hidden="true" /><div><h2 className="font-semibold text-blue-950">Your path is ready</h2><p className="type-body-small mt-1 text-blue-900">Start with your highest-priority skill area. Your lesson position and completion progress will be saved.</p></div></div>
         <ButtonLink href={`/learner/courses/${courseId}/learn`} className="shrink-0">Start learning<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink>
       </Card>
 

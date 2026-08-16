@@ -35,6 +35,7 @@ Create or access an account, reach the correct workspace, retain a safe frontend
 
 - `auth-service.ts` selects demo or API behavior from the centralized public environment flag
 - Demo sign-in validates against the shared seed fixtures, simulates loading, creates a password-free local session, and routes by workspace
+- Bypass sign-in accepts any non-empty email/password, performs no fixture lookup or API request, creates a persistent Creator preview session using the entered email, and routes to `/creator`
 - Demo access buttons create the same session directly without submitting the form
 - API sign-in calls `POST /api/auth/login` with exactly `email` and `password`
 - API login reads exactly `access_token`, `token_type`, and user `id`, `name`, `email`
@@ -46,7 +47,7 @@ Create or access an account, reach the correct workspace, retain a safe frontend
 - Sign out from `/creator/account` returns to `/sign-in`
 - `NEXT_PUBLIC_FRONTEND_BYPASS=true` makes the shared session lookup synthesize the development-only `Frontend Preview` identity, so existing guards allow direct UI review without backend calls
 - Sign In and OTP expose small bypass-only preview actions; account type remains limited to Learner, Creator, and Organization
-- `/dev/frontend-preview` lists Functions 01–08 only while bypass is enabled and returns Not Found otherwise
+- `/dev/frontend-preview` lists Functions 01–15 only while bypass is enabled and returns Not Found otherwise
 
 ## States
 
@@ -58,7 +59,7 @@ Create or access an account, reach the correct workspace, retain a safe frontend
 
 ## Mock behavior
 
-Seed users live in `src/data/mock/auth-users.ts`. Only the demo branch in `src/features/auth/services/auth-service.ts` matches these fixtures; UI components do not contain credential logic. The OTP fixture lives in `src/data/mock/auth.ts`. API calls remain isolated in `src/features/auth/api/auth-api.ts`; shared transport lives in `src/lib/api/api-client.ts`.
+Seed users live in `src/data/mock/auth-users.ts`. Only the demo branch in `src/features/auth/services/auth-service.ts` matches these fixtures; the bypass branch returns before fixture or API logic. UI components do not contain credential matching. The OTP fixture lives in `src/data/mock/auth.ts`. API calls remain isolated in `src/features/auth/api/auth-api.ts`; shared transport lives in `src/lib/api/api-client.ts`.
 
 The bypass identity also lives in `src/data/mock/auth.ts`, contains no credential, and is synthesized through `auth-session.ts`. Bypass defaults to off and sits above—not in place of—the existing demo/API switch.
 
@@ -67,6 +68,6 @@ The bypass identity also lives in `src/data/mock/auth.ts`, contains no credentia
 - Demo sessions and API tokens are stored in browser storage and routes are guarded client-side; production requires an HTTP-only server session and server authorization
 - Google OAuth, password reset, OTP, OTP resend, workspace selection, logout/revocation, profile updates, and roles in auth responses are not documented
 - API mode cannot perform authoritative role-based landing-page routing because the documented response has no role/workspace data; backend permissions remain authoritative
-- Learner and organization workspaces are placeholders only
+- Organization remains a placeholder; Learner Functions 08–15 use frontend-only state
 - Bypass mode intentionally recreates its preview identity after sign-out until the environment flag is turned off
 - The backend was not available at `localhost:8000` during the 16 August 2026 frontend QA run, so seeded-account and registration integration could not be live-verified

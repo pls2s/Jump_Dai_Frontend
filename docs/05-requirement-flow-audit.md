@@ -148,67 +148,67 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 11 — Personalized / Adaptive Learning Path
 
 - **Requirement IDs:** 11
-- **Current routes:** `/learner/courses/[courseId]/learning-path`; Function 12 handoff at `/learn`; bypass previews use `?view=generating`, `result`, or `?state=failed`.
+- **Current routes:** `/learner/courses/[courseId]/learning-path`; Function 12 entry at `/learn`; bypass previews use `?view=generating`, `result`, or `?state=failed`.
 - **Current status:** Needs Review.
 - **Implemented behavior:** Assessment-gated five-stage generation; priority/recommended/quick-refresher ordering; learner-facing reasons; activity selection influenced by content preferences; pace-adjusted estimates; path version, timestamp, and source-assessment evidence; failure/retry; persisted result.
-- **Missing behavior:** Backend generation, live adaptation after later results, enrollment/prerequisite rules, and lesson progress.
+- **Missing behavior:** Backend generation, live adaptation after later results, and server enrollment/prerequisite rules.
 - **Flow problems found:** No path could consume Function 08 context or Function 09 evidence.
 - **Changes made:** Added a pure mock generator that increases support for weak skills, keeps strong required topics as concise refreshers, and refuses to generate without required dependencies outside bypass mode.
-- **Remaining work:** Product acceptance, backend ordering/generation contract, and Function 12 delivery.
+- **Remaining work:** Product acceptance and backend ordering/generation contract.
 
 ### 12 — Learning Experience
 
 - **Requirement IDs:** 12
-- **Current routes:** `/learner/courses/[courseId]/learn` intentional handoff only.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** None.
-- **Missing behavior:** Lesson access, materials, progress, last position, mandatory/optional status, and prerequisites.
-- **Flow problems found:** None.
-- **Changes made:** Added a valid next-function destination without lesson/progress functionality.
-- **Remaining work:** Implement after a published course and learner path exist.
+- **Current routes:** `/learner/courses/[courseId]/learn`, `/learn/[lessonId]`.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Personalized-order lessons, compact responsive navigation, objective/explanation/concepts/example/source/practice content, explicit completion, current position, next recommendation, course progress, refresh resume, unavailable-item recovery, and quick-check handoff.
+- **Missing behavior:** Backend progress, enrollment authority, prerequisites, rich media, offline sync, and optional/mandatory policy configuration.
+- **Flow problems found:** Function 11 previously ended at a placeholder and Learner Home could not resume lesson progress.
+- **Changes made:** Replaced the placeholder with a progress-aware learning workspace and updated Home to resolve the latest stage.
+- **Remaining work:** Product/mobile acceptance and backend learning-progress contracts.
 
 ### 13 — Quiz / Post-Assessment
 
 - **Requirement IDs:** 13
-- **Current routes:** None.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** None.
-- **Missing behavior:** Quiz/post-assessment, passing score, attempt, optional timer, and results.
-- **Flow problems found:** None.
-- **Changes made:** None.
-- **Remaining work:** Define assessment and passing-criteria contracts.
+- **Current routes:** `/learner/courses/[courseId]/quiz/[quizId]`, `/post-assessment`.
+- **Current status:** Needs Review.
+- **Implemented behavior:** One-question navigation, MCQ/multi-select, autosaved attempt, unanswered validation, submission feedback, quick quiz, eight-question Post-Assessment, centralized 60%/70% criteria, pass/needs-practice states, retry, and pre/post skill comparison.
+- **Missing behavior:** Backend question bank/grading, enforced timer, attempt policy, and course-authored configuration.
+- **Flow problems found:** Learning completion produced no post-learning evidence or improvement comparison.
+- **Changes made:** Added a reusable knowledge-check workspace and scoring engine separate from Pre-Assessment state.
+- **Remaining work:** Product acceptance and documented attempt/submission/result APIs.
 
 ### 14 — Practical Assessment & Submission
 
 - **Requirement IDs:** 14
-- **Current routes:** None.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** None.
-- **Missing behavior:** Task, evidence submission, rubric, grading status, and Creator review.
-- **Flow problems found:** None.
-- **Changes made:** None.
-- **Remaining work:** Implement secure evidence upload and review workflow.
+- **Current routes:** `/learner/courses/[courseId]/practical-assessment`.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Visible task brief/outcome/time/requirements, five structured response fields, learner-friendly weighted rubric, validation, Save draft, submission confirmation, staged evaluation, passing and needs-practice results, feedback, evidence summary, and retry.
+- **Missing behavior:** Real file evidence, backend AI/SME grading, creator review, resubmission history, and server storage.
+- **Flow problems found:** Knowledge score alone could not demonstrate applied competency.
+- **Changes made:** Added deterministic frontend evaluation and persisted draft/submission/result states behind the shared service boundary.
+- **Remaining work:** Product acceptance plus secure submission and reviewer APIs.
 
 ### 15 — Skill Result & Feedback
 
 - **Requirement IDs:** 15
-- **Current routes:** None.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** None.
-- **Missing behavior:** Skill score, competency level, strengths, improvements, and assessment feedback.
-- **Flow problems found:** None.
-- **Changes made:** None.
-- **Remaining work:** Implement after assessment scoring is available.
+- **Current routes:** `/learner/courses/[courseId]/result`.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Overall competency score, pre/post improvement, skill-level comparison, practical score/evidence, concise strengths/improvements/next steps, Completed/More practice status, and centralized Verified eligibility.
+- **Missing behavior:** Backend competency authority, reviewer verification, standardized scoring, and credential issuance.
+- **Flow problems found:** No single outcome combined lesson completion, knowledge, and applied evidence.
+- **Changes made:** Added one result engine and completion checklist outside JSX; quiz score alone cannot mark a skill Verified.
+- **Remaining work:** Product acceptance and backend result authority.
 
 ### 16 — Skill Evidence / Portfolio / Credential
 
 - **Requirement IDs:** 16
-- **Current routes:** None.
+- **Current routes:** `/learner/courses/[courseId]/skill-evidence` intentional handoff only.
 - **Current status:** Future / Not Started.
-- **Implemented behavior:** None; no skill is labeled Verified and no credential is shown as issued.
+- **Implemented behavior:** Intentional next-function destination explains the boundary; no credential is shown as issued.
 - **Missing behavior:** Evidence, verification, competency score, portfolio, mapping/sharing, badges, certificates, and verification.
 - **Flow problems found:** None; eligibility is not misrepresented.
-- **Changes made:** None.
+- **Changes made:** Added a valid Function 15 CTA destination without portfolio or credential functionality.
 - **Remaining work:** Enforce assessment/evidence and certificate eligibility before issuance.
 
 ### 17 — Creator Dashboard & Analytics
@@ -280,16 +280,17 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 | Goal / Style → Pre-Assessment | Needs Review |
 | Pre-Assessment → Skill Gap | Needs Review |
 | Skill Gap → Personalized Path | Needs Review |
-| Personalized Path → Learning Experience | Partial — intentional Function 12 destination only |
-| Learning → Assessment | Future |
-| Assessment → Skill Result | Future |
-| Skill Result → Portfolio / Credential | Future |
+| Personalized Path → Learning Experience | Needs Review |
+| Learning Experience → Quiz / Post-Assessment | Needs Review |
+| Post-Assessment → Practical Assessment | Needs Review |
+| Practical Assessment → Skill Result | Needs Review |
+| Skill Result → Portfolio / Credential | Partial — intentional Function 16 destination only |
 
-A learning path is exposed only after assessment evidence. No lesson progress, Verified Skill, badge, or issued certificate is prematurely exposed.
+A learning path is exposed only after assessment evidence. Verified requires completed learning plus passing knowledge and practical evidence; no badge or certificate is issued.
 
 ## Role Flow
 
-- **Learner:** Selectable at account type; routes to `/learner`; uses a learner-only shell and can complete Functions 08–11 without Creator navigation.
+- **Learner:** Selectable at account type; routes to `/learner`; uses a learner-only shell and can complete Functions 08–15 without Creator navigation.
 - **Creator:** Selectable; routes to `/creator`; current Creator functions 01–07 are available.
 - **Organization:** Selectable; routes to `/organization/onboarding`; cannot enter Creator/Admin functionality.
 - **Admin:** Not selectable; no route exists; future access must be system-assigned and server-authorized.
@@ -299,7 +300,7 @@ A learning path is exposed only after assessment evidence. No lesson progress, V
 | Route | Entry | Primary action / success | Back destination | Failure state | Role | Dependencies |
 | --- | --- | --- | --- | --- | --- | --- |
 | `/` | Direct | Redirect to sign-in | — | — | Public | None |
-| `/sign-in` | Root/logout | Workspace by account type in demo; Creator prototype in API mode | Create account | Validation, invalid credentials, network/API errors in API mode | Public | Demo fixture or backend login selected centrally |
+| `/sign-in` | Root/logout | Any non-empty bypass credentials → Creator; workspace by fixture in demo; Creator in API mode | Create account | Empty bypass fields; fixture errors in demo; network/API errors only in API mode | Public | Central bypass/demo/API selection |
 | `/create-account` | Sign-in | OTP in demo; sign-in notice in API mode | Sign-in | Field validation and mode-appropriate errors | Public | Demo temporary registration or backend registration |
 | `/verify-otp` | Demo registration | Account type | Create account | Incomplete/invalid OTP or missing temporary registration; intentional API contract-gap state | Public | Demo registration context; no documented API endpoint |
 | `/account-type` | Verified demo OTP | Selected workspace | Verify OTP | Missing/unverified registration; intentional API contract-gap state | Public | Verified demo registration; no documented API endpoint |
@@ -310,7 +311,12 @@ A learning path is exposed only after assessment evidence. No lesson progress, V
 | `/learner/courses/[courseId]/skill-gap` | Completed assessment or bypass preview | Build learning path | Pre-assessment | Missing completed result | Learner | Completed assessment result |
 | `/learner/courses/[courseId]/skill-gap/review` | Skill snapshot | Read-only answer review | Skill Gap | Missing completed result | Learner | Submitted answers and scoring result |
 | `/learner/courses/[courseId]/learning-path` | Skill Gap CTA or bypass preview | Start learning handoff | Skill Gap | Missing profile/result; simulated generation failure/retry | Learner | Function 08 profile and completed Function 09 result |
-| `/learner/courses/[courseId]/learn` | Ready path | Learner home or back to path | Learning Path | Unknown course | Learner | Intentional Function 12 placeholder; no lesson delivery |
+| `/learner/courses/[courseId]/learn[/[lessonId]]` | Ready path/Home resume | Complete lesson; quick quiz/next lesson/Post-Assessment | Learning Path | Missing path or unavailable lesson | Learner | Personalized path; bypass fixture only in preview mode |
+| `/learner/courses/[courseId]/quiz/[quizId]` | Related lesson | Feedback then continue learning | Source lesson | Missing lesson completion, unanswered question, unknown quiz | Learner | Related lesson complete |
+| `/learner/courses/[courseId]/post-assessment` | All required lessons complete | Passed result → Practical Assessment | Learning Experience | Unanswered question, failing score/retry | Learner | Learning progress complete |
+| `/learner/courses/[courseId]/practical-assessment` | Passing Post-Assessment | Passed evidence → Skill Result | Learning Experience | Validation, needs-practice result/retry | Learner | Passing Post-Assessment |
+| `/learner/courses/[courseId]/result` | Evaluated practical | Skill Evidence handoff | Practical Assessment | Completion checklist not ready | Learner | Learning complete, post result, practical result/evidence |
+| `/learner/courses/[courseId]/skill-evidence` | Skill Result | Learner Home | Skill Result | Unknown course | Learner | Intentional Function 16 placeholder only |
 | `/organization/onboarding` | Organization auth | Sign out | — | Wrong role redirects; future placeholder | Demo Organization | Organization demo session |
 | `/creator` | Creator login/demo access | Create/continue course | — | Missing/wrong-role demo session redirects | Creator | Matching demo session or API session |
 | `/creator/courses` | Sidebar/home | Create/manage documents | Creator home | Demo empty/local state or API loading/network errors | Creator | Mode-aware local list or `GET /api/courses` |
@@ -351,6 +357,8 @@ A learning path is exposed only after assessment evidence. No lesson progress, V
 - Function 09 was only a placeholder, so no assessment evidence could feed Skill Gap or personalization.
 - No centralized weak-topic/status thresholds, result review, or assessment-gated path generator existed.
 - Learner Home always returned a learner with saved progress to Function 08 instead of their latest completed stage.
+- Bypass Sign In still matched seeded credentials, contradicting true frontend access.
+- Function 12 was a placeholder; no lesson completion, post-learning evidence, applied evidence, or final result existed.
 
 ### Resolution
 
@@ -377,6 +385,8 @@ A learning path is exposed only after assessment evidence. No lesson progress, V
 - Added centralized competency bands, priority gaps, strengths, and post-submission answer explanations.
 - Added dependency-gated path generation that uses both assessment evidence and Function 08 preferences, plus failure/retry, path evidence/versioning, and an intentional Function 12 handoff.
 - Made the Learner Home Continue action resolve from saved profile, assessment, result, and path state.
+- Made bypass Sign In accept any non-empty credentials into a Creator preview session before any fixture or API logic; normal demo/API branches remain intact.
+- Added personalized lesson delivery, saved completion/resume, quick checks, Post-Assessment, practical draft/evaluation, and completion-gated Skill Result.
 
 ## Business Rule Integrity
 
@@ -386,7 +396,7 @@ A learning path is exposed only after assessment evidence. No lesson progress, V
 4. Personalized learning cannot generate without a completed pre-assessment outside bypass preview mode.
 5. Weak topics use the centralized below-60% threshold; visible status bands remain separately centralized.
 6. Paths record assessment evidence and a version for future adaptation; live adaptation is not claimed.
-7. No skill is marked Verified.
-8. No assessment is marked passed without criteria.
+7. Verified requires lesson completion, a passing Post-Assessment, a passing Practical Assessment, and captured practical evidence.
+8. Quick quiz, Post-Assessment, and Practical Assessment use centralized passing criteria; opening a screen never passes it.
 9. No credential is shown as issued.
 10. Certificate criteria are shown whenever enabled and are included in publish readiness.

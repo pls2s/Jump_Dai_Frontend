@@ -84,19 +84,24 @@ export function getAuthSession(): AuthSession | null {
 
 export function createFrontendBypassSession(
   workspaceType: WorkspaceType = FRONTEND_BYPASS_USER.workspaceType,
+  email = FRONTEND_BYPASS_USER.email,
 ): AuthSession {
   return {
     mode: "bypass",
     user: {
       ...FRONTEND_BYPASS_USER,
+      email: email.trim() || FRONTEND_BYPASS_USER.email,
       workspaceType,
       roles: workspaceType === "learner" ? ["learner"] : ["creator"],
     },
   };
 }
 
-export function saveFrontendBypassSession(workspaceType: WorkspaceType = "creator") {
-  const session = createFrontendBypassSession(workspaceType);
+export function saveFrontendBypassSession(
+  workspaceType: WorkspaceType = "creator",
+  email = FRONTEND_BYPASS_USER.email,
+) {
+  const session = createFrontendBypassSession(workspaceType, email);
   saveAuthSession(session, true);
   return session;
 }

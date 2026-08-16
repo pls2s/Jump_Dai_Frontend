@@ -74,6 +74,10 @@ export function startNewAssessment(learnerId: number, courseId: string) {
     assessment,
     clearResult: true,
     clearLearningPath: true,
+    clearLearningProgress: true,
+    clearKnowledgeChecks: true,
+    clearPracticalAssessment: true,
+    clearSkillResult: true,
   });
 }
 
@@ -134,5 +138,11 @@ export function savePersonalizedPath(
   courseId: string,
   learningPath: PersonalizedLearningPath,
 ) {
-  return updateLearnerJourney(learnerId, courseId, { learningPath });
+  return updateLearnerJourney(learnerId, courseId, {
+    learningPath,
+    clearLearningProgress: true,
+    clearKnowledgeChecks: true,
+    clearPracticalAssessment: true,
+    clearSkillResult: true,
+  });
 }

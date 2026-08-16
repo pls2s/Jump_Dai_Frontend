@@ -115,7 +115,42 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
       { label: "Generating Path", href: `${learnerCourseRoot}/learning-path?view=generating`, description: "Assessment-based path generation stages" },
       { label: "Path Result", href: `${learnerCourseRoot}/learning-path?view=result`, description: "Priorities, refreshers, activities, and rationale" },
       { label: "Generation Failure", href: `${learnerCourseRoot}/learning-path?state=failed`, description: "Safe retry and recovery state" },
-      { label: "Learning Experience Next", href: `${learnerCourseRoot}/learn`, description: "Intentional Function 12 destination" },
+    ],
+  },
+  {
+    functionId: "12",
+    title: "Learning Experience",
+    routes: [
+      { label: "Resume Learning", href: `${learnerCourseRoot}/learn`, description: "Current personalized lesson and saved course progress" },
+      { label: "Priority Lesson", href: `${learnerCourseRoot}/learn/lesson-customer-journey`, description: "Readable lesson content and compact path navigation" },
+    ],
+  },
+  {
+    functionId: "13",
+    title: "Quiz / Post-Assessment",
+    routes: [
+      { label: "Quick Quiz", href: `${learnerCourseRoot}/quiz/quick-quiz-customer-journey?view=question`, description: "Lesson knowledge check with feedback" },
+      { label: "Post-Assessment", href: `${learnerCourseRoot}/post-assessment?view=question`, description: "Final eight-question knowledge check" },
+      { label: "Passed Result", href: `${learnerCourseRoot}/post-assessment?view=result&result=passed`, description: "Before/after score comparison" },
+      { label: "Needs Practice", href: `${learnerCourseRoot}/post-assessment?view=result&result=needs-practice`, description: "Failed criteria and retry path" },
+    ],
+  },
+  {
+    functionId: "14",
+    title: "Practical Assessment",
+    routes: [
+      { label: "Practical Task", href: `${learnerCourseRoot}/practical-assessment`, description: "Structured campaign-plan draft and rubric" },
+      { label: "Evaluation", href: `${learnerCourseRoot}/practical-assessment?state=evaluating`, description: "Meaningful rubric evaluation stages" },
+      { label: "Passed Result", href: `${learnerCourseRoot}/practical-assessment?state=passed`, description: "Rubric score and captured evidence" },
+      { label: "Needs Practice", href: `${learnerCourseRoot}/practical-assessment?state=needs-practice`, description: "Improvement feedback and retry" },
+    ],
+  },
+  {
+    functionId: "15",
+    title: "Skill Result & Feedback",
+    routes: [
+      { label: "Skill Result", href: `${learnerCourseRoot}/result`, description: "Competency, improvement, evidence, and verification" },
+      { label: "Function 16 Next", href: `${learnerCourseRoot}/skill-evidence`, description: "Intentional portfolio and credential handoff" },
     ],
   },
 ];

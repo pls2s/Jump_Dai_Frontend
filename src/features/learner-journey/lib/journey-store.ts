@@ -1,5 +1,9 @@
 import type {
   LearnerJourneyState,
+  LearnerSkillResult,
+  LearningProgress,
+  KnowledgeCheckAttempt,
+  PracticalAssessmentState,
   PreAssessmentAttempt,
   PreAssessmentResult,
   PersonalizedLearningPath,
@@ -54,8 +58,16 @@ export function updateLearnerJourney(
     assessment?: PreAssessmentAttempt;
     result?: PreAssessmentResult;
     learningPath?: PersonalizedLearningPath;
+    learningProgress?: LearningProgress;
+    knowledgeChecks?: Record<string, KnowledgeCheckAttempt>;
+    practicalAssessment?: PracticalAssessmentState;
+    skillResult?: LearnerSkillResult;
     clearResult?: boolean;
     clearLearningPath?: boolean;
+    clearLearningProgress?: boolean;
+    clearKnowledgeChecks?: boolean;
+    clearPracticalAssessment?: boolean;
+    clearSkillResult?: boolean;
   },
 ) {
   const current = readLearnerJourney(learnerId, courseId) ?? createEmptyLearnerJourney(learnerId, courseId);
@@ -64,6 +76,10 @@ export function updateLearnerJourney(
     assessment: updates.assessment ?? current.assessment,
     result: updates.clearResult ? undefined : (updates.result ?? current.result),
     learningPath: updates.clearLearningPath ? undefined : (updates.learningPath ?? current.learningPath),
+    learningProgress: updates.clearLearningProgress ? undefined : (updates.learningProgress ?? current.learningProgress),
+    knowledgeChecks: updates.clearKnowledgeChecks ? undefined : (updates.knowledgeChecks ?? current.knowledgeChecks),
+    practicalAssessment: updates.clearPracticalAssessment ? undefined : (updates.practicalAssessment ?? current.practicalAssessment),
+    skillResult: updates.clearSkillResult ? undefined : (updates.skillResult ?? current.skillResult),
   };
   return writeLearnerJourney(next);
 }

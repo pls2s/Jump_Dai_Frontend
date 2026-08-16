@@ -7,6 +7,7 @@ import { Award, BookOpen, Clock3, LogOut, PlayCircle } from "lucide-react";
 import { ContentContainer, PageHeader } from "@/components/layout";
 import { Badge, Button, ButtonLink, Card } from "@/components/ui";
 import { learnerDemoCourse } from "@/data/mock";
+import { buildPersonalizedLessonSequence } from "@/data/mock/learning-experience";
 import { clearAuthSession, getAuthSession } from "@/features/auth/lib/auth-session";
 import { readLearnerJourney } from "@/features/learner-journey/lib/journey-store";
 import { readLearningProfile } from "@/features/learner-onboarding/lib/learning-profile-store";
@@ -36,7 +37,21 @@ export function LearnerHome() {
       setLearnerName(session.user.name.split(" ")[0] || "Learner");
       const profile = readLearningProfile(session.user.id, learnerDemoCourse.id);
       const journey = readLearnerJourney(session.user.id, learnerDemoCourse.id);
-      if (journey?.learningPath) {
+      if (journey?.skillResult) {
+        setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/result`, title: journey.skillResult.courseStatus === "completed" ? "Course completed" : "More practice recommended", description: `Skill result: ${journey.skillResult.overallCompetencyScore}%. Review your feedback and evidence.`, action: "View skill result" });
+      } else if (journey?.practicalAssessment?.status === "passed") {
+        setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/result`, title: "Practical assessment passed", description: "Your knowledge and applied evidence are ready for the final skill result.", action: "View skill result" });
+      } else if (journey?.practicalAssessment) {
+        setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/practical-assessment`, title: "Practical assessment in progress", description: "Continue your saved campaign plan or review its feedback.", action: "Continue practical" });
+      } else if (journey?.knowledgeChecks?.["post-assessment-digital-marketing-v1"]?.result?.passed) {
+        setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/practical-assessment`, title: "Final knowledge check passed", description: "Apply what you learned in the practical campaign-plan assessment.", action: "Start practical" });
+      } else if (journey?.learningProgress?.status === "completed") {
+        setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/post-assessment`, title: "Required lessons completed", description: "Take the final knowledge check to measure your improvement.", action: "Final knowledge check" });
+      } else if (journey?.learningProgress && journey.learningPath) {
+        const lessonCount = buildPersonalizedLessonSequence(journey.learningPath).length;
+        const percent = lessonCount ? Math.round((journey.learningProgress.completedLessonIds.length / lessonCount) * 100) : 0;
+        setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/learn/${journey.learningProgress.currentLessonId ?? ""}`, title: `Learning in progress — ${percent}%`, description: "Resume at your latest lesson in the personalized sequence.", action: "Resume learning" });
+      } else if (journey?.learningPath) {
         setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/learning-path`, title: "Your personalized path is ready", description: "Return to your recommended learning order and focus areas.", action: "View learning path" });
       } else if (journey?.result) {
         setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/skill-gap`, title: "Your skill snapshot is ready", description: "Review your strengths and priorities, then build your learning path.", action: "View skill snapshot" });
@@ -56,7 +71,7 @@ export function LearnerHome() {
 
   return (
     <ContentContainer className="max-w-[82rem]">
-      <PageHeader title={`Welcome back, ${learnerName}`} description="Choose a course and tell SkillSync what you want to achieve before your pre-assessment." actions={<Button variant="ghost" onClick={signOut}><LogOut className="size-4" aria-hidden="true" />Sign out</Button>} />
+      <PageHeader title={`Welcome back, ${learnerName}`} description="Continue from your latest saved step or choose an available course." actions={<Button variant="ghost" onClick={signOut}><LogOut className="size-4" aria-hidden="true" />Sign out</Button>} />
 
       <section className="mt-8" aria-labelledby="continue-learning-heading">
         <div className="flex items-end justify-between gap-4"><div><p className="type-label text-action-primary">Your learning</p><h2 id="continue-learning-heading" className="type-h3 mt-1">Continue learning</h2></div></div>

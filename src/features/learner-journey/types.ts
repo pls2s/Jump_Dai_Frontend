@@ -120,6 +120,129 @@ export interface PersonalizedLearningPath {
   items: PersonalizedPathItem[];
 }
 
+export type LearningProgressStatus = "not-started" | "in-progress" | "completed";
+
+export interface LearnerLesson {
+  id: string;
+  pathItemId: string;
+  moduleTitle: string;
+  title: string;
+  learningObjective: string;
+  summary: string;
+  keyConcepts: string[];
+  example: string;
+  practicePrompt?: string;
+  sourceNames: string[];
+  estimatedMinutes: number;
+  skillId: string;
+  emphasis: LearningPathItemEmphasis;
+  personalizationReason: string;
+  quickCheckId?: string;
+}
+
+export interface LearningProgress {
+  status: LearningProgressStatus;
+  currentLessonId?: string;
+  completedLessonIds: string[];
+  startedAt?: string;
+  completedAt?: string;
+}
+
+export type KnowledgeCheckKind = "quick-quiz" | "post-assessment";
+export type KnowledgeCheckStatus = "not-started" | "in-progress" | "submitted";
+
+export interface KnowledgeCheckDefinition {
+  id: string;
+  courseId: string;
+  kind: KnowledgeCheckKind;
+  title: string;
+  description: string;
+  estimatedMinutes: string;
+  passingScore: number;
+  questions: AssessmentQuestion[];
+  sourceLessonId?: string;
+}
+
+export interface KnowledgeCheckResult {
+  definitionId: string;
+  score: number;
+  passed: boolean;
+  skillScores: SkillScore[];
+  questionScores: QuestionScore[];
+  submittedAt: string;
+}
+
+export interface KnowledgeCheckAttempt {
+  id: string;
+  definitionId: string;
+  kind: KnowledgeCheckKind;
+  status: KnowledgeCheckStatus;
+  currentQuestionIndex: number;
+  responses: AssessmentResponse[];
+  startedAt: string;
+  result?: KnowledgeCheckResult;
+}
+
+export interface PracticalDraft {
+  objective: string;
+  targetAudience: string;
+  channelSelection: string;
+  coreMessage: string;
+  measurementMetrics: string;
+}
+
+export type PracticalStatus = "not-started" | "draft" | "submitted" | "evaluating" | "passed" | "needs-more-practice";
+
+export interface PracticalRubricScore {
+  criterionId: string;
+  label: string;
+  earned: number;
+  possible: number;
+  feedback: string;
+}
+
+export interface PracticalAssessmentState {
+  id: string;
+  status: PracticalStatus;
+  draft: PracticalDraft;
+  savedAt?: string;
+  submittedAt?: string;
+  evaluatedAt?: string;
+  rubricScores?: PracticalRubricScore[];
+  totalScore?: number;
+  evidenceSummary?: string;
+}
+
+export type SkillVerificationStatus = "developing" | "proficient" | "verified" | "needs-more-practice";
+export type CourseLearningStatus = "in-progress" | "completed" | "more-practice-recommended";
+
+export interface SkillScoreComparison {
+  skillId: string;
+  name: string;
+  before: number;
+  after: number;
+  improvement: number;
+}
+
+export interface LearnerSkillResult {
+  id: string;
+  courseId: string;
+  learnerId: number;
+  courseStatus: CourseLearningStatus;
+  verificationStatus: SkillVerificationStatus;
+  overallCompetencyScore: number;
+  preAssessmentScore: number;
+  postAssessmentScore: number;
+  improvement: number;
+  practicalScore: number;
+  skillComparisons: SkillScoreComparison[];
+  evidenceSummary: string;
+  strengths: string[];
+  improvements: string[];
+  nextSteps: string[];
+  completedAt: string;
+}
+
 export interface LearnerJourneyState {
   version: 1;
   learnerId: number;
@@ -127,5 +250,9 @@ export interface LearnerJourneyState {
   assessment?: PreAssessmentAttempt;
   result?: PreAssessmentResult;
   learningPath?: PersonalizedLearningPath;
+  learningProgress?: LearningProgress;
+  knowledgeChecks?: Record<string, KnowledgeCheckAttempt>;
+  practicalAssessment?: PracticalAssessmentState;
+  skillResult?: LearnerSkillResult;
   updatedAt: string;
 }

@@ -43,15 +43,20 @@ function demoUserSession(workspaceType: WorkspaceType): AuthSession {
 }
 
 export async function signIn(input: { email: string; password: string; remember: boolean }) {
+  if (isFrontendBypassEnabled) {
+    await demoDelay(140);
+    const session = createFrontendBypassSession("creator", input.email);
+    saveAuthSession(session, true);
+    return { session, destination: "/creator" };
+  }
+
   if (shouldUseFrontendMocks) {
     await demoDelay(450);
     const account = AUTH_DEMO_ACCOUNTS.find(
       (user) => user.email.toLowerCase() === input.email.trim().toLowerCase() && user.password === input.password,
     );
     if (!account) throw new AuthFlowError("Email or password is incorrect.");
-    const session = isFrontendBypassEnabled
-      ? createFrontendBypassSession(account.workspaceType)
-      : demoUserSession(account.workspaceType);
+    const session = demoUserSession(account.workspaceType);
     saveAuthSession(session, true);
     return { session, destination: routeForWorkspace(account.workspaceType) };
   }

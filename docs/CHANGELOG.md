@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-16 — Learning experience through skill result
+
+### Added
+
+- Added personalized-order lesson delivery, compact responsive path navigation, explicit lesson completion, saved current position, course progress, source attribution, and resume behavior.
+- Added reusable quick-quiz and Post-Assessment flows with MCQ/multi-select answers, validation, saved attempts, feedback, pass/fail criteria, retry, and pre/post skill comparison.
+- Added a structured practical campaign-plan task, persistent draft, confirmation, staged mock evaluation, weighted rubric, evidence summary, pass/needs-practice feedback, and retry.
+- Added completion-gated Skill Result with before/after scores, practical evidence, concise feedback, centralized verification rules, and an intentional Function 16 destination.
+- Added direct bypass previews for Functions 12–15.
+
+### Changed
+
+- Made bypass Sign In accept any non-empty credentials into a persistent Creator preview session without fixture matching or an API call.
+- Preserved seeded credential matching in Demo Mode and documented backend login behavior when both frontend flags are disabled.
+- Extended Learner Home to resume lessons, Post-Assessment, practical work, or the final result from saved state.
+
+Lesson content, quiz scoring, practical evaluation, and skill results in this entry are frontend simulations; no backend grading, real file evidence, credential, or portfolio integration is claimed.
+
 ## 2026-08-16 — Learner assessment, skill gap, and personalized path
 
 ### Added

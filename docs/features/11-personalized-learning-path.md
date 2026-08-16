@@ -12,7 +12,7 @@ Learner.
 
 - `/learner/courses/[courseId]/learning-path`
 - Bypass states: `?view=generating`, `?view=result`, and `?state=failed`
-- Function 12 handoff: `/learner/courses/[courseId]/learn`
+- Function 12 entry: `/learner/courses/[courseId]/learn`
 
 ## User flow
 
@@ -42,7 +42,7 @@ Generation uses short staged timers and a deterministic local catalog. The gener
 
 ## Dependencies
 
-Requires Functions 08–10. Function 12 remains Not Started; `/learn` is an explicit handoff rather than a fake lesson experience.
+Requires Functions 08–10. Function 12 now consumes the saved path while Function 11 remains responsible only for path generation and ordering.
 
 ## Known limitations
 

@@ -30,7 +30,7 @@ import {
   verifyRegistrationOtp,
 } from "@/features/auth/services/auth-service";
 import { cn } from "@/lib/cn";
-import { isFrontendBypassEnabled, isFrontendDemoMode, shouldUseFrontendMocks } from "@/lib/config";
+import { isFrontendBypassEnabled, shouldUseFrontendMocks } from "@/lib/config";
 import { AuthBackLink } from "./auth-shell";
 
 function errorMessage(error: unknown, fallback: string) {
@@ -59,8 +59,11 @@ export function SignInForm() {
     const data = new FormData(event.currentTarget);
     const submittedEmail = String(data.get("email") ?? "").trim();
     const submittedPassword = String(data.get("password") ?? "");
-    if (!/^\S+@\S+\.\S+$/.test(submittedEmail) || !submittedPassword) {
-      setError("Enter a valid email address and your password.");
+    const invalid = isFrontendBypassEnabled
+      ? !submittedEmail || !submittedPassword
+      : !/^\S+@\S+\.\S+$/.test(submittedEmail) || !submittedPassword;
+    if (invalid) {
+      setError(isFrontendBypassEnabled ? "Enter any email and password to continue in preview mode." : "Enter a valid email address and your password.");
       return;
     }
 
@@ -125,6 +128,7 @@ export function SignInForm() {
           <Input id="password" name="password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} validation={error ? "error" : "default"} aria-describedby={error ? "sign-in-error" : undefined} required />
         </Field>
         <Checkbox label="Remember me" name="remember" defaultChecked />
+        {isFrontendBypassEnabled && <p className="type-caption -mb-2 text-center text-text-tertiary">Frontend bypass enabled · any non-empty credentials open Creator</p>}
         <Button type="submit" size="lg" className="w-full" isLoading={pending} loadingLabel="Signing in…">Sign in</Button>
       </form>
 
@@ -133,7 +137,7 @@ export function SignInForm() {
         <span className="flex size-6 items-center justify-center rounded-full bg-surface-default text-sm font-bold text-blue-700">G</span>Continue with Google
       </Button>
 
-      {isFrontendDemoMode && (
+      {shouldUseFrontendMocks && (
         <section className="mt-5 rounded-lg border border-border-default bg-neutral-25 p-3.5" aria-labelledby="demo-access-heading">
           <p id="demo-access-heading" className="type-caption font-semibold tracking-wide text-text-secondary uppercase">Demo access</p>
           <div className="mt-2 grid gap-2 sm:grid-cols-3">

@@ -5,7 +5,7 @@ Status reflects whether a complete frontend user goal can be achieved—not whet
 | ID | Feature | Status | Current scope |
 | --- | --- | --- | --- |
 | 00 | Design Foundation | Partial | Core tokens, inputs, buttons, cards, badges, navigation, progress, stepper, confirmation dialog, grounding drawer, and responsive patterns exist. There is no general toast primitive yet. |
-| 01 | User & Authentication | Needs Review | Frontend Demo Mode completes sign-in, registration, OTP, workspace selection, persistent session, role routing, and logout without the backend. API mode preserves documented login/register/me integration; API OTP/workspace/logout/profile-update capabilities remain undocumented. |
+| 01 | User & Authentication | Needs Review | Bypass mode accepts any non-empty credentials into a persistent Creator preview session without API or fixture matching. Demo mode retains seeded role login/registration/OTP; API mode preserves documented login/register/me integration. |
 | 02 | Create Course | Needs Review | Five-step wizard has validation and navigation. Demo mode continues to the seeded source workspace; API mode calls documented course creation and uses the returned ID. Unsupported course fields remain local. |
 | 03 | Knowledge Upload | Needs Review | Demo mode completes local file/text/URL source handling and readiness flow. API mode connects documented file upload/list/delete with status refresh; text, URL, retry, and analysis remain explicitly mocked where endpoints are absent. |
 | 04 | AI Knowledge Processing | Needs Review | Staged processing, missing-source guard, failure/retry, grounded result inspection, relationships, sequencing, references, and generation handoff are connected with mock data. |
@@ -16,11 +16,11 @@ Status reflects whether a complete frontend user goal can be achieved—not whet
 | 09 | Pre-Assessment | Needs Review | Intro, eight-question MCQ/multi-select attempt, autosaved progress, unanswered validation, answer review, submission confirmation, staged evaluation, and per-skill scoring work locally. |
 | 10 | Skill Gap Analysis | Needs Review | Constructive readiness summary, centralized competency bands, priority gaps, strengths, and read-only answer review are derived from the completed pre-assessment. |
 | 11 | Personalized / Adaptive Learning Path | Needs Review | Assessment-gated generation uses skill scores plus Function 08 goal/preferences/pace to order priority practice, recommended content, and quick refreshers; path evidence/version persist locally. |
-| 12 | Learning Experience | Not Started | An intentional handoff route exists; lesson delivery, progress, prerequisites, and last position are not implemented. |
-| 13 | Quiz / Post-Assessment | Not Started | No quiz or post-assessment flow exists. |
-| 14 | Practical Assessment & Submission | Not Started | No task, evidence upload, rubric, or grading flow exists. |
-| 15 | Skill Result & Feedback | Not Started | No competency result experience exists. |
-| 16 | Skill Evidence / Portfolio / Credential | Not Started | No verified-skill or credential UI exists. |
+| 12 | Learning Experience | Needs Review | Personalized lesson order, responsive path navigation, readable content, simple source attribution, saved current position, lesson completion, quick-check handoffs, progress, and resume work locally. |
+| 13 | Quiz / Post-Assessment | Needs Review | Reusable one-question flow supports MCQ/multi-select, validation, saved attempts, feedback, centralized pass criteria, post-assessment scoring, and pre/post skill comparison. |
+| 14 | Practical Assessment & Submission | Needs Review | Structured campaign-plan draft, Save draft, validation, confirmation, staged mock evaluation, learner-friendly rubric, pass/needs-practice results, and retry work locally. |
+| 15 | Skill Result & Feedback | Needs Review | Completion-gated result combines pre/post knowledge and practical evidence, shows improvement and feedback, and marks Verified only when all centralized rules pass. |
+| 16 | Skill Evidence / Portfolio / Credential | Not Started | An intentional handoff route exists. No portfolio, badge, certificate issuance, sharing, or credential verification is implemented. |
 | 17 | Creator Dashboard & Analytics | Not Started | The current route is an honest empty destination, not analytics functionality. |
 | 18 | Organization Workspace | Not Started | Organization selection reaches an intentional placeholder with no Creator/Admin access. |
 | 19 | Administrator | Not Started | Admin cannot be self-selected and no Admin routes exist. |
@@ -36,4 +36,4 @@ Functions 05–07 now preserve the required sequence:
 
 `Generate → Creator Review / Human Verification → Preview → Publish → optional Unpublish`
 
-The Learner journey now runs through Functions 08–11 and stops at an intentional Function 12 destination. Backend integration for 05–11 remains separate future work.
+The Learner journey now runs through Functions 08–15 and stops at an intentional Function 16 destination. Backend integration for these learner features remains separate future work.

@@ -12,7 +12,10 @@ function pageContextFor(pathname: string) {
   if (pathname.includes("/pre-assessment")) return "Pre-assessment";
   if (pathname.includes("/skill-gap")) return "Skill snapshot";
   if (pathname.includes("/learning-path")) return "Learning path";
-  if (pathname.endsWith("/learn")) return "Learning experience";
+  if (pathname.includes("/courses/") && (pathname.endsWith("/learn") || pathname.includes("/learn/"))) return "Learning experience";
+  if (pathname.includes("/quiz") || pathname.includes("/post-assessment")) return "Knowledge check";
+  if (pathname.includes("/practical-assessment")) return "Practical assessment";
+  if (pathname.includes("/result") || pathname.includes("/skill-evidence")) return "Skill result";
   return "Learner workspace";
 }
 
