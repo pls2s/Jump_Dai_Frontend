@@ -7,9 +7,11 @@ import { ArrowLeft, ArrowRight, Award, CheckCircle2, ClipboardCheck, FileCheck2,
 import { ContentContainer, PageHeader } from "@/components/layout";
 import { Badge, ButtonLink, Card, Progress, Spinner } from "@/components/ui";
 import { getAuthSession } from "@/features/auth/lib/auth-session";
+import { readGeneratedCourseState } from "@/features/course-generation/lib/generated-course-store";
 import { loadSkillResultExperience, saveSkillResult } from "@/features/learner-journey/services/learning-experience-service";
 import type { LearnerJourneyState, LearnerSkillResult } from "@/features/learner-journey/types";
 import { courseCompletionChecks, createLearnerSkillResult } from "@/features/skill-result/lib/skill-result-engine";
+import { buildSkillPortfolio } from "@/features/skill-portfolio/lib/portfolio-builder";
 
 export function SkillResultWorkspace({ courseId, courseTitle, previewState }: { courseId: string; courseTitle: string; previewState?: string }) {
   const router = useRouter();
@@ -40,6 +42,19 @@ export function SkillResultWorkspace({ courseId, courseTitle, previewState }: { 
   }
 
   const verified = result.verificationStatus === "verified";
+  const credential = buildSkillPortfolio({
+    journey,
+    learnerName: "Learner",
+    profile: null,
+    certificateOffered: readGeneratedCourseState(courseId)?.course.certificateEnabled,
+  }).credential;
+  const credentialLabel = !credential.certificateOffered
+    ? "Certificate not offered"
+    : credential.status === "issued"
+      ? "Credential earned"
+      : credential.status === "eligible"
+        ? "Credential eligible"
+        : "Credential requirements incomplete";
   return (
     <ContentContainer className="max-w-6xl">
       <PageHeader eyebrow={courseTitle} title="Your skill result" description={verified ? "You completed the required learning and demonstrated both knowledge and applied evidence." : "You completed the result flow, with focused practice recommended before verification."} actions={<Badge variant={verified ? "success" : "warning"}>{verified ? "Verified" : "More practice recommended"}</Badge>} />
@@ -56,7 +71,7 @@ export function SkillResultWorkspace({ courseId, courseTitle, previewState }: { 
         <Card className="p-5 sm:p-6"><div className="flex items-center gap-2"><Lightbulb className="size-5 text-blue-800" aria-hidden="true" /><h2 className="type-title-large">Feedback</h2></div><FeedbackList title="What you do well" items={result.strengths} /><FeedbackList title="What improved" items={result.improvements} /><FeedbackList title="What to work on next" items={result.nextSteps} /></Card>
       </div>
 
-      <Card className="mt-7 flex flex-col items-start justify-between gap-5 border-blue-200 bg-blue-50 p-5 sm:flex-row sm:items-center sm:p-6"><div className="flex items-start gap-3"><ClipboardCheck className="mt-0.5 size-5 shrink-0 text-blue-800" aria-hidden="true" /><div><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold text-blue-950">Your evidence record is ready</h2>{verified && <Badge variant="success">Credential earned</Badge>}</div><p className="type-body-small mt-1 text-blue-900">Review the assessments and applied work behind each skill, then check credential eligibility.</p></div></div><ButtonLink href={`/learner/courses/${courseId}/skill-evidence`}>View skill evidence<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink></Card>
+      <Card className="mt-7 flex flex-col items-start justify-between gap-5 border-blue-200 bg-blue-50 p-5 sm:flex-row sm:items-center sm:p-6"><div className="flex items-start gap-3"><ClipboardCheck className="mt-0.5 size-5 shrink-0 text-blue-800" aria-hidden="true" /><div><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold text-blue-950">Your evidence record is ready</h2><Badge variant={credential.status === "issued" || credential.status === "eligible" ? "success" : "neutral"}>{credentialLabel}</Badge></div><p className="type-body-small mt-1 text-blue-900">Review the assessments and applied work behind each skill, then check credential eligibility.</p></div></div><ButtonLink href={`/learner/courses/${courseId}/skill-evidence`}>View skill evidence<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink></Card>
       <div className="mt-6"><ButtonLink href={`/learner/courses/${courseId}/practical-assessment`} variant="ghost"><ArrowLeft className="size-4" aria-hidden="true" />Practical assessment</ButtonLink></div>
     </ContentContainer>
   );

@@ -173,9 +173,10 @@ function buildCredential(
   courseTitle: string,
   skills: PortfolioSkill[],
   previewState: PortfolioPreviewState,
+  certificateEnabled: boolean,
 ): SkillSyncCredential {
   const completion = courseCompletionChecks(journey);
-  const certificateOffered = previewState !== "certificate-disabled" && generatedCourseTemplate.certificateEnabled;
+  const certificateOffered = previewState !== "certificate-disabled" && certificateEnabled;
   const verifiedSkillIds = skills.filter((skill) => skill.status === "verified").map((skill) => skill.id);
   const requirements: CredentialRequirement[] = [
     {
@@ -210,7 +211,12 @@ function buildCredential(
     },
   ];
   const requirementsMet = requirements.every((requirement) => requirement.met);
-  const baseStatus: CredentialStatus = certificateOffered && requirementsMet ? "issued" : "not-eligible";
+  const persistedIssue = journey.issuedCredential;
+  const baseStatus: CredentialStatus = certificateOffered && requirementsMet
+    ? persistedIssue
+      ? "issued"
+      : "eligible"
+    : "not-eligible";
   const status = previewState === "eligible" && certificateOffered && requirementsMet
     ? "eligible"
     : previewState === "issued" && certificateOffered && requirementsMet
@@ -218,7 +224,7 @@ function buildCredential(
       : baseStatus;
   const completedAt = journey.skillResult?.completedAt;
   const year = new Date(completedAt ?? Date.now()).getFullYear();
-  const id = `SS-DEMO-${year}-${String(journey.learnerId).padStart(3, "0")}`;
+  const id = persistedIssue?.id ?? `SS-DEMO-${year}-${String(journey.learnerId).padStart(3, "0")}`;
 
   return {
     id,
@@ -227,7 +233,7 @@ function buildCredential(
     learnerName,
     courseId: journey.courseId,
     courseTitle,
-    issueDate: status === "issued" ? completedAt ?? new Date().toISOString() : undefined,
+    issueDate: status === "issued" ? persistedIssue?.issuedAt ?? completedAt ?? new Date().toISOString() : undefined,
     verifiedSkillIds,
     assessmentScore: journey.knowledgeChecks?.[postAssessmentDefinition.id]?.result?.score,
     practicalScore: journey.practicalAssessment?.totalScore,
@@ -272,11 +278,13 @@ export function buildSkillPortfolio({
   learnerName,
   profile,
   previewState = "default",
+  certificateOffered = generatedCourseTemplate.certificateEnabled,
 }: {
   journey: LearnerJourneyState;
   learnerName: string;
   profile: LearnerLearningProfile | null;
   previewState?: PortfolioPreviewState;
+  certificateOffered?: boolean;
 }): SkillPortfolioSnapshot {
   const projectedJourney = projectPortfolioJourney(journey, previewState);
   const courseTitle = generatedCourseTemplate.title;
@@ -287,6 +295,7 @@ export function buildSkillPortfolio({
     courseTitle,
     skills,
     previewState,
+    certificateOffered,
   );
   const evidence = skills.flatMap((skill) => skill.evidence.map((item) => ({
     ...item,

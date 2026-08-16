@@ -170,6 +170,8 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
       { label: "Verified Skill Detail", href: `${learnerCourseRoot}/skill-evidence/skills/skill-customer-journey?state=issued`, description: "Improvement, evidence mapping, and rubric traceability" },
       { label: "Incomplete Evidence", href: `${learnerCourseRoot}/skill-evidence/skills/skill-customer-journey?state=partial`, description: "Why a skill is not yet Verified and the next action" },
       { label: "Evidence", href: `${learnerCourseRoot}/skill-evidence?tab=evidence&state=issued`, description: "Assessment and learning evidence records" },
+      { label: "Practical Evidence Result", href: `${learnerCourseRoot}/practical-assessment?state=passed`, description: "Stored rubric evidence linked from the portfolio" },
+      { label: "Credential Claim", href: `${learnerCourseRoot}/skill-evidence/credentials/SS-DEMO-2026-999?state=eligible`, description: "Eligible credential with simulated local issuance" },
       { label: "Issued Credential", href: `${learnerCourseRoot}/skill-evidence/credentials/SS-DEMO-2026-999?state=issued`, description: "Professional credential preview and sharing actions" },
       { label: "Credential Eligible", href: `${learnerCourseRoot}/skill-evidence?tab=credentials&state=eligible`, description: "Requirements complete before simulated issuance" },
       { label: "Credential Requirements", href: `${learnerCourseRoot}/skill-evidence/requirements?state=partial`, description: "Incomplete requirement checklist" },
