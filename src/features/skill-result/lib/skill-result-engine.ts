@@ -1,4 +1,11 @@
 import type { LearnerJourneyState, LearnerSkillResult } from "@/features/learner-journey/types";
+import { POST_ASSESSMENT_PASSING_SCORE } from "@/data/mock/learning-experience";
+
+export interface SkillVerificationDecision {
+  status: LearnerSkillResult["verificationStatus"];
+  verified: boolean;
+  reason: string;
+}
 
 export function hasRequiredPracticalEvidence(journey: LearnerJourneyState) {
   const practical = journey.practicalAssessment;
@@ -14,6 +21,55 @@ export function courseCompletionChecks(journey: LearnerJourneyState) {
     practicalComplete: Boolean(journey.practicalAssessment?.evaluatedAt),
     practicalPassed: journey.practicalAssessment?.status === "passed",
     evidencePresent: hasRequiredPracticalEvidence(journey),
+  };
+}
+
+/**
+ * Extends the Function 15 evidence rule to one skill. A passing course result
+ * alone does not make every skill Verified: the skill must also meet the
+ * post-assessment threshold and have the required applied evidence.
+ */
+export function skillVerificationFor(
+  journey: LearnerJourneyState,
+  skillId: string,
+): SkillVerificationDecision {
+  const checks = courseCompletionChecks(journey);
+  const post = journey.knowledgeChecks?.["post-assessment-digital-marketing-v1"]?.result;
+  const skillScore = post?.skillScores.find((score) => score.skillId === skillId)?.score;
+  const courseEvidenceComplete = Object.values(checks).every(Boolean);
+
+  if (
+    courseEvidenceComplete &&
+    skillScore !== undefined &&
+    skillScore >= POST_ASSESSMENT_PASSING_SCORE
+  ) {
+    return {
+      status: "verified",
+      verified: true,
+      reason: "Knowledge and applied practical evidence meet the verification requirements.",
+    };
+  }
+
+  if (!checks.evidencePresent || !checks.practicalPassed) {
+    return {
+      status: skillScore !== undefined && skillScore >= 60 ? "proficient" : "developing",
+      verified: false,
+      reason: "Complete and pass the practical assessment to add applied evidence for this skill.",
+    };
+  }
+
+  if (skillScore !== undefined && skillScore >= 60) {
+    return {
+      status: "proficient",
+      verified: false,
+      reason: `Reach ${POST_ASSESSMENT_PASSING_SCORE}% for this skill in the final knowledge check to qualify for verification.`,
+    };
+  }
+
+  return {
+    status: skillScore !== undefined && skillScore < 40 ? "needs-more-practice" : "developing",
+    verified: false,
+    reason: "Review the recommended learning and improve this skill in the final knowledge check.",
   };
 }
 

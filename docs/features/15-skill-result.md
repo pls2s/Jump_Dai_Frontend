@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Summarize learning, knowledge improvement, applied evidence, and actionable feedback without issuing a premature credential.
+Summarize learning, knowledge improvement, applied evidence, and actionable feedback before handing the verified outcome to Function 16.
 
 ## Primary user
 
@@ -12,7 +12,7 @@ Learner.
 
 - Result: `/learner/courses/[courseId]/result`
 - Function 16 handoff: `/learner/courses/[courseId]/skill-evidence`
-- Practical result → Skill Result → Skill Evidence / Portfolio [next]
+- Practical result → Skill Result → Skill Evidence / Portfolio
 
 ## Components and data model
 
@@ -32,4 +32,4 @@ Verified requires all personalized lessons completed, Post-Assessment submitted 
 
 ## Known limitations and future backend integration
 
-No backend competency authority, reviewer signature, standardized score model, portfolio, badge, certificate, or verification URL. Function 16 remains an intentional placeholder.
+No backend competency authority, reviewer signature, or standardized score model. Function 16 now derives frontend portfolio and credential states from this result, but no production issuance or verification URL exists.

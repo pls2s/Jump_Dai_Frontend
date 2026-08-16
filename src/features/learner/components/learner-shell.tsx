@@ -15,7 +15,8 @@ function pageContextFor(pathname: string) {
   if (pathname.includes("/courses/") && (pathname.endsWith("/learn") || pathname.includes("/learn/"))) return "Learning experience";
   if (pathname.includes("/quiz") || pathname.includes("/post-assessment")) return "Knowledge check";
   if (pathname.includes("/practical-assessment")) return "Practical assessment";
-  if (pathname.includes("/result") || pathname.includes("/skill-evidence")) return "Skill result";
+  if (pathname.includes("/skill-evidence")) return "Skill portfolio";
+  if (pathname.includes("/result")) return "Skill result";
   return "Learner workspace";
 }
 

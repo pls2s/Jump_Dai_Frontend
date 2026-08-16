@@ -150,7 +150,22 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
     title: "Skill Result & Feedback",
     routes: [
       { label: "Skill Result", href: `${learnerCourseRoot}/result`, description: "Competency, improvement, evidence, and verification" },
-      { label: "Function 16 Next", href: `${learnerCourseRoot}/skill-evidence`, description: "Intentional portfolio and credential handoff" },
+    ],
+  },
+  {
+    functionId: "16",
+    title: "Skill Evidence / Portfolio / Credential",
+    routes: [
+      { label: "Portfolio Overview", href: `${learnerCourseRoot}/skill-evidence?state=issued`, description: "Derived summary, recent evidence, and credential status" },
+      { label: "Skills", href: `${learnerCourseRoot}/skill-evidence?tab=skills&state=issued`, description: "Verified and developing skill records" },
+      { label: "Verified Skill Detail", href: `${learnerCourseRoot}/skill-evidence/skills/skill-customer-journey?state=issued`, description: "Improvement, evidence mapping, and rubric traceability" },
+      { label: "Incomplete Evidence", href: `${learnerCourseRoot}/skill-evidence/skills/skill-customer-journey?state=partial`, description: "Why a skill is not yet Verified and the next action" },
+      { label: "Evidence", href: `${learnerCourseRoot}/skill-evidence?tab=evidence&state=issued`, description: "Assessment and learning evidence records" },
+      { label: "Issued Credential", href: `${learnerCourseRoot}/skill-evidence/credentials/SS-DEMO-2026-999?state=issued`, description: "Professional credential preview and sharing actions" },
+      { label: "Credential Eligible", href: `${learnerCourseRoot}/skill-evidence?tab=credentials&state=eligible`, description: "Requirements complete before simulated issuance" },
+      { label: "Credential Requirements", href: `${learnerCourseRoot}/skill-evidence/requirements?state=partial`, description: "Incomplete requirement checklist" },
+      { label: "Certificate Disabled", href: `${learnerCourseRoot}/skill-evidence?tab=credentials&state=certificate-disabled`, description: "Evidence retained when a certificate is not offered" },
+      { label: "Empty Portfolio", href: `${learnerCourseRoot}/skill-evidence?state=empty`, description: "First-time learner evidence empty state" },
     ],
   },
 ];

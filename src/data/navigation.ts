@@ -44,11 +44,14 @@ export function creatorNavigationFor(pathname: string): readonly NavigationItem[
 
 export const learnerNavigation: readonly NavigationItem[] = [
   { label: "Home", href: "/learner", icon: "home" },
+  { label: "Portfolio", href: "/learner/courses/digital-marketing-foundations/skill-evidence", icon: "evidence" },
 ];
 
 export function learnerNavigationFor(pathname: string): readonly NavigationItem[] {
   return learnerNavigation.map((item) => ({
     ...item,
-    current: item.href === pathname || pathname.startsWith(`${item.href}/`),
+    current: item.icon === "home"
+      ? pathname === item.href
+      : item.href === pathname || pathname.startsWith(`${item.href}/`),
   }));
 }

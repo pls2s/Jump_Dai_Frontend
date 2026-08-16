@@ -38,7 +38,8 @@ export function LearnerHome() {
       const profile = readLearningProfile(session.user.id, learnerDemoCourse.id);
       const journey = readLearnerJourney(session.user.id, learnerDemoCourse.id);
       if (journey?.skillResult) {
-        setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/result`, title: journey.skillResult.courseStatus === "completed" ? "Course completed" : "More practice recommended", description: `Skill result: ${journey.skillResult.overallCompetencyScore}%. Review your feedback and evidence.`, action: "View skill result" });
+        const completed = journey.skillResult.courseStatus === "completed";
+        setContinueState({ href: completed ? `/learner/courses/${learnerDemoCourse.id}/skill-evidence` : `/learner/courses/${learnerDemoCourse.id}/result`, title: completed ? "Course completed" : "More practice recommended", description: completed ? `Skill result: ${journey.skillResult.overallCompetencyScore}%. Credential earned in this frontend demo.` : `Skill result: ${journey.skillResult.overallCompetencyScore}%. Review the recommended next steps.`, action: completed ? "View credential" : "View skill result" });
       } else if (journey?.practicalAssessment?.status === "passed") {
         setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/result`, title: "Practical assessment passed", description: "Your knowledge and applied evidence are ready for the final skill result.", action: "View skill result" });
       } else if (journey?.practicalAssessment) {
