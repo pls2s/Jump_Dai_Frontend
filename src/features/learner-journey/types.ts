@@ -243,6 +243,20 @@ export interface LearnerSkillResult {
   completedAt: string;
 }
 
+/**
+ * Frontend-only issuance record stored with the existing learner journey.
+ * Eligibility remains derived; this record only captures the learner's
+ * explicit demo claim so an Eligible credential does not silently become
+ * Issued.
+ */
+export interface LearnerIssuedCredential {
+  id: string;
+  courseId: string;
+  learnerId: number;
+  issuedAt: string;
+  verifiedSkillIds: string[];
+}
+
 export interface LearnerJourneyState {
   version: 1;
   learnerId: number;
@@ -254,5 +268,6 @@ export interface LearnerJourneyState {
   knowledgeChecks?: Record<string, KnowledgeCheckAttempt>;
   practicalAssessment?: PracticalAssessmentState;
   skillResult?: LearnerSkillResult;
+  issuedCredential?: LearnerIssuedCredential;
   updatedAt: string;
 }

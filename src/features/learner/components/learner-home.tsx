@@ -11,6 +11,7 @@ import { buildPersonalizedLessonSequence } from "@/data/mock/learning-experience
 import { clearAuthSession, getAuthSession } from "@/features/auth/lib/auth-session";
 import { readLearnerJourney } from "@/features/learner-journey/lib/journey-store";
 import { readLearningProfile } from "@/features/learner-onboarding/lib/learning-profile-store";
+import { loadSkillPortfolio } from "@/features/skill-portfolio/services/skill-portfolio-service";
 
 interface ContinueState {
   href: string;
@@ -39,7 +40,25 @@ export function LearnerHome() {
       const journey = readLearnerJourney(session.user.id, learnerDemoCourse.id);
       if (journey?.skillResult) {
         const completed = journey.skillResult.courseStatus === "completed";
-        setContinueState({ href: completed ? `/learner/courses/${learnerDemoCourse.id}/skill-evidence` : `/learner/courses/${learnerDemoCourse.id}/result`, title: completed ? "Course completed" : "More practice recommended", description: completed ? `Skill result: ${journey.skillResult.overallCompetencyScore}%. Credential earned in this frontend demo.` : `Skill result: ${journey.skillResult.overallCompetencyScore}%. Review the recommended next steps.`, action: completed ? "View credential" : "View skill result" });
+        const portfolio = completed ? loadSkillPortfolio(learnerDemoCourse.id) : null;
+        const credential = portfolio?.credential;
+        const evidenceRoot = `/learner/courses/${learnerDemoCourse.id}/skill-evidence`;
+        const href = credential?.status === "issued"
+          ? `${evidenceRoot}/credentials/${credential.id}`
+          : credential?.status === "eligible"
+            ? `${evidenceRoot}/requirements`
+            : evidenceRoot;
+        const description = credential?.status === "issued"
+          ? `Skill result: ${journey.skillResult.overallCompetencyScore}%. Your demo credential is available.`
+          : credential?.status === "eligible"
+            ? `Skill result: ${journey.skillResult.overallCompetencyScore}%. Your credential is ready to claim.`
+            : `Skill result: ${journey.skillResult.overallCompetencyScore}%. Review your evidence and credential requirements.`;
+        setContinueState({
+          href: completed ? href : `/learner/courses/${learnerDemoCourse.id}/result`,
+          title: completed ? "Course completed" : "More practice recommended",
+          description: completed ? description : `Skill result: ${journey.skillResult.overallCompetencyScore}%. Review the recommended next steps.`,
+          action: completed ? (credential?.status === "issued" ? "View credential" : credential?.status === "eligible" ? "Claim credential" : "View skill evidence") : "View skill result",
+        });
       } else if (journey?.practicalAssessment?.status === "passed") {
         setContinueState({ href: `/learner/courses/${learnerDemoCourse.id}/result`, title: "Practical assessment passed", description: "Your knowledge and applied evidence are ready for the final skill result.", action: "View skill result" });
       } else if (journey?.practicalAssessment) {

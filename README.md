@@ -202,9 +202,10 @@ Learner workspace
 → Skill Detail and Evidence
 → Credential Requirements
 → Credential Preview
+→ Claim Demo Credential
 ```
 
-Assessment scoring, practical evaluation, path generation, portfolio evidence, and credential eligibility are deterministic frontend simulations. Learner Home resumes the latest saved stage. Credential links are frontend preview URLs and Print / Save as PDF uses the browser print dialog; there is no public verification or issuance backend.
+Assessment scoring, practical evaluation, path generation, portfolio evidence, and credential eligibility are deterministic frontend simulations. Learner Home resumes the latest saved stage. An eligible credential must be explicitly claimed; its demo issuance record persists in the existing local learner journey. Credential links are frontend preview URLs and Print / Save as PDF uses the browser print dialog; there is no public verification or issuance backend.
 
 ## Project structure
 

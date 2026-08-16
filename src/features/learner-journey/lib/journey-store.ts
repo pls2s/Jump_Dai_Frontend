@@ -1,5 +1,6 @@
 import type {
   LearnerJourneyState,
+  LearnerIssuedCredential,
   LearnerSkillResult,
   LearningProgress,
   KnowledgeCheckAttempt,
@@ -62,12 +63,14 @@ export function updateLearnerJourney(
     knowledgeChecks?: Record<string, KnowledgeCheckAttempt>;
     practicalAssessment?: PracticalAssessmentState;
     skillResult?: LearnerSkillResult;
+    issuedCredential?: LearnerIssuedCredential;
     clearResult?: boolean;
     clearLearningPath?: boolean;
     clearLearningProgress?: boolean;
     clearKnowledgeChecks?: boolean;
     clearPracticalAssessment?: boolean;
     clearSkillResult?: boolean;
+    clearIssuedCredential?: boolean;
   },
 ) {
   const current = readLearnerJourney(learnerId, courseId) ?? createEmptyLearnerJourney(learnerId, courseId);
@@ -80,6 +83,9 @@ export function updateLearnerJourney(
     knowledgeChecks: updates.clearKnowledgeChecks ? undefined : (updates.knowledgeChecks ?? current.knowledgeChecks),
     practicalAssessment: updates.clearPracticalAssessment ? undefined : (updates.practicalAssessment ?? current.practicalAssessment),
     skillResult: updates.clearSkillResult ? undefined : (updates.skillResult ?? current.skillResult),
+    issuedCredential: updates.clearIssuedCredential || updates.clearSkillResult
+      ? undefined
+      : (updates.issuedCredential ?? current.issuedCredential),
   };
   return writeLearnerJourney(next);
 }

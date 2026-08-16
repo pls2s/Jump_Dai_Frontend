@@ -42,12 +42,14 @@ No Creator Function 01–07 behavior or later Learner implementation was changed
 - Added Verified, Proficient, Developing, and Needs more practice presentation with learner-friendly reasons and next actions.
 - Added credential eligibility checks, eligible/issued/not-eligible states, certificate-disabled behavior, and a professional credential preview.
 - Added copy-link feedback, browser Print / Save as PDF, empty portfolio, partial evidence, and direct bypass preview states.
+- Added an explicit eligible → claiming → issued demo transition persisted in the existing learner journey.
 
 ### Changed
 
 - Connected Skill Result and completed-course Learner Home states to the Skill Portfolio.
 - Extended the existing Function 15 verification engine for per-skill decisions instead of introducing a competing verification rule.
 - Added Portfolio to learner navigation and Function 16 to the frontend preview index.
+- Corrected Skill Result and Learner Home credential copy so completion no longer implies issuance before the learner claims an eligible credential.
 
 Portfolio evidence, credential eligibility, issue dates, and `SS-DEMO-*` identifiers are frontend-derived demo behavior. No backend credential issuance, public verification, production PDF, or external sharing integration is claimed.
 
