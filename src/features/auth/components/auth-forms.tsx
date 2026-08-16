@@ -25,11 +25,12 @@ import {
   completeDemoRegistration,
   createAccount,
   enterDemoWorkspace,
+  enterFrontendPreview,
   signIn,
   verifyRegistrationOtp,
 } from "@/features/auth/services/auth-service";
 import { cn } from "@/lib/cn";
-import { isFrontendDemoMode } from "@/lib/config";
+import { isFrontendBypassEnabled, isFrontendDemoMode, shouldUseFrontendMocks } from "@/lib/config";
 import { AuthBackLink } from "./auth-shell";
 
 function errorMessage(error: unknown, fallback: string) {
@@ -43,6 +44,7 @@ export function SignInForm() {
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [quickAccessPending, setQuickAccessPending] = useState<WorkspaceType | null>(null);
+  const [previewPending, setPreviewPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState(
     searchParams.get("registered")
@@ -95,6 +97,18 @@ export function SignInForm() {
     setError(`${label} is not available in the current prototype. Use email and password to continue.`);
   }
 
+  async function enterPreview() {
+    setPreviewPending(true);
+    setError("");
+    try {
+      router.push(await enterFrontendPreview());
+    } catch (caught) {
+      setError(errorMessage(caught, "Frontend preview is unavailable."));
+    } finally {
+      setPreviewPending(false);
+    }
+  }
+
   return (
     <div className="w-full">
       <p className="type-label text-action-primary">Creator access</p>
@@ -129,6 +143,15 @@ export function SignInForm() {
           </div>
           <p className="type-caption mt-2 text-text-tertiary">Frontend-only sessions for development and UX review.</p>
         </section>
+      )}
+
+      {isFrontendBypassEnabled && (
+        <div className="mt-4 border-t border-border-default pt-4 text-center">
+          <Button variant="ghost" size="sm" onClick={() => void enterPreview()} isLoading={previewPending} loadingLabel="Opening preview…">
+            Continue to frontend preview
+          </Button>
+          <p className="type-caption mt-1 text-text-tertiary">Development-only access · no backend authentication</p>
+        </div>
       )}
 
       <p className="mt-8 text-center text-text-secondary">New to SkillSync? <Link href="/create-account" className="font-semibold text-text-link hover:underline">Create an account</Link></p>
@@ -192,7 +215,7 @@ export function OtpForm() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
-  if (!isFrontendDemoMode) {
+  if (!shouldUseFrontendMocks) {
     return <ContractUnavailable title="Email verification is not connected" description="The current API contract documents no OTP verification or resend endpoint. SkillSync will not submit a guessed request." />;
   }
 
@@ -240,6 +263,9 @@ export function OtpForm() {
         <p className="type-caption mt-4 rounded-md bg-yellow-50 p-3 text-neutral-700">Frontend Demo Mode code: <strong>{FRONTEND_DEMO_OTP}</strong></p>
         <Button type="submit" size="lg" className="mt-7 w-full" disabled={digits.some((digit) => !digit)} isLoading={pending} loadingLabel="Verifying…">Verify and continue</Button>
       </form>
+      {isFrontendBypassEnabled && (
+        <ButtonLink href="/account-type" variant="ghost" size="sm" className="mt-3 w-full">Continue in preview mode</ButtonLink>
+      )}
     </div>
   );
 }
@@ -256,7 +282,7 @@ export function AccountTypeForm() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
-  if (!isFrontendDemoMode) {
+  if (!shouldUseFrontendMocks) {
     return <ContractUnavailable title="Workspace selection is not connected" description="The current API response has no role or workspace field, and no account-type endpoint is documented." />;
   }
 

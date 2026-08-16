@@ -1,5 +1,5 @@
-import type { UserRole, WorkspaceType } from "@/data/mock";
-import { isFrontendDemoMode } from "@/lib/config";
+import { FRONTEND_BYPASS_USER, type UserRole, type WorkspaceType } from "@/data/mock";
+import { isFrontendBypassEnabled, isFrontendDemoMode } from "@/lib/config";
 import type { AuthResult } from "../api/auth-api";
 
 const SESSION_KEY = "skillsync-auth-session";
@@ -22,6 +22,13 @@ export type AuthSession =
     }
   | {
       mode: "demo";
+      user: SessionUser & {
+        workspaceType: WorkspaceType;
+        roles: UserRole[];
+      };
+    }
+  | {
+      mode: "bypass";
       user: SessionUser & {
         workspaceType: WorkspaceType;
         roles: UserRole[];
@@ -53,6 +60,17 @@ export function saveAuthSession(session: AuthSession, remember = true) {
 export function getAuthSession(): AuthSession | null {
   if (typeof window === "undefined") return null;
   const raw = sessionStorage.getItem(SESSION_KEY) ?? localStorage.getItem(SESSION_KEY);
+  if (isFrontendBypassEnabled) {
+    if (raw) {
+      try {
+        const stored = JSON.parse(raw) as AuthSession;
+        if (stored.mode === "bypass") return stored;
+      } catch {
+        // Invalid development state falls back to the safe preview identity below.
+      }
+    }
+    return createFrontendBypassSession();
+  }
   if (!raw) return null;
   try {
     const session = JSON.parse(raw) as AuthSession;
@@ -62,6 +80,25 @@ export function getAuthSession(): AuthSession | null {
   } catch {
     return null;
   }
+}
+
+export function createFrontendBypassSession(
+  workspaceType: WorkspaceType = FRONTEND_BYPASS_USER.workspaceType,
+): AuthSession {
+  return {
+    mode: "bypass",
+    user: {
+      ...FRONTEND_BYPASS_USER,
+      workspaceType,
+      roles: workspaceType === "learner" ? ["learner"] : ["creator"],
+    },
+  };
+}
+
+export function saveFrontendBypassSession(workspaceType: WorkspaceType = "creator") {
+  const session = createFrontendBypassSession(workspaceType);
+  saveAuthSession(session, true);
+  return session;
 }
 
 export function clearAuthSession() {
@@ -94,7 +131,7 @@ export function clearPendingDemoRegistration() {
 export function routeForWorkspace(workspaceType: WorkspaceType) {
   const routes: Record<WorkspaceType, string> = {
     creator: "/creator",
-    learner: "/learner/onboarding",
+    learner: "/learner",
     organization: "/organization/onboarding",
   };
   return routes[workspaceType];

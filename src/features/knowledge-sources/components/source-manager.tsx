@@ -47,7 +47,7 @@ import { fetchDemoUrl } from "@/lib/mock/demo-services";
 import { readMockSources, writeMockSources } from "@/lib/mock/source-store";
 import type { KnowledgeSource, SourceStatus, SourceType } from "@/types/product";
 
-type AddMode = "file" | "text" | "url";
+export type SourceAddMode = "file" | "text" | "url";
 type Feedback = { tone: "error" | "success"; text: string };
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
@@ -91,7 +91,7 @@ function sourceFromApi(document: ApiCourseDocument): KnowledgeSource {
   };
 }
 
-export function SourceManager({ courseId }: { courseId: string }) {
+export function SourceManager({ courseId, initialMode = "file" }: { courseId: string; initialMode?: SourceAddMode }) {
   const router = useRouter();
   const backendCourseId = /^\d+$/.test(courseId) ? Number(courseId) : null;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -99,7 +99,7 @@ export function SourceManager({ courseId }: { courseId: string }) {
   const [sources, setSources] = useState<KnowledgeSource[]>(() => backendCourseId === null ? initialKnowledgeSources : []);
   const idCounterRef = useRef(sources.length);
   const hydratedSourcesRef = useRef(false);
-  const [mode, setMode] = useState<AddMode>("file");
+  const [mode, setMode] = useState<SourceAddMode>(initialMode);
   const [deleteTarget, setDeleteTarget] = useState<KnowledgeSource | null>(null);
   const [urlPreview, setUrlPreview] = useState<{ url: string; title: string; domain: string } | null>(null);
   const [fetchingUrl, setFetchingUrl] = useState(false);

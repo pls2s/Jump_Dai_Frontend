@@ -4,7 +4,7 @@ import {
   type UserRole,
   type WorkspaceType,
 } from "@/data/mock";
-import { isFrontendDemoMode } from "@/lib/config";
+import { isFrontendBypassEnabled, shouldUseFrontendMocks } from "@/lib/config";
 import { demoDelay } from "@/lib/mock/demo-services";
 import { getCurrentUser, login, register, type AuthUser } from "../api/auth-api";
 import {
@@ -12,6 +12,8 @@ import {
   getAuthSession,
   getPendingDemoRegistration,
   routeForWorkspace,
+  createFrontendBypassSession,
+  saveFrontendBypassSession,
   saveApiAuthSession,
   saveAuthSession,
   savePendingDemoRegistration,
@@ -41,13 +43,15 @@ function demoUserSession(workspaceType: WorkspaceType): AuthSession {
 }
 
 export async function signIn(input: { email: string; password: string; remember: boolean }) {
-  if (isFrontendDemoMode) {
+  if (shouldUseFrontendMocks) {
     await demoDelay(450);
     const account = AUTH_DEMO_ACCOUNTS.find(
       (user) => user.email.toLowerCase() === input.email.trim().toLowerCase() && user.password === input.password,
     );
     if (!account) throw new AuthFlowError("Email or password is incorrect.");
-    const session = demoUserSession(account.workspaceType);
+    const session = isFrontendBypassEnabled
+      ? createFrontendBypassSession(account.workspaceType)
+      : demoUserSession(account.workspaceType);
     saveAuthSession(session, true);
     return { session, destination: routeForWorkspace(account.workspaceType) };
   }
@@ -58,15 +62,23 @@ export async function signIn(input: { email: string; password: string; remember:
 }
 
 export async function enterDemoWorkspace(workspaceType: WorkspaceType) {
-  if (!isFrontendDemoMode) throw new AuthFlowError("Frontend Demo Mode is disabled.");
+  if (!shouldUseFrontendMocks) throw new AuthFlowError("Frontend Demo Mode is disabled.");
+  if (isFrontendBypassEnabled) return enterFrontendPreview(workspaceType);
   await demoDelay(220);
   const session = demoUserSession(workspaceType);
   saveAuthSession(session, true);
   return routeForWorkspace(workspaceType);
 }
 
+export async function enterFrontendPreview(workspaceType: WorkspaceType = "creator") {
+  if (!isFrontendBypassEnabled) throw new AuthFlowError("Frontend Bypass Mode is disabled.");
+  await demoDelay(180);
+  saveFrontendBypassSession(workspaceType);
+  return routeForWorkspace(workspaceType);
+}
+
 export async function createAccount(input: { name: string; email: string; password: string }) {
-  if (isFrontendDemoMode) {
+  if (shouldUseFrontendMocks) {
     await demoDelay(500);
     savePendingDemoRegistration({ name: input.name, email: input.email });
     return "/verify-otp";
@@ -76,7 +88,7 @@ export async function createAccount(input: { name: string; email: string; passwo
 }
 
 export async function verifyRegistrationOtp(code: string) {
-  if (!isFrontendDemoMode) throw new AuthFlowError("OTP verification is not available in API mode.");
+  if (!shouldUseFrontendMocks) throw new AuthFlowError("OTP verification is not available in API mode.");
   const registration = getPendingDemoRegistration();
   if (!registration) throw new AuthFlowError("Your registration session is missing. Create your account again.");
   await demoDelay(400);
@@ -86,7 +98,8 @@ export async function verifyRegistrationOtp(code: string) {
 }
 
 export async function completeDemoRegistration(workspaceType: WorkspaceType) {
-  if (!isFrontendDemoMode) throw new AuthFlowError("Workspace selection is not available in API mode.");
+  if (!shouldUseFrontendMocks) throw new AuthFlowError("Workspace selection is not available in API mode.");
+  if (isFrontendBypassEnabled) return enterFrontendPreview(workspaceType);
   const registration = getPendingDemoRegistration();
   if (!registration?.verified) throw new AuthFlowError("Verify your email before choosing a workspace.");
   await demoDelay(350);
@@ -109,7 +122,7 @@ export async function completeDemoRegistration(workspaceType: WorkspaceType) {
 export async function loadCurrentAccount(): Promise<AuthUser> {
   const session = getAuthSession();
   if (!session) throw new AuthFlowError("Your session has ended. Sign in again.");
-  if (session.mode === "demo") {
+  if (session.mode === "demo" || session.mode === "bypass") {
     await demoDelay(250);
     return { id: session.user.id, name: session.user.name, email: session.user.email };
   }

@@ -15,7 +15,7 @@ export function AccountPanel() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [sessionMode, setSessionMode] = useState<"api" | "demo">("api");
+  const [sessionMode, setSessionMode] = useState<"api" | "demo" | "bypass">("api");
 
   const loadProfile = useCallback(async () => {
     const session = getAuthSession();
@@ -51,7 +51,7 @@ export function AccountPanel() {
       <Card className="mt-8 max-w-2xl p-5 sm:p-7">
         <div className="flex items-start gap-4">
           <span className="flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-800"><UserRound className="size-6" aria-hidden="true" /></span>
-          <div><h2 className="type-title-large">Account details</h2><p className="type-caption mt-1 text-text-tertiary">{sessionMode === "demo" ? "Frontend Demo Mode session" : "Loaded from GET /api/auth/me"}</p></div>
+          <div><h2 className="type-title-large">Account details</h2><p className="type-caption mt-1 text-text-tertiary">{sessionMode === "bypass" ? "Frontend preview identity" : sessionMode === "demo" ? "Frontend Demo Mode session" : "Loaded from GET /api/auth/me"}</p></div>
         </div>
 
         {loading ? (
@@ -65,13 +65,13 @@ export function AccountPanel() {
           <div className="mt-7 grid gap-5">
             <Field><FieldLabel htmlFor="profile-name">Display name</FieldLabel><Input id="profile-name" value={user.name} readOnly /></Field>
             <Field><FieldLabel htmlFor="profile-email">Email</FieldLabel><Input id="profile-email" type="email" value={user.email} readOnly /></Field>
-            <p className="type-body-small rounded-md bg-blue-50 p-3 text-blue-800">{sessionMode === "demo" ? "This identity is stored locally for frontend testing only." : "Profile editing and role information are not part of the current documented API contract."}</p>
+            <p className="type-body-small rounded-md bg-blue-50 p-3 text-blue-800">{sessionMode === "bypass" ? "This temporary identity exists only while Frontend Bypass Mode is enabled." : sessionMode === "demo" ? "This identity is stored locally for frontend testing only." : "Profile editing and role information are not part of the current documented API contract."}</p>
           </div>
         ) : null}
 
         <div className="mt-7 border-t border-border-default pt-6">
           <Button type="button" variant="secondary" onClick={signOut}><LogOut className="size-4" aria-hidden="true" />Sign out</Button>
-          <p className="type-caption mt-2 text-text-tertiary">{sessionMode === "demo" ? "This clears the local frontend demo session." : "No logout endpoint is documented; this clears the frontend Bearer-token session."}</p>
+          <p className="type-caption mt-2 text-text-tertiary">{sessionMode === "bypass" ? "The preview identity will be synthesized again on protected routes while bypass remains enabled." : sessionMode === "demo" ? "This clears the local frontend demo session." : "No logout endpoint is documented; this clears the frontend Bearer-token session."}</p>
         </div>
       </Card>
     </ContentContainer>

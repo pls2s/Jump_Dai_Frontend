@@ -35,11 +35,20 @@ export function creatorNavigationFor(pathname: string): readonly NavigationItem[
       item.icon === "courses" &&
       pathname.startsWith("/creator/courses") &&
       !pathname.startsWith("/creator/courses/new") &&
-      !pathname.includes("/sources") &&
-      !pathname.includes("/analysis") &&
-      !pathname.includes("/generate");
+      !pathname.includes("/sources");
     const isExact = item.href === pathname;
 
     return { ...item, current: isCourseCreation || isSources || isCourses || isExact };
   });
+}
+
+export const learnerNavigation: readonly NavigationItem[] = [
+  { label: "Home", href: "/learner", icon: "home" },
+];
+
+export function learnerNavigationFor(pathname: string): readonly NavigationItem[] {
+  return learnerNavigation.map((item) => ({
+    ...item,
+    current: item.href === pathname || pathname.startsWith(`${item.href}/`),
+  }));
 }

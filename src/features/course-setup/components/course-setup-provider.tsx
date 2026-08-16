@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { defaultCourseSetup } from "@/data/mock/product";
+import { readCourseSetup, writeCourseSetup } from "@/lib/mock/course-setup-store";
 import type { CourseSetup } from "@/types/product";
 
 interface CourseSetupContextValue {
@@ -11,25 +12,19 @@ interface CourseSetupContextValue {
 }
 
 const CourseSetupContext = createContext<CourseSetupContextValue | null>(null);
-const storageKey = "skillsync-course-setup";
-
 export function CourseSetupProvider({ children }: { children: ReactNode }) {
   const [course, setCourse] = useState<CourseSetup>(defaultCourseSetup);
   const hydratedRef = useRef(false);
 
   useEffect(() => {
     if (hydratedRef.current) {
-      localStorage.setItem(storageKey, JSON.stringify(course));
+      writeCourseSetup(course);
       return;
     }
     hydratedRef.current = true;
-    const saved = localStorage.getItem(storageKey);
-    if (!saved) return;
-    try {
-      const storedCourse = { ...defaultCourseSetup, ...JSON.parse(saved) };
+    const storedCourse = readCourseSetup();
+    if (JSON.stringify(storedCourse) !== JSON.stringify(defaultCourseSetup)) {
       window.setTimeout(() => setCourse(storedCourse), 0);
-    } catch {
-      localStorage.removeItem(storageKey);
     }
   }, [course]);
 

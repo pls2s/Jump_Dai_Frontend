@@ -1,25 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, ArrowDown, ArrowRight, BookOpenCheck, Check, CheckCircle2, Circle, FileCheck2, Layers3, Link2, Network, Quote, RefreshCw, Sparkles, X, type LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertTriangle, ArrowDown, ArrowRight, BookOpenCheck, Check, CheckCircle2, Circle, FileCheck2, Layers3, Link2, Network, Quote, RefreshCw, Sparkles, type LucideIcon } from "lucide-react";
 
 import { ContentContainer, PageHeader } from "@/components/layout";
 import { Badge, Button, ButtonLink, Card, Progress } from "@/components/ui";
 import { analysisSummary, analysisTopics, learningSequence, processingSteps } from "@/data/mock/product";
+import { markAnalysisComplete } from "@/features/knowledge-analysis/lib/analysis-store";
+import { SourceReferencesDrawer } from "@/features/source-grounding/components/source-references-drawer";
 import { cn } from "@/lib/cn";
+import { isFrontendBypassEnabled } from "@/lib/config";
 import { readMockSources } from "@/lib/mock/source-store";
 import type { Concept, SourceReference } from "@/types/product";
 
 type AnalysisPhase = "running" | "failed" | "complete";
 
-export function AnalysisWorkspace({ courseId, simulateFailure = false }: { courseId: string; simulateFailure?: boolean }) {
+export function AnalysisWorkspace({ courseId, simulateFailure = false, previewState }: { courseId: string; simulateFailure?: boolean; previewState?: "processing" | "result" }) {
   const [activeStep, setActiveStep] = useState(0);
-  const [phase, setPhase] = useState<AnalysisPhase>("running");
+  const [phase, setPhase] = useState<AnalysisPhase>(isFrontendBypassEnabled && previewState !== "processing" ? "complete" : "running");
   const [failThisRun, setFailThisRun] = useState(simulateFailure);
   const [hasReadySources, setHasReadySources] = useState(true);
 
   useEffect(() => {
-    const ready = readMockSources(courseId).some((source) => source.status === "Ready");
+    const ready = isFrontendBypassEnabled || readMockSources(courseId).some((source) => source.status === "Ready");
     window.setTimeout(() => setHasReadySources(ready), 0);
   }, [courseId]);
 
@@ -38,6 +41,10 @@ export function AnalysisWorkspace({ courseId, simulateFailure = false }: { cours
     }, activeStep === processingSteps.length - 1 ? 550 : 720);
     return () => window.clearTimeout(timer);
   }, [activeStep, failThisRun, hasReadySources, phase]);
+
+  useEffect(() => {
+    if (phase === "complete") markAnalysisComplete(courseId);
+  }, [courseId, phase]);
 
   if (!hasReadySources) return <MissingSources courseId={courseId} />;
   if (phase === "failed") return <AnalysisFailure courseId={courseId} onRetry={() => { setFailThisRun(false); setPhase("running"); }} />;
@@ -139,11 +146,11 @@ function AnalysisResult({ courseId }: { courseId: string }) {
       <Card className="mt-8 overflow-hidden border-blue-200 shadow-sm">
         <div className="grid items-center gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_auto]">
           <div className="flex items-start gap-4"><span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-status-success-subtle text-status-success"><CheckCircle2 className="size-6" aria-hidden="true" /></span><div><h2 className="type-title-large">Knowledge analysis complete</h2><p className="mt-2 max-w-2xl text-text-secondary">Your sources have been structured into topics, concepts, relationships, and a recommended learning sequence.</p></div></div>
-          <div className="flex flex-col gap-3 sm:flex-row"><ButtonLink href={`/creator/courses/${courseId}/sources`} variant="secondary">Review sources</ButtonLink><ButtonLink href={`/creator/courses/${courseId}/generate`} size="lg">Continue to course generation<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink></div>
+          <div className="flex flex-col gap-3 sm:flex-row"><ButtonLink href={`/creator/courses/${courseId}/sources`} variant="secondary">Review sources</ButtonLink><ButtonLink href={`/creator/courses/${courseId}/generate`} size="lg">Generate course<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink></div>
         </div>
       </Card>
 
-      {references && <SourcesDrawer references={references} onClose={() => setReferences(null)} />}
+      {references && <SourceReferencesDrawer references={references} onClose={() => setReferences(null)} description="These prototype references show how the knowledge analysis traces back to trusted sources." />}
     </ContentContainer>
   );
 }
@@ -159,17 +166,4 @@ function RelationshipCard() {
 
 function SequenceCard() {
   return <Card className="p-5 sm:p-6"><div className="flex items-start gap-3"><span className="flex size-10 items-center justify-center rounded-md bg-yellow-100 text-neutral-800"><Layers3 className="size-5" aria-hidden="true" /></span><div><h2 className="type-title-large">Recommended learning order</h2><p className="type-body-small mt-1 text-text-secondary">From foundations to execution and measurement.</p></div></div><ol className="mt-6 grid gap-2">{learningSequence.map((item, index) => <li key={item} className="flex items-center gap-3 rounded-md bg-neutral-25 p-3"><span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-800 text-sm font-semibold text-white">{index + 1}</span><span className="font-medium">{item}</span></li>)}</ol><p className="type-body-small mt-5 rounded-md bg-blue-50 p-3 text-blue-800">This order moves learners from foundational concepts to campaign execution and measurement.</p></Card>;
-}
-
-function SourcesDrawer({ references, onClose }: { references: SourceReference[]; onClose: () => void }) {
-  const closeRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    closeRef.current?.focus();
-    function handleKeyDown(event: KeyboardEvent) { if (event.key === "Escape") onClose(); }
-    document.addEventListener("keydown", handleKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", handleKeyDown); document.body.style.overflow = previousOverflow; };
-  }, [onClose]);
-  return <div className="fixed inset-0 z-50 bg-neutral-950/30 backdrop-blur-[1px]" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><aside role="dialog" aria-modal="true" aria-labelledby="sources-drawer-title" aria-describedby="sources-drawer-description" className="ml-auto flex h-dvh w-full max-w-lg flex-col bg-surface-default shadow-lg"><div className="flex items-start justify-between gap-4 border-b border-border-default p-5 sm:p-6"><div><Badge variant="success"><FileCheck2 className="size-3.5" aria-hidden="true" />Source grounded</Badge><h2 id="sources-drawer-title" className="type-title-large mt-3">Source references</h2><p id="sources-drawer-description" className="type-body-small mt-1 text-text-secondary">Mock references show how grounding will work in the full product.</p></div><Button ref={closeRef} variant="ghost" size="icon" onClick={onClose} aria-label="Close source references"><X className="size-5" aria-hidden="true" /></Button></div><div className="flex-1 overflow-y-auto p-5 sm:p-6"><div className="grid gap-4">{references.map((reference) => <Card key={reference.id} className="p-5"><div className="flex items-start gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-700"><FileCheck2 className="size-4" aria-hidden="true" /></span><div><h3 className="font-semibold">{reference.sourceName}</h3><p className="type-caption mt-0.5 text-text-tertiary">{reference.location}</p></div></div><blockquote className="type-body-small mt-4 border-l-2 border-yellow-400 pl-4 leading-6 text-text-secondary">“{reference.excerpt}”</blockquote></Card>)}</div></div><div className="border-t border-border-default p-5"><Button variant="secondary" className="w-full" onClick={onClose}>Done reviewing</Button></div></aside></div>;
 }

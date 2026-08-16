@@ -12,6 +12,10 @@ function pageContextFor(pathname: string) {
   if (pathname.includes("/courses/new")) return "Course setup";
   if (pathname.includes("/sources")) return "Knowledge sources";
   if (pathname.includes("/analysis")) return "Knowledge analysis";
+  if (pathname.includes("/generated")) return "Generated course";
+  if (pathname.includes("/review")) return "Creator review";
+  if (pathname.includes("/preview")) return "Course preview";
+  if (pathname.includes("/published")) return "Published course";
   if (pathname.includes("/generate")) return "AI course generation";
   if (pathname.includes("/analytics")) return "Analytics";
   if (pathname.includes("/account")) return "Profile & account";

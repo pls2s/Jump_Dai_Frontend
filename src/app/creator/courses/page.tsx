@@ -6,15 +6,16 @@ import { ArrowRight, BookOpen, CirclePlus, RefreshCw } from "lucide-react";
 import { ContentContainer, PageHeader } from "@/components/layout";
 import { Badge, Button, ButtonLink, Card, FieldError, Spinner } from "@/components/ui";
 import { loadCourseList, type CourseListItem } from "@/features/courses/services/course-service";
-import type { ApiCourseStatus } from "@/features/courses/api/course-api";
+import type { CourseLifecycleStatus } from "@/types/product";
 
-const statusVariant: Record<ApiCourseStatus, "neutral" | "info" | "warning" | "success"> = {
-  DRAFT: "neutral",
-  GENERATING: "info",
-  WAITING_VERIFICATION: "warning",
-  VERIFIED: "success",
-  PUBLISHED: "success",
+const statusVariant: Record<CourseLifecycleStatus, "neutral" | "info" | "warning" | "success"> = {
+  draft: "neutral",
+  review: "warning",
+  published: "success",
+  unpublished: "info",
 };
+
+const statusLabel: Record<CourseLifecycleStatus, string> = { draft: "Draft", review: "Review", published: "Published", unpublished: "Unpublished" };
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<CourseListItem[]>([]);
@@ -56,10 +57,10 @@ export default function CoursesPage() {
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           {courses.map((course) => (
             <Card key={course.id} className="p-5 sm:p-6">
-              <div className="flex items-start justify-between gap-4"><span className="flex size-10 items-center justify-center rounded-md bg-blue-100 text-blue-700"><BookOpen className="size-5" aria-hidden="true" /></span><Badge variant={statusVariant[course.status]}>{course.status.replaceAll("_", " ")}</Badge></div>
+              <div className="flex items-start justify-between gap-4"><span className="flex size-10 items-center justify-center rounded-md bg-blue-100 text-blue-700"><BookOpen className="size-5" aria-hidden="true" /></span><Badge variant={statusVariant[course.status]}>{statusLabel[course.status]}</Badge></div>
               <h2 className="type-title-large mt-5">{course.title}</h2>
               <p className="type-body-small mt-1 text-text-secondary">Course {course.id}</p>
-              <ButtonLink href={course.destination} variant="secondary" className="mt-5">Continue setup<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink>
+              <ButtonLink href={course.destination} variant="secondary" className="mt-5">{course.actionLabel}<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink>
             </Card>
           ))}
         </div>

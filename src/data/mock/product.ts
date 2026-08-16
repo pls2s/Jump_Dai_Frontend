@@ -20,6 +20,17 @@ export const defaultCourseSetup: CourseSetup = {
   completionCriteria: "all-lessons",
 };
 
+export const FRONTEND_PREVIEW_COURSE_ID = "demo-course-1";
+
+export const frontendPreviewCourse = {
+  id: FRONTEND_PREVIEW_COURSE_ID,
+  name: "Digital Marketing Foundations",
+  status: "Draft",
+  currentStep: "Knowledge Sources",
+  updatedAt: "Frontend preview fixture",
+  progress: 64,
+} as const;
+
 export const mockCourses = [
   {
     id: "digital-marketing-foundations",
@@ -40,7 +51,8 @@ export const mockCourses = [
 ] as const;
 
 export function getMockCourse(courseId: string) {
-  return mockCourses.find((course) => course.id === courseId);
+  return mockCourses.find((course) => course.id === courseId)
+    ?? (courseId === FRONTEND_PREVIEW_COURSE_ID ? frontendPreviewCourse : undefined);
 }
 
 export function isKnownCourseRouteId(courseId: string) {

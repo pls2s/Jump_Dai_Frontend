@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
-import { SourceManager } from "@/features/knowledge-sources/components/source-manager";
+import { SourceManager, type SourceAddMode } from "@/features/knowledge-sources/components/source-manager";
 import { isKnownCourseRouteId } from "@/data/mock/product";
 
-export default async function KnowledgeSourcesPage({ params }: { params: Promise<{ courseId: string }> }) {
+export default async function KnowledgeSourcesPage({ params, searchParams }: { params: Promise<{ courseId: string }>; searchParams: Promise<{ view?: string }> }) {
   const { courseId } = await params;
   if (!isKnownCourseRouteId(courseId)) notFound();
-  return <SourceManager courseId={courseId} />;
+  const query = await searchParams;
+  const initialMode: SourceAddMode = query.view === "text" || query.view === "url" ? query.view : "file";
+  return <SourceManager courseId={courseId} initialMode={initialMode} />;
 }

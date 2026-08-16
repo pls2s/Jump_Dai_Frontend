@@ -11,7 +11,7 @@ Understand what the AI is doing, inspect extracted topics and concepts, verify s
 ## Routes
 
 - `/creator/courses/[courseId]/analysis`
-- `/creator/courses/[courseId]/generate` (next-feature placeholder)
+- `/creator/courses/[courseId]/generate` (connected generator entry)
 
 ## Main screens
 
@@ -38,7 +38,7 @@ Understand what the AI is doing, inspect extracted topics and concepts, verify s
 - Selecting a concept updates its summary and grounding count
 - View sources opens a responsive side drawer with file/section references and excerpts
 - Review sources returns to source management
-- Generate course opens the placeholder for the next feature
+- Generate course opens the real frontend AI Course Generator entry
 
 ## States
 
@@ -58,4 +58,4 @@ All separate knowledge analysis, relationships, counts, summaries, and reference
 - Analysis restarts on route reload; add `?state=failed` to the analysis route to inspect the simulated failure/retry state
 - Topic edits, exclusions, relationship editing, and sequence reordering are not yet implemented
 - References demonstrate intended RAG UX but are not generated citations
-- Generate course is intentionally a placeholder for the next task
+- Analysis completion is stored locally so direct generation cannot skip the required knowledge-analysis dependency

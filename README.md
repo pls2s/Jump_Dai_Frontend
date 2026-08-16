@@ -1,6 +1,6 @@
 # SkillSync AI
 
-SkillSync AI is an AI-powered learning platform that helps creators turn trusted source material into structured, source-grounded learning experiences. This repository currently contains a front-end product prototype for authentication, course setup, knowledge-source management, and AI knowledge analysis.
+SkillSync AI is an AI-powered learning platform that helps creators turn trusted source material into structured, source-grounded learning experiences. This repository currently contains a front-end product prototype from authentication and course setup through AI generation, Human Verification, learner preview, and local publishing.
 
 The design system is an internal foundation. Its development-only reference is available at `/ui-preview`; the product entry route leads to the authentication journey.
 
@@ -36,10 +36,6 @@ npm install
 ```
 
 ## Local development
-
-```bash
-npm run dev
-```
 
 Copy the environment template, then start the frontend:
 
@@ -81,6 +77,32 @@ Restart `npm run dev` after changing the flag. In this mode:
 
 Use `123456` as the development-only OTP. Set `NEXT_PUBLIC_FRONTEND_DEMO_MODE=false` to restore the existing API-connected authentication and course/document integrations. API mode requires the backend at `NEXT_PUBLIC_API_URL`.
 
+## Frontend Bypass Mode
+
+Frontend Bypass Mode is a temporary development-only layer for opening every implemented UI without a backend, login, OTP, or prerequisite setup. Create or update `.env.local`:
+
+```env
+NEXT_PUBLIC_FRONTEND_BYPASS=true
+```
+
+Then restart the frontend and open the route index:
+
+```bash
+npm run dev
+```
+
+[http://localhost:3000/dev/frontend-preview](http://localhost:3000/dev/frontend-preview)
+
+When enabled, SkillSync synthesizes a non-credential preview identity (`Frontend Preview`, Creator workspace), allows protected route guards to resolve locally, and supplies existing structured fixtures. The preview index links directly to Functions 01–11, including loading, result, and failure variants where implemented. No backend authentication or API request is required.
+
+To restore normal behavior:
+
+```env
+NEXT_PUBLIC_FRONTEND_BYPASS=false
+```
+
+With bypass off, the existing `NEXT_PUBLIC_FRONTEND_DEMO_MODE` setting continues to choose between frontend demo authentication and the real API path. Set both flags to `false` for API-connected mode. Bypass defaults to off when the variable is missing and `/dev/frontend-preview` returns Not Found.
+
 ## Demo accounts
 
 Development / Demo only. These fixtures mirror the backend seed users and must not be used in production.
@@ -100,7 +122,7 @@ These credentials are development fixtures only and must never be used in produc
 3. Retry with an incorrect password and confirm the error does not mention backend availability.
 4. Use **Enter as Creator**, refresh `/creator`, then sign out and confirm `/creator` redirects to sign-in.
 5. Register a temporary user, enter invalid OTP digits, then verify with `123456` and choose a workspace.
-6. As Creator, complete course setup → knowledge sources → knowledge analysis → generation placeholder.
+6. As Creator, complete course setup → knowledge sources → knowledge analysis → generation → Human Verification → preview → publish.
 7. Set demo mode to `false`, start the backend, and repeat login/registration plus numeric-course document upload to test the preserved API path.
 
 ## Validation and production build
@@ -118,13 +140,62 @@ npm run start
 
 | Area | Routes |
 | --- | --- |
-| Entry and auth | `/`, `/sign-in`, `/create-account`, `/verify-otp`, `/account-type`, `/learner/onboarding`, `/organization/onboarding` |
+| Entry and auth | `/`, `/sign-in`, `/create-account`, `/verify-otp`, `/account-type`, `/organization/onboarding` |
+| Learner workspace | `/learner`, `/learner/courses/[courseId]/learning-profile`, `/pre-assessment`, `/skill-gap`, `/skill-gap/review`, `/learning-path`, `/learn` |
 | Creator workspace | `/creator`, `/creator/courses`, `/creator/analytics`, `/creator/account` |
 | Course setup | `/creator/courses/new/basics`, `/audience`, `/objectives`, `/certificate`, `/review` |
 | Knowledge sources | `/creator/courses/[courseId]/sources` |
 | Knowledge analysis | `/creator/courses/[courseId]/analysis` |
-| Generation placeholder | `/creator/courses/[courseId]/generate` |
+| AI course generation | `/creator/courses/[courseId]/generate`, `/generated` |
+| Creator review | `/creator/courses/[courseId]/review` |
+| Preview and publishing | `/creator/courses/[courseId]/preview`, `/published` |
 | Internal development | `/ui-preview` |
+| Frontend bypass index | `/dev/frontend-preview` (bypass mode only) |
+
+## Creator Demo Flow
+
+Install and start the frontend with demo mode enabled:
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Confirm `.env.local` contains `NEXT_PUBLIC_FRONTEND_DEMO_MODE=true`, then open `/sign-in` and choose **Enter as Creator** or use `creator@skillsync.local` / `password123`.
+
+Follow this sequence:
+
+```text
+Creator workspace
+→ Course setup
+→ Knowledge sources
+→ Knowledge analysis
+→ AI course generation
+→ Generated course
+→ Creator Review / Human Verification
+→ Learner preview
+→ Publish
+→ Published course management
+```
+
+Generation, editing, verification, publishing, and unpublishing are simulated frontend behavior. No AI or publishing backend is called.
+
+## Learner Demo Flow
+
+Sign in as the Learner demo account, then follow:
+
+```text
+Learner workspace
+→ Digital Marketing Foundations
+→ Learning Goal & Style
+→ Pre-Assessment
+→ Skill Gap
+→ Personalized Learning Path
+→ Learning Experience placeholder
+```
+
+Assessment scoring and path generation are deterministic frontend simulations. Learner Home resumes the latest saved stage, and Function 12 lesson delivery is intentionally not implemented.
 
 ## Project structure
 
@@ -144,8 +215,18 @@ src/
     courses/                 Mode-aware course service and documented API contracts
     course-setup/            Course setup state and wizard
     creator/                 Creator shell, home, and account UI
+    learner/                 Minimal role-separated Learner workspace shell and home
+    learner-onboarding/      Function 08 learning profile and persistence
+    learner-assessment/      Function 09 assessment UI, configuration, and scoring engine
+    learner-journey/         Shared assessment/result/path types, services, and persistence
+    skill-gap/               Function 10 skill snapshot and answer review
+    personalized-learning/   Function 11 mock path generator and learner path workspace
     knowledge-sources/       Source upload and management workspace
     knowledge-analysis/      Mock AI processing and analysis result workspace
+    course-generation/       Generated-course state, generator, outline, and content detail
+    course-review/           Human Verification editor and per-item review flow
+    course-publishing/       Learner preview, readiness, publish, and unpublish flow
+    source-grounding/        Reusable source-reference drawer
     design-system/           Internal `/ui-preview` implementation
   lib/                       Central environment config and framework-agnostic helpers
     api/                     Shared API envelope, error, auth-header, and upload handling
@@ -162,14 +243,16 @@ The environment template contains both public configuration values:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_FRONTEND_DEMO_MODE=true
+NEXT_PUBLIC_FRONTEND_BYPASS=false
 ```
 
-`NEXT_PUBLIC_FRONTEND_DEMO_MODE=true` selects browser-only authentication. `false` selects the real API client. Do not place secrets in `NEXT_PUBLIC_*` variables or commit `.env.local`. Manual-text sources, URL fetching, knowledge analysis, and citations remain simulated because matching endpoints are not documented.
+`NEXT_PUBLIC_FRONTEND_BYPASS=true` temporarily overrides authentication and route dependencies for UI review. When bypass is false, `NEXT_PUBLIC_FRONTEND_DEMO_MODE=true` selects browser-only authentication and `false` selects the real API client. Do not place secrets in `NEXT_PUBLIC_*` variables or commit `.env.local`. Manual-text sources, URL fetching, knowledge analysis, course generation, verification, publishing, and citations remain simulated where backend integration is not connected.
 
 ## Troubleshooting
 
 - **The app does not start:** confirm the Node.js version meets the prerequisite, then run `npm install` again.
 - **Demo access is missing:** set `NEXT_PUBLIC_FRONTEND_DEMO_MODE=true`, then restart `npm run dev`; public environment values are compiled into the frontend.
+- **Frontend preview index returns Not Found:** set `NEXT_PUBLIC_FRONTEND_BYPASS=true` in `.env.local`, then restart `npm run dev`.
 - **API mode reports that SkillSync cannot be reached:** start the backend and confirm `NEXT_PUBLIC_API_URL`; restart `npm run dev` after changing a public environment variable.
 - **The browser reports a CORS error:** `API_doc.md` currently allows only the old Vite origin on port 5173. Add the current Next.js origin `http://localhost:3000` to the backend development CORS allowlist.
 - **OTP or workspace selection is unavailable in API mode:** those capabilities have no endpoints, request schemas, or response schemas in `API_doc.md`; the frontend deliberately does not guess them. Use demo mode for the frontend-only journey.
@@ -185,6 +268,13 @@ NEXT_PUBLIC_FRONTEND_DEMO_MODE=true
 - [Create Course](docs/features/02-create-course.md)
 - [Knowledge Upload](docs/features/03-knowledge-upload.md)
 - [AI Knowledge Processing](docs/features/04-ai-knowledge-processing.md)
+- [AI Course Generator](docs/features/05-ai-course-generator.md)
+- [Creator Review / Human Verification](docs/features/06-creator-review.md)
+- [Course Preview & Publishing](docs/features/07-course-publishing.md)
+- [Learning Goal & Learning Style](docs/features/08-learning-goal-style.md)
+- [Pre-Assessment](docs/features/09-pre-assessment.md)
+- [Skill Gap](docs/features/10-skill-gap.md)
+- [Personalized Learning Path](docs/features/11-personalized-learning-path.md)
 - [Feature roadmap](docs/04-feature-roadmap.md)
 - [Requirement and flow audit](docs/05-requirement-flow-audit.md)
 - [Changelog](docs/CHANGELOG.md)

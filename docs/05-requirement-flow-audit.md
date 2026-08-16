@@ -38,7 +38,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 01 — User & Authentication
 
 - **Requirement IDs:** 01
-- **Current routes:** `/`, `/sign-in`, `/create-account`, `/verify-otp`, `/account-type`, `/creator/account`, `/learner/onboarding`, `/organization/onboarding`.
+- **Current routes:** `/`, `/sign-in`, `/create-account`, `/verify-otp`, `/account-type`, `/creator/account`, `/learner`, `/learner/onboarding` (redirect), `/organization/onboarding`.
 - **Current status:** Needs Review.
 - **Implemented behavior:** A centralized environment switch selects frontend demo or API-connected behavior. Demo mode completes fixture sign-in, invalid-credential handling, direct role access, registration, six-digit OTP, workspace selection, persistent password-free session, role routing, account display, client guard, and logout without a backend. API mode retains exact documented login/register/current-user calls, Bearer-token session, API errors, and local logout.
 - **Missing behavior:** API endpoints for OTP/resend/workspace/logout/profile update, auth role fields in API responses, server authorization, password-reset delivery, Google OAuth, and production session security.
@@ -82,89 +82,89 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 05 — AI Course Generator
 
 - **Requirement IDs:** 05
-- **Current routes:** `/creator/courses/digital-marketing-foundations/generate`.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** Intentional destination confirms knowledge analysis is complete, identifies future outline/module/lesson/exercise/quiz/assessment outputs, and provides Back navigation.
-- **Missing behavior:** All generator functionality.
-- **Flow problems found:** Earlier placeholder did not explicitly protect the later review-before-publish dependency.
-- **Changes made:** Clarified readiness, next feature scope, and that publishing remains unavailable until Creator Review.
-- **Remaining work:** Implement generator in the next feature task.
+- **Current routes:** `/creator/courses/[courseId]/generate`, `/generated`; failure QA uses `?state=failed` on Generate.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Readiness summary; source/topic/objective/audience/level context; seven understandable generation stages; failure/retry; structured outline, modules, lessons, objectives, exercises, Creator quizzes, practical task, rubric, final assessment, grounding, persisted result, and Review handoff.
+- **Missing behavior:** Real generation request/polling, RAG/LLM output, backend status, and server persistence.
+- **Flow problems found:** The earlier route was a terminal placeholder and generated no reviewable content.
+- **Changes made:** Replaced the placeholder with a guarded, staged generator and generated-course workspace. Analysis completion and ready sources are prerequisites. No Publish action is exposed.
+- **Remaining work:** Product/design acceptance and later integration with documented Generate, Generation Status, and Modules endpoints.
 
 ### 06 — Creator Review / Human Verification
 
 - **Requirement IDs:** 06
-- **Current routes:** None.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** Current analysis can be inspected and traced before generation; no generated-content review is falsely claimed.
-- **Missing behavior:** Generated-content editing, traceability, review status, and approval.
-- **Flow problems found:** None in current routes; future dependency needed explicit protection.
-- **Changes made:** Generation placeholder states that review is required before publishing.
-- **Remaining work:** Build only after Function 05 produces generated content.
+- **Current routes:** `/creator/courses/[courseId]/review`.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Responsive course tree, selected-content inspection, source traceability, focused edit mode, Save/Cancel, content validation, unsaved-change confirmation within review controls, Not reviewed/In review/Verified/Needs changes states, per-item verification, persisted edits/statuses, progress, review-complete handoff, and Preview-before-complete support.
+- **Missing behavior:** Backend saves/verification, collaboration, comments, assignments, version history, and server audit trail.
+- **Flow problems found:** Generated content previously had no review destination or quality-control interaction.
+- **Changes made:** Added editable Human Verification. Editing a Verified item returns it to Needs changes, and Publish readiness requires all required items Verified.
+- **Remaining work:** Product/design acceptance and later module/lesson update plus course-verify integration.
 
 ### 07 — Course Preview & Publishing
 
 - **Requirement IDs:** 07
-- **Current routes:** None.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** No Publish action exists, so review cannot be bypassed.
-- **Missing behavior:** Preview, publish/unpublish, Draft/Review/Published/Unpublished transitions, eligibility checks.
-- **Flow problems found:** None; no premature Publish control was present.
-- **Changes made:** Added review-before-publish explanation to the Function 05 placeholder.
-- **Remaining work:** Implement after Function 06.
+- **Current routes:** `/creator/courses/[courseId]/preview`, `/published`; publish failure QA uses `?state=failed` on Preview.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Responsive learner preview, expandable modules/lessons, activity/assessment/certificate visibility, Draft/Review/Published/Unpublished model, reusable readiness checks, explicit disabled reasons, confirmation, Publishing state, failure/retry, success, view/copy/My Courses actions, Unpublish confirmation, preserved content, republish, and dynamic My Courses status/action.
+- **Missing behavior:** Backend Publish, public learner URL/access, real Unpublish endpoint, distribution, enrollment, and server lifecycle authority.
+- **Flow problems found:** No learner-perspective preview, readiness model, or lifecycle management existed.
+- **Changes made:** Added preview/publish lifecycle while enforcing Generate → Review → Verify → Preview → Publish. Preview is allowed early; Publish is not.
+- **Remaining work:** Product/design acceptance and later integration with Verify/Publish plus a newly documented Unpublish contract.
 
 ### 08 — Learning Goal & Learning Style
 
 - **Requirement IDs:** 08
-- **Current routes:** `/learner/onboarding` placeholder.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** Learner role reaches an honest destination without Creator access.
-- **Missing behavior:** Goal and supported preference collection.
-- **Flow problems found:** Learner selection previously could not continue.
-- **Changes made:** Added intentional learner onboarding placeholder and account-type return path.
-- **Remaining work:** Implement learner onboarding before pre-assessment.
+- **Current routes:** `/learner`, `/learner/courses/[courseId]/learning-profile`; `/learner/onboarding` redirects to the workspace.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Minimal Learner workspace; available-course start; one primary goal plus optional Other/detail; familiarity; multi-select content preferences; required pace; optional session length; inline validation; per-learner/course local persistence; editable return state; and Function 09 handoff.
+- **Missing behavior:** Backend profile API, enrollment/catalog authority, server persistence, and integration into future personalization logic.
+- **Flow problems found:** Learner selection previously ended at a placeholder and collected none of the context required before assessment.
+- **Changes made:** Added a role-separated Learner shell, course entry, complete Function 08 form/state, and a valid pre-assessment destination.
+- **Remaining work:** Product/accessibility acceptance and future API integration. Self-reported familiarity must remain contextual and never replace assessment evidence.
 
 ### 09 — Pre-Assessment
 
 - **Requirement IDs:** 09
-- **Current routes:** None.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** None.
-- **Missing behavior:** Intro, questions, answers, attempt, submission, result processing, and personalized-learning dependency.
-- **Flow problems found:** No current learner routes contradict the dependency.
-- **Changes made:** None beyond documenting the required order.
-- **Remaining work:** Implement before Function 11 for personalized courses.
+- **Current routes:** `/learner/courses/[courseId]/pre-assessment`; bypass previews use `?view=intro`, `question`, or `processing`.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Course-aware intro; eight typed multiple-choice/multiple-select questions; one-question navigation; autosaved responses/index; inline unanswered validation; compact answer review; submission confirmation; meaningful four-stage evaluation; deterministic question, skill, and overall scoring.
+- **Missing behavior:** Backend attempt authority, randomized banks, server grading, and formal timing rules.
+- **Flow problems found:** The earlier Function 08 handoff stopped at a placeholder and could not produce assessment evidence.
+- **Changes made:** Connected Function 08 to a complete local attempt and result flow. Correct answers remain unavailable until after submission, and the result clears any obsolete path when the learner retakes the assessment.
+- **Remaining work:** Product/accessibility acceptance and a fully documented backend pre-test schema.
 
 ### 10 — Skill Gap Analysis
 
 - **Requirement IDs:** 10
-- **Current routes:** None.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** None.
-- **Missing behavior:** Skill score, strengths, areas to improve, weak topics, and recommendations.
-- **Flow problems found:** None in current scope.
-- **Changes made:** None.
-- **Remaining work:** Define score thresholds and derive weak topics from assessment results.
+- **Current routes:** `/learner/courses/[courseId]/skill-gap`, `/skill-gap/review`.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Constructive overall readiness; per-competency score, progress, and text status; centralized 0–39/40–59/60–79/80–100 bands; below-60 priority gaps; strengths; learner-friendly rationale; and read-only submitted-answer review.
+- **Missing behavior:** Backend-verified scores, normative benchmarks, creator feedback, and configurable course-specific weights.
+- **Flow problems found:** No evidence-based learner result existed between assessment and path generation.
+- **Changes made:** Added deterministic aggregation outside JSX and gated the result on a completed pre-assessment outside bypass mode.
+- **Remaining work:** Validate scoring policy with learning design stakeholders and connect a documented result contract.
 
 ### 11 — Personalized / Adaptive Learning Path
 
 - **Requirement IDs:** 11
-- **Current routes:** None.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** None.
-- **Missing behavior:** Goal/background/assessment-based path generation, adaptation, weak-topic response, and additional content recommendations.
-- **Flow problems found:** None; there is no premature path route.
-- **Changes made:** Documented dependency on Functions 08–10 and latest results.
-- **Remaining work:** Implement only after assessment contracts exist.
+- **Current routes:** `/learner/courses/[courseId]/learning-path`; Function 12 handoff at `/learn`; bypass previews use `?view=generating`, `result`, or `?state=failed`.
+- **Current status:** Needs Review.
+- **Implemented behavior:** Assessment-gated five-stage generation; priority/recommended/quick-refresher ordering; learner-facing reasons; activity selection influenced by content preferences; pace-adjusted estimates; path version, timestamp, and source-assessment evidence; failure/retry; persisted result.
+- **Missing behavior:** Backend generation, live adaptation after later results, enrollment/prerequisite rules, and lesson progress.
+- **Flow problems found:** No path could consume Function 08 context or Function 09 evidence.
+- **Changes made:** Added a pure mock generator that increases support for weak skills, keeps strong required topics as concise refreshers, and refuses to generate without required dependencies outside bypass mode.
+- **Remaining work:** Product acceptance, backend ordering/generation contract, and Function 12 delivery.
 
 ### 12 — Learning Experience
 
 - **Requirement IDs:** 12
-- **Current routes:** None.
+- **Current routes:** `/learner/courses/[courseId]/learn` intentional handoff only.
 - **Current status:** Future / Not Started.
 - **Implemented behavior:** None.
 - **Missing behavior:** Lesson access, materials, progress, last position, mandatory/optional status, and prerequisites.
 - **Flow problems found:** None.
-- **Changes made:** None.
+- **Changes made:** Added a valid next-function destination without lesson/progress functionality.
 - **Remaining work:** Implement after a published course and learner path exist.
 
 ### 13 — Quiz / Post-Assessment
@@ -264,30 +264,33 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 | Course Configuration → Knowledge Upload | Working | Review CTA is enabled only after all current required data is valid. |
 | Knowledge Upload → AI Processing | Working | Requires at least one Ready source; direct-route bypass is guarded. |
 | AI Processing → Completed Analysis | Working | Visible stages, failure/retry, and result inspection are connected. |
-| Completed Analysis → AI Course Generator | Partial | Destination works; generator itself is Future / Not Started. |
-| AI Course Generator → Creator Review | Future | Must be implemented next after generation. |
-| Creator Review → Preview | Future | No bypass exists. |
-| Preview → Publish | Future | No Publish control exists. |
+| Completed Analysis → AI Course Generator | Working | Analysis completion and a Ready source unlock the real generation entry. |
+| AI Course Generator → Creator Review | Needs Review | Staged mock generation persists a structured course and hands off to review. |
+| Creator Review → Preview | Needs Review | Editing, grounding, and item verification persist; Preview can open before completion. |
+| Preview → Publish | Needs Review | Publish remains disabled until all readiness rules and required verification pass. |
+| Publish → Published / Unpublished | Needs Review | Local publish, manage, unpublish, and republish lifecycle is connected. |
 
 ## Learner End-to-End Flow
 
 | Transition | Status |
 | --- | --- |
-| Authentication → Learner onboarding placeholder | Working |
-| Goal / Style → Pre-Assessment | Future |
-| Pre-Assessment → Skill Gap | Future |
-| Skill Gap → Personalized Path | Future |
-| Personalized Path → Learning | Future |
+| Authentication → Learner workspace | Working |
+| Learner workspace → Select / Start course | Working |
+| Start course → Learning Goal & Style | Working |
+| Goal / Style → Pre-Assessment | Needs Review |
+| Pre-Assessment → Skill Gap | Needs Review |
+| Skill Gap → Personalized Path | Needs Review |
+| Personalized Path → Learning Experience | Partial — intentional Function 12 destination only |
 | Learning → Assessment | Future |
 | Assessment → Skill Result | Future |
 | Skill Result → Portfolio / Credential | Future |
 
-No learner path, Verified Skill, badge, or certificate is prematurely exposed.
+A learning path is exposed only after assessment evidence. No lesson progress, Verified Skill, badge, or issued certificate is prematurely exposed.
 
 ## Role Flow
 
-- **Learner:** Selectable at account type; routes to `/learner/onboarding`; cannot enter the Creator shell under the mock guard.
-- **Creator:** Selectable; routes to `/creator`; current Creator functions 01–04 are available.
+- **Learner:** Selectable at account type; routes to `/learner`; uses a learner-only shell and can complete Functions 08–11 without Creator navigation.
+- **Creator:** Selectable; routes to `/creator`; current Creator functions 01–07 are available.
 - **Organization:** Selectable; routes to `/organization/onboarding`; cannot enter Creator/Admin functionality.
 - **Admin:** Not selectable; no route exists; future access must be system-assigned and server-authorized.
 
@@ -300,14 +303,25 @@ No learner path, Verified Skill, badge, or certificate is prematurely exposed.
 | `/create-account` | Sign-in | OTP in demo; sign-in notice in API mode | Sign-in | Field validation and mode-appropriate errors | Public | Demo temporary registration or backend registration |
 | `/verify-otp` | Demo registration | Account type | Create account | Incomplete/invalid OTP or missing temporary registration; intentional API contract-gap state | Public | Demo registration context; no documented API endpoint |
 | `/account-type` | Verified demo OTP | Selected workspace | Verify OTP | Missing/unverified registration; intentional API contract-gap state | Public | Verified demo registration; no documented API endpoint |
-| `/learner/onboarding` | Learner auth | Sign out | — | Wrong role redirects; future placeholder | Demo Learner | Learner demo session |
+| `/learner` | Learner auth | Start/continue Digital Marketing Foundations | Sign out | Missing/wrong-role demo session redirects | Learner | Demo/API/bypass session and mock course catalog |
+| `/learner/onboarding` | Legacy learner URL | Redirect to `/learner` | — | — | Learner | None |
+| `/learner/courses/[courseId]/learning-profile` | Start/continue course | Persist profile and open pre-assessment entry | Learner workspace | Unknown course 404; inline required-field/save errors | Learner | Valid mock course and learner session |
+| `/learner/courses/[courseId]/pre-assessment` | Valid Function 08 submission or bypass preview | Submit and open Skill Gap | Learning profile | Missing profile, unanswered validation, unknown course | Learner | Valid course and learning profile; bypass may hydrate fixtures |
+| `/learner/courses/[courseId]/skill-gap` | Completed assessment or bypass preview | Build learning path | Pre-assessment | Missing completed result | Learner | Completed assessment result |
+| `/learner/courses/[courseId]/skill-gap/review` | Skill snapshot | Read-only answer review | Skill Gap | Missing completed result | Learner | Submitted answers and scoring result |
+| `/learner/courses/[courseId]/learning-path` | Skill Gap CTA or bypass preview | Start learning handoff | Skill Gap | Missing profile/result; simulated generation failure/retry | Learner | Function 08 profile and completed Function 09 result |
+| `/learner/courses/[courseId]/learn` | Ready path | Learner home or back to path | Learning Path | Unknown course | Learner | Intentional Function 12 placeholder; no lesson delivery |
 | `/organization/onboarding` | Organization auth | Sign out | — | Wrong role redirects; future placeholder | Demo Organization | Organization demo session |
 | `/creator` | Creator login/demo access | Create/continue course | — | Missing/wrong-role demo session redirects | Creator | Matching demo session or API session |
 | `/creator/courses` | Sidebar/home | Create/manage documents | Creator home | Demo empty/local state or API loading/network errors | Creator | Mode-aware local list or `GET /api/courses` |
 | `/creator/courses/new/[step]` | Create/Continue/Edit | Demo source workspace or backend course documents | Previous step/home | Validation and mode-appropriate create errors | Creator | Prior values; local demo submission or `POST /api/courses` on Review |
 | `/creator/courses/[courseId]/sources` | Created/listed course | File upload/status/delete | My Courses | Upload/list/delete and mock URL/source failures | Creator | Local behavior for demo slug; documented APIs for numeric IDs in API mode |
-| `/creator/courses/[courseId]/analysis` | Ready source CTA on seeded demo | Generation placeholder | Sources | Unknown course 404; missing-ready-source; simulated AI failure/retry | Authenticated prototype | Local mock sources; no documented analysis endpoint |
-| `/creator/courses/[courseId]/generate` | Completed analysis | Back to analysis | Analysis | Unknown/ineligible course 404 | Creator | Analysis completion implied by entry |
+| `/creator/courses/[courseId]/analysis` | Ready source CTA on seeded demo | AI Course Generator | Sources | Unknown course 404; missing-ready-source; simulated AI failure/retry | Authenticated prototype | Local mock sources; no documented analysis endpoint |
+| `/creator/courses/[courseId]/generate` | Completed analysis | Generated course | Analysis | Missing source/analysis; generation failure/retry; unknown course | Creator | Persisted analysis completion and Ready source |
+| `/creator/courses/[courseId]/generated` | Generation completion | Creator Review | Generate | Missing generated state; unknown course | Creator | Persisted generated course |
+| `/creator/courses/[courseId]/review` | Generated result/My Courses | Preview | Generated course | Missing generated state; validation; unsaved changes | Creator | Generated course; per-item reviews |
+| `/creator/courses/[courseId]/preview` | Review | Published success | Review | Not-ready checklist; publish failure/retry | Creator | Generated content, Ready source, full verification, certificate criteria |
+| `/creator/courses/[courseId]/published` | Publish success/My Courses | Unpublish or My Courses | My Courses | Missing/non-published state | Creator | Published lifecycle state |
 | `/creator/account` | Profile links | Refresh/sign out | Sidebar navigation | Loading/current-user API error in API mode | Creator | Demo session or `GET /api/auth/me`; local session clear for logout |
 | `/creator/analytics` | Sidebar | Continue active course | Sidebar navigation | Honest empty state | Creator | Published course data (not available) |
 | `/ui-preview` | Direct development URL only | Internal component inspection | — | — | Development | None |
@@ -329,6 +343,14 @@ No learner path, Verified Skill, badge, or certificate is prematurely exposed.
 - Unknown dynamic course IDs rendered current workspaces.
 - Source delete and reference dialogs lacked complete Escape/focus/scroll behavior.
 - The create-course empty card lacked a direct action despite visual emphasis.
+- Function 05 ended at a placeholder, so generated content could not reach Human Verification.
+- No persisted review status or readiness rule prevented an apparent Preview/Publish implementation from bypassing verification.
+- Course cards could not reflect Review, Published, or Unpublished lifecycle state.
+- Generated-course navigation expanded every module, repeated heavy card borders, consumed excessive height, and remained permanently visible on small screens.
+- Learner authentication ended at a placeholder with no course start, learning context, persistence, or assessment handoff.
+- Function 09 was only a placeholder, so no assessment evidence could feed Skill Gap or personalization.
+- No centralized weak-topic/status thresholds, result review, or assessment-gated path generator existed.
+- Learner Home always returned a learner with saved progress to Function 08 instead of their latest completed stage.
 
 ### Resolution
 
@@ -346,16 +368,25 @@ No learner path, Verified Skill, badge, or certificate is prematurely exposed.
 - Improved dialog semantics, initial focus, Escape close, and background scroll handling.
 - Added a real Create course link to the empty-state card.
 - Preserved documented API calls behind the same mode-aware services, without scattering environment checks through UI components.
+- Added guarded generation, persisted generated content, source-grounded Human Verification, and explicit per-item review status.
+- Added one reusable readiness model that blocks Publish until configuration, sources, content, review, verification, and certificate rules pass.
+- Added local publish/unpublish lifecycle and status-appropriate My Courses actions without claiming backend publication.
+- Replaced heavy generated-course module cards with a compact collapsible tree, active-module expansion, viewport-bounded sticky scrolling, two-line labels, and a mobile structure drawer.
+- Added the role-separated Learner workspace and persisted Function 08 flow into Function 09.
+- Replaced the Function 09 placeholder with a resumable eight-question assessment, inline validation, submission review, staged evaluation, and persisted scoring.
+- Added centralized competency bands, priority gaps, strengths, and post-submission answer explanations.
+- Added dependency-gated path generation that uses both assessment evidence and Function 08 preferences, plus failure/retry, path evidence/versioning, and an intentional Function 12 handoff.
+- Made the Learner Home Continue action resolve from saved profile, assessment, result, and path state.
 
 ## Business Rule Integrity
 
 1. Mock role access routes Creator, Learner, and Organization to different areas; Admin is never self-selectable.
-2. Generated content cannot be published because generation, review, preview, and publishing are not yet implemented.
-3. Current analysis exposes mock source names, locations, excerpts, and reference counts.
-4. Personalized learning has no premature route and remains dependent on future pre-assessment.
-5. Weak-topic thresholds are not yet implemented and are not claimed.
-6. Adaptive paths are not yet implemented and are not claimed.
+2. Generated content cannot publish until every required item is verified and all readiness rules pass.
+3. Analysis and generated content expose mock source names, locations, excerpts, and reference counts through one shared drawer.
+4. Personalized learning cannot generate without a completed pre-assessment outside bypass preview mode.
+5. Weak topics use the centralized below-60% threshold; visible status bands remain separately centralized.
+6. Paths record assessment evidence and a version for future adaptation; live adaptation is not claimed.
 7. No skill is marked Verified.
 8. No assessment is marked passed without criteria.
 9. No credential is shown as issued.
-10. Certificate criteria are shown whenever the course certificate is enabled.
+10. Certificate criteria are shown whenever enabled and are included in publish readiness.
