@@ -12,6 +12,7 @@ Learner.
 
 - Quick quiz: `/learner/courses/[courseId]/quiz/[quizId]`
 - Post-Assessment: `/learner/courses/[courseId]/post-assessment`
+- Bypass previews: `?view=question`, `?view=submitting`, `?view=analyzing`, and `?view=result&result=passed|needs-practice`
 - Lesson → quick quiz → learning; completed learning → Post-Assessment → Practical Assessment when passed
 
 ## Components and data model
@@ -20,11 +21,11 @@ Learner.
 
 ## States and validation
 
-Not started, in progress, submitted, passed, and needs more practice. Each question requires an answer. MCQ and multi-select are supported; correct answers appear only after submission.
+Not started, in progress, submitting, evaluating, submitted, passed, and needs more practice. Each question requires an answer. MCQ and multi-select are supported; correct answers appear only after submission. Post-Assessment submission uses saved submission and staged comparison/criteria analysis states instead of jumping immediately to its result.
 
 ## Mock logic and persistence
 
-The centralized knowledge-check engine calculates question, skill, and total scores outside JSX. Quick checks pass at 60%; Post-Assessment passes at 70%. Attempts and results persist in the shared learner-journey record.
+The centralized knowledge-check engine calculates question, skill, exact-correct count, and total scores outside JSX. Quick checks pass at 60%; Post-Assessment passes at 70%. Attempts, evaluating state, answers, and results persist in the shared learner-journey record.
 
 ## Completion rules
 

@@ -80,7 +80,7 @@ export function loadLearningExperience(
 
   if (stageRank(minimumStage) >= 4 && journey.practicalAssessment?.status !== "passed") {
     const practical = evaluatePracticalDraft({ ...newPracticalAssessment(demoPracticalDraft), status: "evaluating", submittedAt: new Date().toISOString() });
-    journey = updateLearnerJourney(learnerId, courseId, { practicalAssessment: practical });
+    journey = updateLearnerJourney(learnerId, courseId, { practicalAssessment: practical, clearSkillResult: true });
   }
 
   if (stageRank(minimumStage) >= 5 && !journey.skillResult) {
@@ -119,6 +119,14 @@ export function createKnowledgeCheckAttempt(definition: KnowledgeCheckDefinition
 
 export function saveKnowledgeCheckAttempt(learnerId: number, courseId: string, journey: LearnerJourneyState, attempt: KnowledgeCheckAttempt) {
   return updateLearnerJourney(learnerId, courseId, { knowledgeChecks: { ...(journey.knowledgeChecks ?? {}), [attempt.definitionId]: attempt }, clearSkillResult: attempt.kind === "post-assessment" });
+}
+
+export function markKnowledgeCheckSubmitting(learnerId: number, courseId: string, journey: LearnerJourneyState, attempt: KnowledgeCheckAttempt) {
+  return saveKnowledgeCheckAttempt(learnerId, courseId, journey, { ...attempt, status: "submitting" });
+}
+
+export function markKnowledgeCheckEvaluating(learnerId: number, courseId: string, journey: LearnerJourneyState, attempt: KnowledgeCheckAttempt) {
+  return saveKnowledgeCheckAttempt(learnerId, courseId, journey, { ...attempt, status: "evaluating" });
 }
 
 export function saveKnowledgeCheckResponse(learnerId: number, courseId: string, journey: LearnerJourneyState, attempt: KnowledgeCheckAttempt, response: AssessmentResponse, currentQuestionIndex: number) {
@@ -163,11 +171,21 @@ export function loadKnowledgeCheckExperience(
   return { journey, lessons: loaded.lessons };
 }
 
+export type PracticalPreviewState = "task" | "draft" | "evaluating" | "passed" | "needs-practice";
+
 export function loadPracticalExperience(
   learnerId: number,
   courseId: string,
-  previewState?: "evaluating" | "passed" | "needs-practice",
+  previewState?: PracticalPreviewState,
 ) {
+  if (isFrontendBypassEnabled && (previewState === "task" || previewState === "draft")) {
+    const loaded = loadLearningExperience(learnerId, courseId, "post-complete");
+    const practicalAssessment: PracticalAssessmentState = previewState === "draft"
+      ? { ...newPracticalAssessment(demoPracticalDraft), status: "draft", savedAt: new Date().toISOString() }
+      : newPracticalAssessment(emptyPracticalDraft);
+    const journey = savePracticalAssessment(learnerId, courseId, practicalAssessment);
+    return { journey, lessons: loaded.lessons };
+  }
   if (isFrontendBypassEnabled && previewState === "passed") return loadLearningExperience(learnerId, courseId, "practical-complete");
   const loaded = loadLearningExperience(learnerId, courseId, "post-complete");
   const existingStatus = loaded.journey.practicalAssessment?.status;
@@ -180,4 +198,20 @@ export function loadPracticalExperience(
   const practicalAssessment = previewState === "evaluating" ? base : evaluatePracticalDraft(base);
   const journey = savePracticalAssessment(learnerId, courseId, practicalAssessment);
   return { journey, lessons: loaded.lessons };
+}
+
+export type SkillResultPreviewState = "completed" | "more-practice";
+
+export function loadSkillResultExperience(
+  learnerId: number,
+  courseId: string,
+  previewState?: SkillResultPreviewState,
+) {
+  if (isFrontendBypassEnabled && previewState === "more-practice") {
+    const loaded = loadPracticalExperience(learnerId, courseId, "needs-practice");
+    const skillResult = createLearnerSkillResult(loaded.journey);
+    const journey = skillResult ? saveSkillResult(learnerId, courseId, skillResult) : loaded.journey;
+    return { journey, lessons: loaded.lessons };
+  }
+  return loadLearningExperience(learnerId, courseId, "result-ready");
 }

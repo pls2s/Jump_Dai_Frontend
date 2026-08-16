@@ -149,7 +149,7 @@ export interface LearningProgress {
 }
 
 export type KnowledgeCheckKind = "quick-quiz" | "post-assessment";
-export type KnowledgeCheckStatus = "not-started" | "in-progress" | "submitted";
+export type KnowledgeCheckStatus = "not-started" | "in-progress" | "submitting" | "evaluating" | "submitted";
 
 export interface KnowledgeCheckDefinition {
   id: string;
