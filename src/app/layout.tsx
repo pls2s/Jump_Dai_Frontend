@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Anuphan } from "next/font/google";
+import type { ReactNode } from "react";
+
+import { ToastProvider } from "@/components/ui";
 
 import "./globals.css";
 
@@ -18,10 +21,10 @@ export const metadata: Metadata = {
     "An AI-powered learning platform for building verified, job-relevant skills.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${anuphan.variable} antialiased`}>
-      <body>{children}</body>
+      <body><ToastProvider>{children}</ToastProvider></body>
     </html>
   );
 }

@@ -22,7 +22,8 @@ Create or access an account, reach the correct workspace, retain a safe frontend
 
 - Sign in with email, password, remember-me, password recovery feedback, and Google option
 - Create account with name, email, password, and terms acceptance
-- Six-digit OTP verification and account-type selection in demo mode
+- Six-digit OTP verification with visible expiry/resend and account-type selection in demo mode
+- Creator account details with demo/bypass View, Edit, Save, and Cancel states
 - Intentional contract-gap states at OTP and account-type routes in API mode
 
 ## Components
@@ -41,8 +42,12 @@ Create or access an account, reach the correct workspace, retain a safe frontend
 - API login reads exactly `access_token`, `token_type`, and user `id`, `name`, `email`
 - Google sign-in reports that it is not connected instead of creating a fake session
 - Demo account creation stores temporary registration data in `sessionStorage`, verifies development OTP `123456`, then creates a session after workspace selection
+- Each demo OTP issue lasts two minutes. Expiry is stored with the pending registration, survives refresh, blocks verification when elapsed, and is reset only by Resend code
+- Resend uses the existing `123456` development fixture, preserves registration identity, shows a loading state, clears the superseded digits, and announces success through the shared toast system
 - API account creation calls `POST /api/auth/register` with exactly `name`, `email`, and `password`, then returns to sign-in
 - `/creator/account` reads the demo session in demo mode or calls authenticated `GET /api/auth/me` in API mode
+- Demo/bypass profiles support View → Edit → Save/Cancel for name and email; updates reuse the existing auth-session storage and persist on refresh
+- API profiles remain intentionally read-only because `API_doc.md` contains no update endpoint
 - OTP and workspace screens never issue guessed API requests in API mode
 - Sign out from `/creator/account` returns to `/sign-in`
 - `NEXT_PUBLIC_FRONTEND_BYPASS=true` makes the shared session lookup synthesize the development-only `Frontend Preview` identity, so existing guards allow direct UI review without backend calls
@@ -51,22 +56,23 @@ Create or access an account, reach the correct workspace, retain a safe frontend
 
 ## States
 
-- Pending button states for sign-in, sign-up, and profile loading
+- Pending button states for sign-in, sign-up, OTP verification/resend, profile loading/saving, and logout confirmation
 - Registration, authentication, authorization, validation, network, and response-shape errors
 - Current-user retry state
-- Invalid/incomplete demo OTP and missing/expired temporary registration context
+- Empty, incomplete, invalid, expired, verifying, resent, and missing-registration OTP states
+- Profile view/edit/save/cancel, inline validation, save success, and save failure states
 - Intentional unsupported states for undocumented API capabilities
 
 ## Mock behavior
 
 Seed users live in `src/data/mock/auth-users.ts`. Only the demo branch in `src/features/auth/services/auth-service.ts` matches these fixtures; the bypass branch returns before fixture or API logic. UI components do not contain credential matching. The OTP fixture lives in `src/data/mock/auth.ts`. API calls remain isolated in `src/features/auth/api/auth-api.ts`; shared transport lives in `src/lib/api/api-client.ts`.
 
-The bypass identity also lives in `src/data/mock/auth.ts`, contains no credential, and is synthesized through `auth-session.ts`. Bypass defaults to off and sits above—not in place of—the existing demo/API switch.
+The bypass identity also lives in `src/data/mock/auth.ts`, contains no credential, and is synthesized through `auth-session.ts`. Bypass defaults to off and sits above—not in place of—the existing demo/API switch. Demo profile edits update only that existing stored session; no second profile store was introduced.
 
 ## Known limitations
 
 - Demo sessions and API tokens are stored in browser storage and routes are guarded client-side; production requires an HTTP-only server session and server authorization
-- Google OAuth, password reset, OTP, OTP resend, workspace selection, logout/revocation, profile updates, and roles in auth responses are not documented
+- Google OAuth, password reset, OTP verification/resend, workspace selection, logout/revocation, profile updates, and roles in auth responses are not documented; API mode does not guess these contracts
 - API mode cannot perform authoritative role-based landing-page routing because the documented response has no role/workspace data; backend permissions remain authoritative
 - Organization remains a placeholder; Learner Functions 08–16 use frontend-only state
 - Bypass mode intentionally recreates its preview identity after sign-out until the environment flag is turned off

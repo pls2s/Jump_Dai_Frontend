@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  useEffect,
   useRef,
   useState,
   type ClipboardEvent,
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { Building2, GraduationCap, KeyRound, PenTool, ShieldCheck } from "lucide-react";
+import { Building2, Clock3, GraduationCap, KeyRound, PenTool, RefreshCw, ShieldCheck } from "lucide-react";
 
 import {
   Button,
@@ -19,6 +20,7 @@ import {
   FieldError,
   FieldLabel,
   Input,
+  useToast,
 } from "@/components/ui";
 import { FRONTEND_DEMO_OTP, type WorkspaceType } from "@/data/mock";
 import {
@@ -26,6 +28,8 @@ import {
   createAccount,
   enterDemoWorkspace,
   enterFrontendPreview,
+  getDemoOtpContext,
+  resendRegistrationOtp,
   signIn,
   verifyRegistrationOtp,
 } from "@/features/auth/services/auth-service";
@@ -214,10 +218,35 @@ export function CreateAccountForm() {
 
 export function OtpForm() {
   const router = useRouter();
+  const { showToast } = useToast();
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [pending, setPending] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
+  const [registrationEmail, setRegistrationEmail] = useState("");
+  const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!shouldUseFrontendMocks) return;
+    const timer = window.setTimeout(() => {
+      const context = getDemoOtpContext();
+      if (!context) return;
+      setRegistrationEmail(context.email);
+      setExpiresAt(context.expiresAt);
+      setRemainingSeconds(Math.max(0, Math.ceil((context.expiresAt - Date.now()) / 1000)));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!shouldUseFrontendMocks || expiresAt === null) return;
+    const interval = window.setInterval(() => {
+      setRemainingSeconds(Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000)));
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [expiresAt]);
 
   if (!shouldUseFrontendMocks) {
     return <ContractUnavailable title="Email verification is not connected" description="The current API contract documents no OTP verification or resend endpoint. SkillSync will not submit a guessed request." />;
@@ -244,14 +273,42 @@ export function OtpForm() {
 
   async function verify(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (digits.some((digit) => !digit)) {
+      setError("Enter all six digits to continue.");
+      return;
+    }
+    if (remainingSeconds === 0) {
+      setError("This verification code has expired. Resend the code to continue.");
+      return;
+    }
     setPending(true);
     setError("");
     try {
-      router.push(await verifyRegistrationOtp(digits.join("")));
+      const destination = await verifyRegistrationOtp(digits.join(""));
+      showToast({ tone: "success", title: "Email verified", description: "Choose how you’ll use SkillSync." });
+      router.push(destination);
     } catch (caught) {
       setError(errorMessage(caught, "The verification code is incorrect."));
     } finally {
       setPending(false);
+    }
+  }
+
+  async function resend() {
+    setResending(true);
+    setError("");
+    try {
+      const context = await resendRegistrationOtp();
+      setRegistrationEmail(context.email);
+      setExpiresAt(context.expiresAt);
+      setRemainingSeconds(Math.max(0, Math.ceil((context.expiresAt - Date.now()) / 1000)));
+      setDigits(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
+      showToast({ tone: "success", title: "A new verification code has been sent", description: `Use it within ${formatOtpTime(Math.ceil((context.expiresAt - Date.now()) / 1000))}.` });
+    } catch (caught) {
+      setError(errorMessage(caught, "We couldn’t resend the verification code."));
+    } finally {
+      setResending(false);
     }
   }
 
@@ -260,18 +317,28 @@ export function OtpForm() {
       <AuthBackLink href="/create-account">Back</AuthBackLink>
       <span className="flex size-11 items-center justify-center rounded-lg bg-blue-100 text-blue-700"><KeyRound className="size-5" aria-hidden="true" /></span>
       <h1 className="type-h1 mt-5">Check your email</h1>
-      <p className="mt-3 text-text-secondary">Enter the six-digit development code to continue.</p>
+      <p className="mt-3 text-text-secondary">Enter the six-digit development code{registrationEmail ? <> sent to <strong className="font-semibold text-text-primary">{registrationEmail}</strong></> : ""} to continue.</p>
       <form onSubmit={verify} className="mt-8" noValidate>
-        <fieldset><legend className="sr-only">Six digit verification code</legend><div className="grid grid-cols-6 gap-2 sm:gap-3" onPaste={handlePaste}>{digits.map((digit, index) => <Input key={index} ref={(node) => { inputRefs.current[index] = node; }} aria-label={`Digit ${index + 1}`} inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} maxLength={1} value={digit} validation={error ? "error" : "default"} onChange={(event) => updateDigit(index, event.target.value)} onKeyDown={(event) => handleKey(index, event)} className="px-0 text-center text-xl font-semibold" />)}</div></fieldset>
+        <fieldset aria-describedby={error ? "otp-error" : "otp-expiry"}><legend className="sr-only">Six digit verification code</legend><div className="grid grid-cols-6 gap-2 sm:gap-3" onPaste={handlePaste}>{digits.map((digit, index) => <Input key={index} ref={(node) => { inputRefs.current[index] = node; }} aria-label={`Digit ${index + 1}`} inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} maxLength={1} value={digit} validation={error ? "error" : "default"} onChange={(event) => updateDigit(index, event.target.value)} onKeyDown={(event) => handleKey(index, event)} className="px-0 text-center text-xl font-semibold" />)}</div></fieldset>
         {error && <FieldError id="otp-error" className="mt-4">{error}</FieldError>}
+        <div id="otp-expiry" className="type-body-small mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2.5 text-blue-900">
+          <span className="flex items-center gap-2"><Clock3 className="size-4" aria-hidden="true" />{remainingSeconds === null ? "Checking code expiry…" : remainingSeconds > 0 ? <>Code expires in <span role="timer" className="font-semibold tabular-nums">{formatOtpTime(remainingSeconds)}</span></> : <span role="status" className="font-semibold text-status-error">This verification code has expired.</span>}</span>
+          <Button type="button" variant="ghost" size="sm" className="min-h-9 px-2 text-blue-800" onClick={() => void resend()} isLoading={resending} loadingLabel="Resending…" disabled={pending}><RefreshCw className="size-4" aria-hidden="true" />Resend code</Button>
+        </div>
         <p className="type-caption mt-4 rounded-md bg-yellow-50 p-3 text-neutral-700">Frontend Demo Mode code: <strong>{FRONTEND_DEMO_OTP}</strong></p>
-        <Button type="submit" size="lg" className="mt-7 w-full" disabled={digits.some((digit) => !digit)} isLoading={pending} loadingLabel="Verifying…">Verify and continue</Button>
+        <Button type="submit" size="lg" className="mt-7 w-full" disabled={remainingSeconds === 0 || resending} aria-describedby={remainingSeconds === 0 ? "otp-expiry" : undefined} isLoading={pending} loadingLabel="Verifying…">Verify and continue</Button>
       </form>
       {isFrontendBypassEnabled && (
         <ButtonLink href="/account-type" variant="ghost" size="sm" className="mt-3 w-full">Continue in preview mode</ButtonLink>
       )}
     </div>
   );
+}
+
+function formatOtpTime(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 const accountOptions = [

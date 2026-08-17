@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-17 — Design foundation and authentication completion
+
+### Added
+
+- Added an application-level accessible toast system for success, error, and information feedback.
+- Added persisted two-minute demo OTP expiry, incomplete/invalid/expired states, Resend code loading, and resend/verification success feedback.
+- Added demo/bypass Creator profile editing with View, Edit, Save, Cancel, validation, refresh persistence, workspace/role display, and confirmed logout.
+
+### Changed
+
+- Removed the root layout’s standalone typecheck dependency on generated `LayoutProps` types.
+- Strengthened the shared confirmation dialog with focus trapping, focus restoration, Escape handling, loading protection, and background scroll locking.
+- Reused the shared confirmation dialog for knowledge-source deletion.
+- Consolidated course, portfolio, skill-evidence, and credential copy feedback into the shared toast system.
+- Kept API-mode profile editing and OTP/resend unavailable because `API_doc.md` documents no matching endpoints.
+
+No Function 17 analytics implementation or new backend contract was added.
+
 ## 2026-08-16 — Functions 12–15 flow audit
 
 ### Changed

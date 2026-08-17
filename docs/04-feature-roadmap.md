@@ -4,8 +4,8 @@ Status reflects whether a complete frontend user goal can be achieved—not whet
 
 | ID | Feature | Status | Current scope |
 | --- | --- | --- | --- |
-| 00 | Design Foundation | Partial | Core tokens, inputs, buttons, cards, badges, navigation, progress, stepper, confirmation dialog, grounding drawer, and responsive patterns exist. There is no general toast primitive yet. |
-| 01 | User & Authentication | Needs Review | Bypass mode accepts any non-empty credentials into a persistent Creator preview session without API or fixture matching. Demo mode retains seeded role login/registration/OTP; API mode preserves documented login/register/me integration. |
+| 00 | Design Foundation | Implemented | Core tokens and reusable controls now include application-level success/error/information toasts plus one focus-managed confirmation dialog used by publish, unpublish, source deletion, review, and assessment flows. Standalone TypeScript, lint, and production build checks pass. |
+| 01 | User & Authentication | Implemented | Frontend auth now completes bypass/demo login, registration, expiring OTP/resend, workspace routing, editable persisted demo profile, role display, guarded navigation, and logout. API mode remains limited to documented register/login/me behavior and sends no guessed OTP/profile/workspace/logout requests. |
 | 02 | Create Course | Needs Review | Five-step wizard has validation and navigation. Demo mode continues to the seeded source workspace; API mode calls documented course creation and uses the returned ID. Unsupported course fields remain local. |
 | 03 | Knowledge Upload | Needs Review | Demo mode completes local file/text/URL source handling and readiness flow. API mode connects documented file upload/list/delete with status refresh; text, URL, retry, and analysis remain explicitly mocked where endpoints are absent. |
 | 04 | AI Knowledge Processing | Needs Review | Staged processing, missing-source guard, failure/retry, grounded result inspection, relationships, sequencing, references, and generation handoff are connected with mock data. |
@@ -24,7 +24,7 @@ Status reflects whether a complete frontend user goal can be achieved—not whet
 | 17 | Creator Dashboard & Analytics | Not Started | The current route is an honest empty destination, not analytics functionality. |
 | 18 | Organization Workspace | Not Started | Organization selection reaches an intentional placeholder with no Creator/Admin access. |
 | 19 | Administrator | Not Started | Admin cannot be self-selected and no Admin routes exist. |
-| 20 | Notifications / Reports / Supporting States | Partial | Current features cover local loading, success, validation, disabled, empty, and error states. Notifications and report export are not implemented. |
+| 20 | Notifications / Reports / Supporting States | Partial | Current features cover local loading, success/error/information toasts, validation, disabled, empty, retry, and confirmation states. A notification center and report export are not implemented. |
 
 ## Current verified continuity
 

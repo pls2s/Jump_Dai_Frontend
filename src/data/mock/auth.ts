@@ -6,6 +6,9 @@ export const AUTH_DEMO_ACCOUNTS = MOCK_AUTH_USERS;
 /** Development-only OTP used only when Frontend Demo Mode is enabled. */
 export const FRONTEND_DEMO_OTP = "123456";
 
+/** Development-only lifetime for each demo OTP issue/resend cycle. */
+export const FRONTEND_DEMO_OTP_TTL_SECONDS = 120;
+
 /** Development-only identity synthesized when frontend bypass mode is enabled. */
 export const FRONTEND_BYPASS_USER: {
   id: number;

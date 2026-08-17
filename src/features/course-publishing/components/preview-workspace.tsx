@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Clipboard, Eye, RefreshCw, Rocket, X } from "lucide-react";
 
 import { ContentContainer, PageHeader } from "@/components/layout";
-import { Badge, Button, ButtonLink, Card, ConfirmationDialog, FieldError, Spinner } from "@/components/ui";
+import { Badge, Button, ButtonLink, Card, ConfirmationDialog, FieldError, Spinner, useToast } from "@/components/ui";
 import { getPublishReadiness } from "@/features/course-generation/lib/generated-course-store";
 import { loadGeneratedCourse, publishGeneratedCourse } from "@/features/course-generation/services/course-generation-service";
 import { CoursePreviewCanvas } from "@/features/course-publishing/components/course-preview-canvas";
@@ -12,13 +12,13 @@ import { readMockSources } from "@/lib/mock/source-store";
 import type { GeneratedCourseState } from "@/types/product";
 
 export function PreviewWorkspace({ courseId, simulateFailure = false }: { courseId: string; simulateFailure?: boolean }) {
+  const { showToast } = useToast();
   const [state, setState] = useState<GeneratedCourseState | null | undefined>(undefined);
   const [hasReadySources, setHasReadySources] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState("");
   const [failThisPublish, setFailThisPublish] = useState(simulateFailure);
-  const [copyFeedback, setCopyFeedback] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -33,7 +33,7 @@ export function PreviewWorkspace({ courseId, simulateFailure = false }: { course
 
   if (state === undefined) return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Preparing course preview…</div></ContentContainer>;
   if (!state) return <MissingPreviewDependency courseId={courseId} />;
-  if (state.lifecycle === "published") return <PublishedSuccess state={state} courseId={courseId} copyFeedback={copyFeedback} onCopy={() => void copyPrototypeLink(courseId, setCopyFeedback)} />;
+  if (state.lifecycle === "published") return <PublishedSuccess state={state} courseId={courseId} onCopy={() => void copyPrototypeLink(courseId, showToast)} />;
 
   async function confirmPublish() {
     if (!ready || !state) return;
@@ -51,6 +51,7 @@ export function PreviewWorkspace({ courseId, simulateFailure = false }: { course
     setState(next);
     setPublishing(false);
     setConfirming(false);
+    showToast({ tone: "success", title: "Course published", description: "The local frontend lifecycle is now Published." });
   }
 
   const remaining = checks.filter((check) => !check.passed);
@@ -66,14 +67,14 @@ export function PreviewWorkspace({ courseId, simulateFailure = false }: { course
   );
 }
 
-function PublishedSuccess({ state, courseId, copyFeedback, onCopy }: { state: GeneratedCourseState; courseId: string; copyFeedback: string; onCopy: () => void }) {
-  return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] max-w-4xl items-center"><Card className="w-full overflow-hidden border-green-200 shadow-md"><div className="bg-status-success-subtle p-7 text-center sm:p-10"><span className="mx-auto flex size-14 items-center justify-center rounded-full bg-status-success text-white"><CheckCircle2 className="size-7" aria-hidden="true" /></span><Badge variant="success" className="mt-5">Published</Badge><h1 className="type-h1 mt-4">Your course is published</h1><p className="type-body-large mx-auto mt-3 max-w-xl text-text-secondary">{state.course.title} is now available in this frontend prototype.</p></div><div className="p-6 sm:p-8"><div className="flex flex-col justify-center gap-3 sm:flex-row"><ButtonLink href={`/creator/courses/${courseId}/published`}>View published course<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink><ButtonLink href="/creator/courses" variant="secondary">Back to My Courses</ButtonLink><Button variant="secondary" onClick={onCopy}><Clipboard className="size-4" aria-hidden="true" />Copy course link</Button></div>{copyFeedback && <p role="status" className="type-body-small mt-4 text-center text-text-secondary">{copyFeedback}</p>}<p className="type-caption mt-5 text-center text-text-tertiary">The copied URL is a Creator-access prototype route, not a public learner link.</p></div></Card></ContentContainer>;
+function PublishedSuccess({ state, courseId, onCopy }: { state: GeneratedCourseState; courseId: string; onCopy: () => void }) {
+  return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] max-w-4xl items-center"><Card className="w-full overflow-hidden border-green-200 shadow-md"><div className="bg-status-success-subtle p-7 text-center sm:p-10"><span className="mx-auto flex size-14 items-center justify-center rounded-full bg-status-success text-white"><CheckCircle2 className="size-7" aria-hidden="true" /></span><Badge variant="success" className="mt-5">Published</Badge><h1 className="type-h1 mt-4">Your course is published</h1><p className="type-body-large mx-auto mt-3 max-w-xl text-text-secondary">{state.course.title} is now available in this frontend prototype.</p></div><div className="p-6 sm:p-8"><div className="flex flex-col justify-center gap-3 sm:flex-row"><ButtonLink href={`/creator/courses/${courseId}/published`}>View published course<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink><ButtonLink href="/creator/courses" variant="secondary">Back to My Courses</ButtonLink><Button variant="secondary" onClick={onCopy}><Clipboard className="size-4" aria-hidden="true" />Copy course link</Button></div><p className="type-caption mt-5 text-center text-text-tertiary">The copied URL is a Creator-access prototype route, not a public learner link.</p></div></Card></ContentContainer>;
 }
 
-async function copyPrototypeLink(courseId: string, setFeedback: (message: string) => void) {
+async function copyPrototypeLink(courseId: string, showToast: ReturnType<typeof useToast>["showToast"]) {
   const url = `${window.location.origin}/creator/courses/${courseId}/published`;
-  try { await navigator.clipboard.writeText(url); setFeedback("Prototype course link copied."); }
-  catch { setFeedback(`Copy unavailable. Use this prototype URL: ${url}`); }
+  try { await navigator.clipboard.writeText(url); showToast({ tone: "success", title: "Course link copied" }); }
+  catch { showToast({ tone: "error", title: "Course link wasn’t copied", description: `Use this prototype URL: ${url}` }); }
 }
 
 function MissingPreviewDependency({ courseId }: { courseId: string }) {
