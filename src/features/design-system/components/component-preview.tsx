@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { ArrowRight, BookOpen, Sparkles } from "lucide-react";
 
 import {
@@ -9,13 +12,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  ConfirmationDialog,
   Progress,
   Spinner,
   Stepper,
+  useToast,
 } from "@/components/ui";
 import { PreviewSection } from "./preview-section";
 
 export function ComponentPreview() {
+  const { showToast } = useToast();
+  const [confirming, setConfirming] = useState(false);
+
   return (
     <div className="grid gap-16">
       <PreviewSection
@@ -50,6 +58,22 @@ export function ComponentPreview() {
             </div>
           </CardContent>
         </Card>
+      </PreviewSection>
+
+      <PreviewSection
+        id="feedback"
+        title="Feedback and confirmation"
+        description="Temporary global feedback uses accessible toasts; consequential actions use one focus-managed confirmation pattern."
+      >
+        <Card>
+          <CardContent className="flex flex-wrap gap-3 pt-5 sm:pt-6">
+            <Button variant="secondary" onClick={() => showToast({ tone: "success", title: "Changes saved" })}>Show success</Button>
+            <Button variant="secondary" onClick={() => showToast({ tone: "info", title: "Processing continues", description: "You can safely keep working." })}>Show information</Button>
+            <Button variant="secondary" onClick={() => showToast({ tone: "error", title: "Something went wrong", description: "Try the action again." })}>Show error</Button>
+            <Button variant="danger" onClick={() => setConfirming(true)}>Open confirmation</Button>
+          </CardContent>
+        </Card>
+        <ConfirmationDialog open={confirming} title="Confirm this action?" description="This internal preview demonstrates focus, Escape, Cancel, and destructive intent." confirmLabel="Confirm action" confirmVariant="danger" onConfirm={() => { setConfirming(false); showToast({ tone: "success", title: "Action confirmed" }); }} onCancel={() => setConfirming(false)} />
       </PreviewSection>
 
       <PreviewSection

@@ -39,6 +39,7 @@ export interface PendingDemoRegistration {
   name: string;
   email: string;
   verified?: boolean;
+  otpExpiresAt?: number;
 }
 
 export function saveApiAuthSession(result: AuthResult, remember = true) {
@@ -131,6 +132,17 @@ export function getPendingDemoRegistration(): PendingDemoRegistration | null {
 export function clearPendingDemoRegistration() {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+}
+
+export function updateStoredSessionProfile(profile: { name: string; email: string }) {
+  const session = getAuthSession();
+  if (!session || session.mode === "api") return null;
+  const updated: AuthSession = {
+    ...session,
+    user: { ...session.user, name: profile.name, email: profile.email },
+  };
+  saveAuthSession(updated, true);
+  return updated;
 }
 
 export function routeForWorkspace(workspaceType: WorkspaceType) {

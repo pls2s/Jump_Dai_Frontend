@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import { ContentContainer, PageHeader } from "@/components/layout";
-import { Badge, Button, ButtonLink, Card, Progress, Spinner } from "@/components/ui";
+import { Badge, Button, ButtonLink, Card, Progress, Spinner, useToast } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import {
   appendPreviewState,
@@ -51,8 +51,8 @@ export function PortfolioWorkspace({
   previewState: PortfolioPreviewState;
 }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [portfolio, setPortfolio] = useState<SkillPortfolioSnapshot | null>(null);
-  const [copyFeedback, setCopyFeedback] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -70,9 +70,9 @@ export function PortfolioWorkspace({
     const url = `${window.location.origin}/learner/courses/${courseId}/skill-evidence`;
     try {
       await navigator.clipboard.writeText(url);
-      setCopyFeedback("Frontend portfolio link copied.");
+      showToast({ tone: "success", title: "Portfolio link copied" });
     } catch {
-      setCopyFeedback("Copy was unavailable. Use the current browser address instead.");
+      showToast({ tone: "error", title: "Portfolio link wasn’t copied", description: "Use the current browser address instead." });
     }
   }
 
@@ -112,8 +112,6 @@ export function PortfolioWorkspace({
         breadcrumb={[{ label: "Learner home", href: "/learner" }, { label: portfolio.courseTitle }, { label: "Skill portfolio" }]}
         actions={<Button variant="secondary" onClick={() => void copyPortfolioLink()}><Clipboard className="size-4" aria-hidden="true" />Copy portfolio link</Button>}
       />
-      {copyFeedback && <p role="status" className="type-body-small mt-4 rounded-md bg-blue-50 p-3 text-blue-900">{copyFeedback}</p>}
-
       <Card className="mt-7 overflow-hidden border-blue-200 bg-blue-50/60">
         <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="flex items-center gap-4"><span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-800 font-semibold text-white">{portfolio.learnerName.slice(0, 1).toUpperCase()}</span><div><h2 className="font-semibold text-blue-950">{portfolio.learnerName}</h2><p className="type-body-small mt-1 text-blue-900">Primary learning focus: {portfolio.learningFocus}</p></div></div>

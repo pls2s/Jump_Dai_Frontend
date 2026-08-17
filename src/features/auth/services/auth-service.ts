@@ -1,6 +1,7 @@
 import {
   AUTH_DEMO_ACCOUNTS,
   FRONTEND_DEMO_OTP,
+  FRONTEND_DEMO_OTP_TTL_SECONDS,
   type UserRole,
   type WorkspaceType,
 } from "@/data/mock";
@@ -17,6 +18,7 @@ import {
   saveApiAuthSession,
   saveAuthSession,
   savePendingDemoRegistration,
+  updateStoredSessionProfile,
   type AuthSession,
 } from "../lib/auth-session";
 
@@ -25,6 +27,15 @@ export class AuthFlowError extends Error {
     super(message);
     this.name = "AuthFlowError";
   }
+}
+
+export interface DemoOtpContext {
+  email: string;
+  expiresAt: number;
+}
+
+function nextDemoOtpExpiry() {
+  return Date.now() + FRONTEND_DEMO_OTP_TTL_SECONDS * 1000;
 }
 
 function demoUserSession(workspaceType: WorkspaceType): AuthSession {
@@ -85,7 +96,7 @@ export async function enterFrontendPreview(workspaceType: WorkspaceType = "creat
 export async function createAccount(input: { name: string; email: string; password: string }) {
   if (shouldUseFrontendMocks) {
     await demoDelay(500);
-    savePendingDemoRegistration({ name: input.name, email: input.email });
+    savePendingDemoRegistration({ name: input.name, email: input.email, otpExpiresAt: nextDemoOtpExpiry() });
     return "/verify-otp";
   }
   await register(input);
@@ -97,9 +108,34 @@ export async function verifyRegistrationOtp(code: string) {
   const registration = getPendingDemoRegistration();
   if (!registration) throw new AuthFlowError("Your registration session is missing. Create your account again.");
   await demoDelay(400);
+  if (!registration.otpExpiresAt || registration.otpExpiresAt <= Date.now()) {
+    throw new AuthFlowError("This verification code has expired. Resend the code to continue.");
+  }
   if (code !== FRONTEND_DEMO_OTP) throw new AuthFlowError("The verification code is incorrect.");
   savePendingDemoRegistration({ ...registration, verified: true });
   return "/account-type";
+}
+
+export function getDemoOtpContext(): DemoOtpContext | null {
+  if (!shouldUseFrontendMocks) return null;
+  const registration = getPendingDemoRegistration();
+  if (!registration) return null;
+  if (registration.otpExpiresAt) {
+    return { email: registration.email, expiresAt: registration.otpExpiresAt };
+  }
+  const expiresAt = nextDemoOtpExpiry();
+  savePendingDemoRegistration({ ...registration, otpExpiresAt: expiresAt });
+  return { email: registration.email, expiresAt };
+}
+
+export async function resendRegistrationOtp(): Promise<DemoOtpContext> {
+  if (!shouldUseFrontendMocks) throw new AuthFlowError("OTP resend is not available in API mode.");
+  const registration = getPendingDemoRegistration();
+  if (!registration) throw new AuthFlowError("Your registration session is missing. Create your account again.");
+  await demoDelay(450);
+  const expiresAt = nextDemoOtpExpiry();
+  savePendingDemoRegistration({ ...registration, verified: false, otpExpiresAt: expiresAt });
+  return { email: registration.email, expiresAt };
 }
 
 export async function completeDemoRegistration(workspaceType: WorkspaceType) {
@@ -132,4 +168,16 @@ export async function loadCurrentAccount(): Promise<AuthUser> {
     return { id: session.user.id, name: session.user.name, email: session.user.email };
   }
   return getCurrentUser(session.accessToken);
+}
+
+export async function updateCurrentAccount(input: { name: string; email: string }): Promise<AuthUser> {
+  const session = getAuthSession();
+  if (!session) throw new AuthFlowError("Your session has ended. Sign in again.");
+  if (session.mode === "api") {
+    throw new AuthFlowError("Profile editing is waiting for a documented backend endpoint.");
+  }
+  await demoDelay(350);
+  const updated = updateStoredSessionProfile({ name: input.name.trim(), email: input.email.trim() });
+  if (!updated) throw new AuthFlowError("Your session has ended. Sign in again.");
+  return { id: updated.user.id, name: updated.user.name, email: updated.user.email };
 }

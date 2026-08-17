@@ -22,7 +22,6 @@ import {
   Sparkles,
   Trash2,
   UploadCloud,
-  X,
 } from "lucide-react";
 
 import { ContentContainer, PageHeader } from "@/components/layout";
@@ -30,6 +29,7 @@ import {
   Badge,
   Button,
   Card,
+  ConfirmationDialog,
   Field,
   FieldDescription,
   FieldError,
@@ -438,7 +438,17 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
         </aside>
       </div>
 
-      {deleteTarget && <DeleteDialog source={deleteTarget} pending={deletingSource} onCancel={() => setDeleteTarget(null)} onConfirm={confirmDelete} />}
+      <ConfirmationDialog
+        open={Boolean(deleteTarget)}
+        title="Delete this source?"
+        description={deleteTarget ? `${deleteTarget.name} will be removed from this course and won’t be included in AI analysis.` : "This source will be removed from the course."}
+        confirmLabel="Delete source"
+        confirmVariant="danger"
+        pending={deletingSource}
+        pendingLabel="Deleting…"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => void confirmDelete()}
+      />
     </ContentContainer>
   );
 }
@@ -451,16 +461,4 @@ function SourceRow({ source, onDelete, onRetry }: { source: KnowledgeSource; onD
 
 function EmptySources({ onAdd }: { onAdd: () => void }) {
   return <Card className="flex flex-col items-center px-5 py-12 text-center"><span className="flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-700"><UploadCloud className="size-6" aria-hidden="true" /></span><h3 className="type-title-medium mt-4">No sources yet</h3><p className="type-body-small mt-2 max-w-md text-text-secondary">Upload a file, paste your own notes, or add a URL. You can combine all three.</p><Button className="mt-5" onClick={onAdd}><Plus className="size-4" aria-hidden="true" />Add your first source</Button></Card>;
-}
-
-function DeleteDialog({ source, pending, onCancel, onConfirm }: { source: KnowledgeSource; pending: boolean; onCancel: () => void; onConfirm: () => void }) {
-  const cancelRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    cancelRef.current?.focus();
-    function handleKeyDown(event: KeyboardEvent) { if (event.key === "Escape") onCancel(); }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onCancel]);
-
-  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/40 p-4 backdrop-blur-[2px]" role="presentation" onMouseDown={(event) => { if (!pending && event.target === event.currentTarget) onCancel(); }}><div role="dialog" aria-modal="true" aria-labelledby="delete-source-title" aria-describedby="delete-source-description" className="w-full max-w-md rounded-xl bg-surface-default p-6 shadow-lg"><div className="flex items-start justify-between gap-4"><span className="flex size-11 items-center justify-center rounded-full bg-red-50 text-status-error"><Trash2 className="size-5" aria-hidden="true" /></span><Button variant="ghost" size="icon" onClick={onCancel} disabled={pending} aria-label="Close delete dialog"><X className="size-5" aria-hidden="true" /></Button></div><h2 id="delete-source-title" className="type-title-large mt-5">Delete this source?</h2><p id="delete-source-description" className="mt-2 text-text-secondary"><strong className="text-text-primary">{source.name}</strong> will be removed from this course and won’t be included in AI analysis.</p><div className="mt-6 flex justify-end gap-3"><Button ref={cancelRef} variant="secondary" onClick={onCancel} disabled={pending}>Cancel</Button><Button variant="danger" onClick={onConfirm} isLoading={pending} loadingLabel="Deleting…">Delete source</Button></div></div></div>;
 }

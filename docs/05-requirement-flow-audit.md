@@ -2,7 +2,7 @@
 
 ## Audit Date
 
-16 August 2026
+17 August 2026
 
 ## Sources
 
@@ -28,23 +28,23 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 00
 - **Current routes:** `/ui-preview` (development only); shared components apply across product routes.
-- **Current status:** Partial.
-- **Implemented behavior:** Semantic colors, Anuphan typography, spacing/radius/elevation tokens, Button, Input, Select, Badge, cards, fields, sidebar, topbar, progress, stepper, focus styles, and responsive layouts.
-- **Missing behavior:** No shared toast primitive. Delete modal and reference drawer remain feature-owned rather than a generalized modal system.
-- **Flow problems found:** Development-only UI preview was linked from authentication screens.
-- **Changes made:** Removed all development-route links and copy from product authentication routes; retained `/ui-preview` only as an internal route. Improved dialog focus, Escape handling, labels, and background scroll behavior where used.
-- **Remaining work:** Consolidate feature dialogs/toasts only when another production use case justifies reusable primitives.
+- **Current status:** Implemented.
+- **Implemented behavior:** Semantic colors, Anuphan typography, spacing/radius/elevation tokens, Button, Input, Select, Badge, cards, fields, sidebar, topbar, progress, stepper, focus styles, responsive layouts, application-level success/error/information toasts, and a shared confirmation dialog.
+- **Missing behavior:** No blocking frontend-foundation requirement remains. Feature-specific content drawers remain intentionally separate because they are navigation/inspection surfaces rather than confirmation dialogs.
+- **Flow problems found:** Development-only UI preview was linked from authentication screens; temporary feedback was duplicated across product features; source deletion duplicated the confirmation pattern; standalone `tsc` depended on generated `LayoutProps` types.
+- **Changes made:** Retained `/ui-preview` as an internal route and added feedback/dialog exercises there; added one accessible toast provider; consolidated copy, publish, profile, OTP, and credential feedback; reused the confirmation dialog for source deletion; added focus trapping/restoration and Escape/background-scroll handling; typed the root layout with its stable `ReactNode` contract rather than a generated route helper.
+- **Remaining work:** Add future variants only when a concrete product use case requires them. The current foundation passes lint, standalone typecheck, and production build.
 
 ### 01 — User & Authentication
 
 - **Requirement IDs:** 01
 - **Current routes:** `/`, `/sign-in`, `/create-account`, `/verify-otp`, `/account-type`, `/creator/account`, `/learner`, `/learner/onboarding` (redirect), `/organization/onboarding`.
-- **Current status:** Needs Review.
-- **Implemented behavior:** A centralized environment switch selects frontend demo or API-connected behavior. Demo mode completes fixture sign-in, invalid-credential handling, direct role access, registration, six-digit OTP, workspace selection, persistent password-free session, role routing, account display, client guard, and logout without a backend. API mode retains exact documented login/register/current-user calls, Bearer-token session, API errors, and local logout.
-- **Missing behavior:** API endpoints for OTP/resend/workspace/logout/profile update, auth role fields in API responses, server authorization, password-reset delivery, Google OAuth, and production session security.
-- **Flow problems found:** Brand panel appeared on the right; developer copy appeared in product UI; any credentials succeeded; OTP accepted any digits; Learner/Organization selections were dead ends; profile was read-only; Creator routes were not mock role-guarded.
-- **Changes made:** Reversed and rebalanced auth layout; removed developer copy; matched documented snake_case login/register/me contracts; centralized mode selection; isolated demo credential matching in the auth service; added direct demo access, temporary registration/OTP state, workspace routing, mode-aware account loading, role guards, refresh continuity, and logout. No guessed API request is issued for undocumented capabilities.
-- **Remaining work:** Product-review the demo journey; define any required role/workspace, OTP, logout, and profile-update contracts in `API_doc.md`; live-test API mode; then replace browser token storage with secure server sessions before production.
+- **Current status:** Implemented (frontend); backend contract gaps documented.
+- **Implemented behavior:** A centralized environment switch selects bypass, frontend demo, or API-connected behavior. Bypass accepts any non-empty credentials without API access. Demo mode completes fixture sign-in, validation, registration, six-digit OTP, persisted two-minute expiry, invalid/incomplete/expired states, resend/loading/success, workspace selection, persistent password-free session, role routing, editable locally persisted profile, guard behavior, logout confirmation, and refresh continuity. API mode retains exact documented register/login/current-user calls, Bearer-token session, API errors, read-only account display, and local logout.
+- **Missing behavior:** `API_doc.md` documents no OTP verification/resend, workspace selection, logout/revocation, profile-update, or role/workspace response contract. Password-reset delivery, Google OAuth, server authorization, and production session security also remain unavailable.
+- **Flow problems found:** The latest audit found no OTP expiry/resend and a read-only demo profile. Earlier issues included reversed auth hierarchy, developer copy, invalid mock behavior, role dead ends, and missing guards.
+- **Changes made:** Added persisted demo OTP expiry and resend using the existing OTP fixture/registration state; blocked expired verification; added shared success feedback; added View → Edit → Save/Cancel profile behavior for demo/bypass sessions; preserved profile edits in the existing auth session; displayed workspace/role; kept API mode read-only rather than inventing an endpoint; and retained all previous auth layout, guard, role-routing, and API-contract fixes.
+- **Remaining work:** Backend owners must document the missing contracts before API integration can expand. Production must replace browser token/session storage and client-only authorization. These are backend/security dependencies, not incomplete frontend mock flows.
 
 ### 02 — Create Course / Course Configuration
 
@@ -247,12 +247,12 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 20 — Notifications / Reports / Supporting States
 
 - **Requirement IDs:** 20
-- **Current routes:** Supporting states are embedded in Functions 01–04; analytics is `/creator/analytics`.
+- **Current routes:** Supporting states are embedded throughout Functions 01–16; analytics is `/creator/analytics`.
 - **Current status:** Partial.
-- **Implemented behavior:** Loading, error, success, validation, disabled reasons, empty states, retries, and confirmation dialogs for current functions.
-- **Missing behavior:** Notification center, report generation/export, global toast system, and backend failure taxonomy.
+- **Implemented behavior:** Loading, error, success, validation, disabled reasons, empty states, retries, accessible application-level toasts, and focus-managed confirmation dialogs for current functions.
+- **Missing behavior:** Notification center, report generation/export, and a documented backend failure taxonomy.
 - **Flow problems found:** Several current flows lacked explicit failures or disabled reasons.
-- **Changes made:** Added auth/OTP/source/URL/AI errors, success feedback, retries, and dependency explanations.
+- **Changes made:** Added auth/OTP/source/URL/AI errors, success feedback, retries, dependency explanations, and a reusable success/error/information toast provider.
 - **Remaining work:** Add notifications and exports only with the owning future features.
 
 ## Creator End-to-End Flow
@@ -302,7 +302,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 | `/` | Direct | Redirect to sign-in | — | — | Public | None |
 | `/sign-in` | Root/logout | Any non-empty bypass credentials → Creator; workspace by fixture in demo; Creator in API mode | Create account | Empty bypass fields; fixture errors in demo; network/API errors only in API mode | Public | Central bypass/demo/API selection |
 | `/create-account` | Sign-in | OTP in demo; sign-in notice in API mode | Sign-in | Field validation and mode-appropriate errors | Public | Demo temporary registration or backend registration |
-| `/verify-otp` | Demo registration | Account type | Create account | Incomplete/invalid OTP or missing temporary registration; intentional API contract-gap state | Public | Demo registration context; no documented API endpoint |
+| `/verify-otp` | Demo registration | Account type | Create account | Incomplete, invalid, expired, resend failure, or missing temporary registration; intentional API contract-gap state | Public | Persisted demo registration/expiry context; no documented API endpoint |
 | `/account-type` | Verified demo OTP | Selected workspace | Verify OTP | Missing/unverified registration; intentional API contract-gap state | Public | Verified demo registration; no documented API endpoint |
 | `/learner` | Learner auth | Start/continue Digital Marketing Foundations | Sign out | Missing/wrong-role demo session redirects | Learner | Demo/API/bypass session and mock course catalog |
 | `/learner/onboarding` | Legacy learner URL | Redirect to `/learner` | — | — | Learner | None |
@@ -331,7 +331,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 | `/creator/courses/[courseId]/review` | Generated result/My Courses | Preview | Generated course | Missing generated state; validation; unsaved changes | Creator | Generated course; per-item reviews |
 | `/creator/courses/[courseId]/preview` | Review | Published success | Review | Not-ready checklist; publish failure/retry | Creator | Generated content, Ready source, full verification, certificate criteria |
 | `/creator/courses/[courseId]/published` | Publish success/My Courses | Unpublish or My Courses | My Courses | Missing/non-published state | Creator | Published lifecycle state |
-| `/creator/account` | Profile links | Refresh/sign out | Sidebar navigation | Loading/current-user API error in API mode | Creator | Demo session or `GET /api/auth/me`; local session clear for logout |
+| `/creator/account` | Profile links | Demo/bypass Edit → Save/Cancel; confirmed sign out | Sidebar navigation | Inline validation/save errors; loading/current-user API error in API mode | Creator | Existing local session for edits; API mode uses read-only `GET /api/auth/me`; local session clear for logout |
 | `/creator/analytics` | Sidebar | Continue active course | Sidebar navigation | Honest empty state | Creator | Published course data (not available) |
 | `/ui-preview` | Direct development URL only | Internal component inspection | — | — | Development | None |
 
@@ -363,6 +363,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - Bypass Sign In still matched seeded credentials, contradicting true frontend access.
 - Function 12 was a placeholder; no lesson completion, post-learning evidence, applied evidence, or final result existed.
 - Function 16 stopped at a placeholder and did not connect saved evidence, per-skill verification, certificate settings, or credential eligibility.
+- Standalone TypeScript relied on generated `LayoutProps`; temporary copy/success messages were duplicated; demo OTP had no expiry/resend; Creator profile was display-only.
 
 ### Resolution
 
@@ -371,6 +372,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - Added deterministic demo validation, errors, success, loading, OTP, and retry states behind one environment switch.
 - Added direct demo access, role-specific future placeholders, refresh-safe sessions, role routing, and logout.
 - Added editable profile fields and save/logout feedback.
+- Added a shared application toast provider, consolidated common temporary feedback, strengthened and reused the shared confirmation dialog, removed the generated-layout-type dependency, and completed demo OTP expiry/resend plus persisted profile editing.
 - Added wizard validation and disabled-reason text for every step.
 - Removed the unsupported reorder affordance.
 - Added file/text/URL validation and explicit recovery actions.

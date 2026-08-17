@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import { ContentContainer, PageHeader } from "@/components/layout";
-import { Badge, Button, ButtonLink, Card, Progress, Spinner } from "@/components/ui";
+import { Badge, Button, ButtonLink, Card, Progress, Spinner, useToast } from "@/components/ui";
 import {
   appendPreviewState,
   formatPortfolioDate,
@@ -25,8 +25,8 @@ import type {
 
 export function SkillEvidenceDetail({ courseId, skillId, previewState }: { courseId: string; skillId: string; previewState: PortfolioPreviewState }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [portfolio, setPortfolio] = useState<SkillPortfolioSnapshot | null>(null);
-  const [copyFeedback, setCopyFeedback] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -48,9 +48,9 @@ export function SkillEvidenceDetail({ courseId, skillId, previewState }: { cours
   async function copySkillLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      setCopyFeedback("Frontend skill-evidence link copied.");
+      showToast({ tone: "success", title: "Skill evidence link copied" });
     } catch {
-      setCopyFeedback("Copy was unavailable. Use the current browser address instead.");
+      showToast({ tone: "error", title: "Skill evidence link wasn’t copied", description: "Use the current browser address instead." });
     }
   }
 
@@ -64,8 +64,6 @@ export function SkillEvidenceDetail({ courseId, skillId, previewState }: { cours
         breadcrumb={[{ label: "Portfolio", href: appendPreviewState(root, previewState) }, { label: "Skills", href: appendPreviewState(`${root}?tab=skills`, previewState) }, { label: skill.name }]}
         actions={<div className="flex flex-wrap gap-2"><SkillStatusBadge status={skill.status} /><Button variant="secondary" onClick={() => void copySkillLink()}><Clipboard className="size-4" aria-hidden="true" />Share evidence</Button></div>}
       />
-      {copyFeedback && <p role="status" className="type-body-small mt-4 rounded-md bg-blue-50 p-3 text-blue-900">{copyFeedback}</p>}
-
       <div className="mt-7 grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
         <Card className="p-5 sm:p-6"><p className="type-caption text-text-tertiary">Competency</p><p className="mt-1 text-4xl font-semibold">{skill.competencyScore}%</p><Progress className="mt-4" value={skill.competencyScore} label={`${skill.name} competency score`} /><div className="mt-6 grid grid-cols-3 gap-2 text-center"><Score label="Before" value={`${skill.beforeScore}%`} /><Score label="After" value={`${skill.competencyScore}%`} /><Score label="Gain" value={`${skill.improvement >= 0 ? "+" : ""}${skill.improvement}`} /></div><p className="type-body-small mt-5 text-text-secondary">From {skill.courseTitle}</p>{skill.verifiedAt && <p className="type-caption mt-2 text-text-tertiary">Verified {formatPortfolioDate(skill.verifiedAt)}</p>}</Card>
         <Card className="p-5 sm:p-6"><div className="flex items-center gap-2"><TrendingUp className="size-5 text-blue-800" aria-hidden="true" /><h2 className="type-title-large">What supports this skill</h2></div><p className="type-body-small mt-2 text-text-secondary">{skill.statusReason}</p><div className="mt-5 grid gap-3">{skill.evidence.map((item, index) => <div key={item.id} className="grid gap-4 rounded-lg border border-border-default p-4 sm:grid-cols-[2rem_minmax(0,1fr)_auto] sm:items-start"><span className="flex size-8 items-center justify-center rounded-full bg-blue-50 text-sm font-semibold text-blue-800">{index + 1}</span><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold">{item.title}</h3>{item.score !== undefined && <Badge variant={item.status === "passed" ? "success" : "neutral"}>{item.score}%</Badge>}</div><p className="type-body-small mt-1 text-text-secondary">{item.description}</p><p className="type-caption mt-2 text-text-tertiary">{formatPortfolioDate(item.createdAt)}</p></div><ButtonLink href={item.resultHref} variant="ghost" size="sm">View result<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink></div>)}</div></Card>
