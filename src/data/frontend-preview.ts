@@ -179,6 +179,19 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
       { label: "Empty Portfolio", href: `${learnerCourseRoot}/skill-evidence?state=empty`, description: "First-time learner evidence empty state" },
     ],
   },
+  {
+    functionId: "17",
+    title: "Creator Dashboard & Analytics",
+    routes: [
+      { label: "Creator Dashboard", href: "/creator", description: "Course, learner, completion, and lifecycle overview" },
+      { label: "Analytics Overview", href: "/creator/analytics", description: "KPIs, learner funnel, course comparison, skills, content, and insights" },
+      { label: "Course Analytics", href: "/creator/analytics/digital-marketing-foundations", description: "Published-course performance detail" },
+      { label: "No Learner Activity", href: "/creator/analytics/ai-productivity-basics", description: "Published course before learners begin" },
+      { label: "Empty Analytics", href: "/creator/analytics?state=empty", description: "Creator workspace without a published course" },
+      { label: "Loading Analytics", href: "/creator/analytics?state=loading", description: "Accessible loading state" },
+      { label: "Analytics Error", href: "/creator/analytics?state=error", description: "Safe error and retry behavior" },
+    ],
+  },
 ];
 
 export const frontendPreviewCourseId = FRONTEND_PREVIEW_COURSE_ID;

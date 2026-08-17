@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-17 — Creator Dashboard & Analytics
+
+### Added
+
+- Added Creator overview metrics and course lifecycle summary.
+- Added course/time filters, learner progression funnel, and deterministic drop-off insight.
+- Added course, assessment, skill, and learning-content performance views.
+- Added explainable attention/insight rules, course analytics detail, and client-side CSV export.
+- Added no-published-course, no-learner-activity, loading, error/retry, and non-published analytics states.
+
+### Changed
+
+- Replaced the `/creator/analytics` placeholder with the Function 17 frontend experience.
+- Connected Published course actions from Creator Home and My Courses to course analytics.
+- Added Function 17 routes to the development-only frontend preview index.
+- Configured the production build script to use Next.js 16’s supported Webpack builder because the restricted development environment blocks Turbopack’s local PostCSS worker port.
+
+No backend analytics endpoint, Organization workspace, or Admin UI was added.
+
 ## 2026-08-17 — Design foundation and authentication completion
 
 ### Added

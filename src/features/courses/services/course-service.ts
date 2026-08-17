@@ -12,6 +12,7 @@ export interface CourseListItem {
   status: CourseLifecycleStatus;
   destination: string;
   actionLabel: string;
+  analyticsHref?: string;
 }
 
 function apiLifecycleStatus(status: ApiCourseStatus): CourseLifecycleStatus {
@@ -53,13 +54,14 @@ export async function loadCourseList(): Promise<CourseListItem[]> {
     await demoDelay(300);
     return mockCourses.map((course) => {
       const generated = readGeneratedCourseState(course.id);
-      const status = generated?.lifecycle ?? "draft";
+      const status = generated?.lifecycle ?? course.lifecycle;
       return {
         id: course.id,
         title: generated?.course.title ?? course.name,
         status,
-        destination: generated ? courseDestination(course.id, status) : course.currentStep === "Knowledge Sources" ? `/creator/courses/${course.id}/sources` : "/creator/courses/new/basics",
-        actionLabel: generated ? courseActionLabel(status) : "Continue setup",
+        destination: status === "draft" && !generated ? "/creator/courses/new/basics" : courseDestination(course.id, status),
+        actionLabel: courseActionLabel(status),
+        analyticsHref: status === "published" ? `/creator/analytics/${course.id}` : undefined,
       };
     });
   }

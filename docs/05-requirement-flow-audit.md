@@ -214,13 +214,13 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 17 — Creator Dashboard & Analytics
 
 - **Requirement IDs:** 17
-- **Current routes:** `/creator/analytics`.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** Honest empty state with a route back to the active course.
-- **Missing behavior:** Learner count/progress, completion, scores, common errors, gaps, insights, filters, and export.
-- **Flow problems found:** Static route could be mistaken for implemented analytics.
-- **Changes made:** Roadmap now classifies it as Not Started rather than implemented.
-- **Remaining work:** Build after published courses generate learner data.
+- **Current routes:** `/creator`, `/creator/courses`, `/creator/analytics`, `/creator/analytics/[courseId]`.
+- **Current status:** Implemented (frontend).
+- **Implemented behavior:** Creator overview KPIs and lifecycle counts; status-aware recent-course actions; course and time-range filters stored in the URL; active learners, starts, completions, completion rate, post-assessment, and Verified-skill KPIs; learner progression funnel; largest drop-off; published-course comparison; Pre/Post improvement and practical pass analytics; per-skill outcomes and deterministic attention rules; lesson/activity completion, quiz, and retry signals; explainable Creator insights; course detail; client-side CSV export; and explicit loading, error/retry, no-published-course, no-learner-activity, unknown-course, and non-published states.
+- **Missing behavior:** Backend-authoritative enrollment/event aggregation, production analytics permissions, real-time data, server report generation, and multi-creator aggregation.
+- **Flow problems found:** The route was a placeholder, Creator home had no performance summary, published courses had no analytics action, filters/export did not exist, and zero-data courses would otherwise have looked like poor performance.
+- **Changes made:** Replaced the placeholder with a typed frontend analytics feature. Reused the existing course lifecycle taxonomy and learner assessment/skill concepts, connected the Creator home and My Courses, separated no activity from zero performance, and kept API mode safe because `API_doc.md` documents no analytics endpoint.
+- **Remaining work:** Product acceptance and a documented backend analytics/event/report contract.
 
 ### 18 — Organization Workspace
 
@@ -247,12 +247,12 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 20 — Notifications / Reports / Supporting States
 
 - **Requirement IDs:** 20
-- **Current routes:** Supporting states are embedded throughout Functions 01–16; analytics is `/creator/analytics`.
+- **Current routes:** Supporting states are embedded throughout Functions 01–17; analytics is `/creator/analytics`.
 - **Current status:** Partial.
 - **Implemented behavior:** Loading, error, success, validation, disabled reasons, empty states, retries, accessible application-level toasts, and focus-managed confirmation dialogs for current functions.
-- **Missing behavior:** Notification center, report generation/export, and a documented backend failure taxonomy.
+- **Missing behavior:** Notification center, broader production report generation, and a documented backend failure taxonomy. Function 17 now provides a scoped client-side CSV export.
 - **Flow problems found:** Several current flows lacked explicit failures or disabled reasons.
-- **Changes made:** Added auth/OTP/source/URL/AI errors, success feedback, retries, dependency explanations, and a reusable success/error/information toast provider.
+- **Changes made:** Added auth/OTP/source/URL/AI/analytics errors, success feedback, retries, dependency explanations, a reusable success/error/information toast provider, and a Function 17 CSV export.
 - **Remaining work:** Add notifications and exports only with the owning future features.
 
 ## Creator End-to-End Flow
@@ -269,6 +269,9 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 | Creator Review → Preview | Needs Review | Editing, grounding, and item verification persist; Preview can open before completion. |
 | Preview → Publish | Needs Review | Publish remains disabled until all readiness rules and required verification pass. |
 | Publish → Published / Unpublished | Needs Review | Local publish, manage, unpublish, and republish lifecycle is connected. |
+| Creator dashboard → Published course analytics | Working | Creator home and My Courses expose View analytics only for Published courses. |
+| Analytics overview → Course performance | Working | Course/time filters update deterministic metrics and published courses open `/creator/analytics/[courseId]`. |
+| Course performance → Assessment / Skill outcomes | Working | Funnel, assessment, skill, content, attention, and insight sections share the selected course and time range. |
 
 ## Learner End-to-End Flow
 

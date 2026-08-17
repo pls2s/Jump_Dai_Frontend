@@ -21,10 +21,10 @@ Status reflects whether a complete frontend user goal can be achieved—not whet
 | 14 | Practical Assessment & Submission | Needs Review | Structured campaign-plan task/draft, Save draft, validation, confirmation, staged mock evaluation, readable weighted rubric, strengths/improvement feedback, pass/needs-practice results, and retry work locally. |
 | 15 | Skill Result & Feedback | Needs Review | Completion-gated completed/more-practice results combine pre/post knowledge and practical evidence, show improvement and feedback, and mark Verified only when all centralized rules pass. |
 | 16 | Skill Evidence / Portfolio / Credential | Needs Review | Course-scoped portfolio sections, per-skill evidence, incomplete/Verified states, evidence traceability, derived credential eligibility, explicit persisted demo claim/issuance, requirements, issued/eligible/not-offered states, preview sharing, and browser print work from persisted frontend results. No backend issuance or public verification exists. |
-| 17 | Creator Dashboard & Analytics | Not Started | The current route is an honest empty destination, not analytics functionality. |
+| 17 | Creator Dashboard & Analytics | Implemented | Creator home metrics, lifecycle summary, recent course actions, course/time filters, learner funnel and drop-off, course/assessment/skill/content performance, deterministic insights, course detail, no-data/loading/error states, and client-side CSV export work from coherent frontend fixtures. No analytics backend contract exists. |
 | 18 | Organization Workspace | Not Started | Organization selection reaches an intentional placeholder with no Creator/Admin access. |
 | 19 | Administrator | Not Started | Admin cannot be self-selected and no Admin routes exist. |
-| 20 | Notifications / Reports / Supporting States | Partial | Current features cover local loading, success/error/information toasts, validation, disabled, empty, retry, and confirmation states. A notification center and report export are not implemented. |
+| 20 | Notifications / Reports / Supporting States | Partial | Current features cover local loading, success/error/information toasts, validation, disabled, empty, retry, confirmation, and Function 17 CSV export states. A notification center and broader report services are not implemented. |
 
 ## Current verified continuity
 
