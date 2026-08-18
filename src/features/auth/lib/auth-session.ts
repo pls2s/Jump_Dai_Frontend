@@ -107,6 +107,25 @@ export function saveFrontendBypassSession(
   return session;
 }
 
+/**
+ * Seeds the system-assigned Admin role only from development preview tooling.
+ * Admin remains a role (not a selectable workspace type) in the current model.
+ */
+export function saveFrontendAdminPreviewSession() {
+  const session: AuthSession = {
+    mode: "bypass",
+    user: {
+      id: 999,
+      name: "Admin Frontend Preview",
+      email: "admin-preview@skillsync.local",
+      workspaceType: "creator",
+      roles: ["admin"],
+    },
+  };
+  saveAuthSession(session, true);
+  return session;
+}
+
 export function clearAuthSession() {
   if (typeof window === "undefined") return;
   localStorage.removeItem(SESSION_KEY);

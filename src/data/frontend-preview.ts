@@ -209,6 +209,22 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
       { label: "Organization Error", href: "/organization?state=error", description: "Safe error and retry behavior" },
     ],
   },
+  {
+    functionId: "19",
+    title: "Admin",
+    routes: [
+      { label: "Enter Admin Preview", href: "/dev/frontend-preview/admin?destination=%2Fadmin", description: "Creates an explicit development-only Admin role session" },
+      { label: "Admin Overview", href: "/dev/frontend-preview/admin?destination=%2Fadmin", description: "Platform users, courses, and recent oversight activity" },
+      { label: "Users", href: "/dev/frontend-preview/admin?destination=%2Fadmin%2Fusers", description: "Working account-type filters and read-only account context" },
+      { label: "User Detail", href: "/dev/frontend-preview/admin?destination=%2Fadmin%2Fusers%2Fuser-3", description: "Workspace, role, and SkillSync activity summary" },
+      { label: "Courses", href: "/dev/frontend-preview/admin?destination=%2Fadmin%2Fcourses", description: "Lifecycle-aware platform course oversight" },
+      { label: "Course Detail", href: "/dev/frontend-preview/admin?destination=%2Fadmin%2Fcourses%2Fdigital-marketing-foundations", description: "Read-only learning activity and outcome detail" },
+      { label: "Platform Activity", href: "/dev/frontend-preview/admin?destination=%2Fadmin%2Factivity", description: "Deterministic account, course, and organization events" },
+      { label: "Empty Admin", href: "/dev/frontend-preview/admin?destination=%2Fadmin%3Fstate%3Dempty", description: "No platform records state" },
+      { label: "Loading Admin", href: "/dev/frontend-preview/admin?destination=%2Fadmin%3Fstate%3Dloading", description: "Accessible persistent loading state" },
+      { label: "Admin Error", href: "/dev/frontend-preview/admin?destination=%2Fadmin%3Fstate%3Derror", description: "Safe error and retry behavior" },
+    ],
+  },
 ];
 
 export const frontendPreviewCourseId = FRONTEND_PREVIEW_COURSE_ID;

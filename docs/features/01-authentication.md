@@ -52,7 +52,7 @@ Create or access an account, reach the correct workspace, retain a safe frontend
 - Sign out from `/creator/account` returns to `/sign-in`
 - `NEXT_PUBLIC_FRONTEND_BYPASS=true` makes the shared session lookup synthesize the development-only `Frontend Preview` identity, so existing guards allow direct UI review without backend calls
 - Sign In and OTP expose small bypass-only preview actions; account type remains limited to Learner, Creator, and Organization
-- `/dev/frontend-preview` lists Functions 01–18 only while bypass is enabled and returns Not Found otherwise
+- `/dev/frontend-preview` lists Functions 01–19 only while bypass is enabled and returns Not Found otherwise; its explicit Admin handoff seeds a development-only `admin` role without exposing Admin in signup
 
 ## States
 

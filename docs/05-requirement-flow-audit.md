@@ -236,18 +236,18 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 19 — Administrator
 
 - **Requirement IDs:** 19
-- **Current routes:** None.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** Admin is absent from registration and explicitly system-assigned.
-- **Missing behavior:** User, role, content, account, and audit-access management.
-- **Flow problems found:** None; no Admin self-selection or route exists.
-- **Changes made:** Role guard prevents non-Creator mock roles from entering Creator routes.
-- **Remaining work:** Add server-assigned Admin authorization before any Admin UI.
+- **Current routes:** `/admin`, `/admin/users`, `/admin/users/[userId]`, `/admin/courses`, `/admin/courses/[courseId]`, and `/admin/activity`; development access is handed off through `/dev/frontend-preview/admin` only when bypass is enabled.
+- **Current status:** Implemented (frontend oversight).
+- **Implemented behavior:** Dedicated role-guarded Admin shell; derived platform metrics; searchable/filterable user/account/role/workspace overview and detail; lifecycle-aware course oversight; Published-course learning, assessment, skill, and content outcomes; deterministic account/course/organization activity with a working filter; sign out; and explicit empty, loading, error/retry, no-result, unknown-record, non-published, and no-activity states.
+- **Missing behavior:** Backend-authoritative Admin login/session claims, authorization, platform user/course/activity resources, pagination/privacy rules, account/content mutation contracts, and security-grade audit logging.
+- **Flow problems found:** Admin was correctly absent from self-selection but had no protected workspace or usable oversight journey.
+- **Changes made:** Added read-only oversight using existing `UserRole`, `WorkspaceType`, course lifecycle, Organization ownership, and Function 17 analytics. A generic bypass Creator session cannot enter `/admin`; the development index creates an explicit allow-listed Admin preview session. No mutation or guessed API endpoint was added.
+- **Remaining work:** Product acceptance plus documented server-issued Admin authorization and Admin resources. Frontend route guards are not a security boundary.
 
 ### 20 — Notifications / Reports / Supporting States
 
 - **Requirement IDs:** 20
-- **Current routes:** Supporting states are embedded throughout Functions 01–18; analytics is `/creator/analytics` and Organization state variants are under `/organization`.
+- **Current routes:** Supporting states are embedded throughout Functions 01–19; analytics is `/creator/analytics`, Organization state variants are under `/organization`, and Admin state variants are under `/admin`.
 - **Current status:** Partial.
 - **Implemented behavior:** Loading, error, success, validation, disabled reasons, empty states, retries, accessible application-level toasts, and focus-managed confirmation dialogs for current functions.
 - **Missing behavior:** Notification center, broader production report generation, and a documented backend failure taxonomy. Function 17 now provides a scoped client-side CSV export.
@@ -296,7 +296,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - **Learner:** Selectable at account type; routes to `/learner`; uses a learner-only shell and can complete Functions 08–16 without Creator navigation.
 - **Creator:** Selectable; routes to `/creator`; current Creator functions 01–07 are available.
 - **Organization:** Selectable; routes to `/organization`; uses a dedicated learning-focused shell. Access keys from `workspaceType: organization` while retaining the seeded `roles: [creator]` value; no Admin or Creator-editing capability is implied.
-- **Admin:** Not selectable; no route exists; future access must be system-assigned and server-authorized.
+- **Admin:** Not selectable; `/admin` requires `roles: [admin]`. Bypass access is created only by the development preview handoff. Normal API access still requires future server-issued role/workspace claims and backend authorization.
 
 ## Organization End-to-End Flow
 
@@ -307,6 +307,16 @@ A learning path is exposed only after assessment evidence. Verified requires com
 | Courses → Course performance | Working | Published courses expose shared funnel, assessment, skill, and content analytics; no-activity and non-published courses receive explicit states. |
 | Overview → Learners → Learner detail | Working | Course/status filters lead to fictional learning-only records with progress, completions, verified skills, and recent activity. |
 | Overview → Skills & Outcomes | Working | Course/time/coverage filters update aggregate Pre/Post improvement, practical pass, retry, and attention signals. |
+
+## Admin End-to-End Flow
+
+| Transition | Status | Audit result |
+| --- | --- | --- |
+| Frontend Preview → Admin overview | Working in bypass only | An explicit allow-listed handoff seeds the system-assigned Admin role; a generic bypass session is rejected. |
+| Overview → Users → User detail | Working | Search and account-type filters lead to read-only identity, workspace, role, and SkillSync activity context. |
+| Overview → Courses → Course detail | Working | Existing lifecycle and owner data lead to read-only Published outcomes or clear non-published/no-activity states. |
+| Overview → Platform activity | Working | Account, course, and Organization event categories filter deterministic oversight records. |
+| Normal user → `/admin` | Working | Learner, Creator, and Organization sessions redirect to their own workspace; Admin is not self-selectable. |
 
 ## Route Audit
 
@@ -340,6 +350,13 @@ A learning path is exposed only after assessment evidence. Verified requires com
 | `/organization/learners` | Organization sidebar/overview | Filter and open learner outcomes | Overview | No learners; no matching filters; loading/error | Organization | Fictional learning-only roster fixture |
 | `/organization/learners/[learnerId]` | Organization Learners | Inspect current learning, completion, verified skills, and recent activity | Learners | Unknown learner; loading/error | Organization | Fictional learning-only learner record |
 | `/organization/skills` | Organization sidebar/overview | Filter aggregate skill coverage and attention outcomes | Overview | No skill data; no matching filters; loading/error | Organization | Shared assessment/skill analytics and deterministic attention rules |
+| `/admin` | Explicit bypass Admin preview or future server-authorized Admin session | Users, Courses, or Platform Activity | — | Empty platform; loading; API contract error/retry; non-Admin redirect | Admin | Existing session with `admin` role; frontend fixtures in bypass/demo only |
+| `/admin/users` | Admin sidebar/overview | Search/filter and inspect user | Overview | No users; no filter results; loading/error | Admin | Admin user oversight fixture; existing role/workspace types |
+| `/admin/users/[userId]` | Admin Users | Inspect identity, workspace, roles, and activity context | Users | Unknown user; loading/error | Admin | Existing Admin user record |
+| `/admin/courses` | Admin sidebar/overview | Filter and inspect course | Overview | No courses; no lifecycle matches; loading/error | Admin | Shared lifecycle, ownership, and Function 17 analytics fixtures |
+| `/admin/courses/[courseId]` | Admin Courses | Inspect ownership and learning outcomes | Courses | Unknown/non-published/no-activity course; loading/error | Admin | Shared course and analytics fixture; read-only |
+| `/admin/activity` | Admin sidebar/overview | Filter recent oversight events | Overview | No activity/no matches; loading/error | Admin | Deterministic frontend activity fixture |
+| `/dev/frontend-preview/admin` | Bypass-only preview index | Seed Admin preview role and redirect to allow-listed Admin destination | Preview index | Not Found when bypass is off; invalid destination falls back to `/admin` | Development | `NEXT_PUBLIC_FRONTEND_BYPASS=true` |
 | `/creator` | Creator login/demo access | Create/continue course | — | Missing/wrong-role demo session redirects | Creator | Matching demo session or API session |
 | `/creator/courses` | Sidebar/home | Create/manage documents | Creator home | Demo empty/local state or API loading/network errors | Creator | Mode-aware local list or `GET /api/courses` |
 | `/creator/courses/new/[step]` | Create/Continue/Edit | Demo source workspace or backend course documents | Previous step/home | Validation and mode-appropriate create errors | Creator | Prior values; local demo submission or `POST /api/courses` on Review |
@@ -384,6 +401,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - Function 16 stopped at a placeholder and did not connect saved evidence, per-skill verification, certificate settings, or credential eligibility.
 - Standalone TypeScript relied on generated `LayoutProps`; temporary copy/success messages were duplicated; demo OTP had no expiry/resend; Creator profile was display-only.
 - Organization authentication ended at a placeholder with no learning overview, course performance, learner outcomes, aggregate skills, or dedicated navigation.
+- Admin was correctly system-only but had no protected oversight route, user/course inspection, or platform activity view.
 
 ### Resolution
 
@@ -415,6 +433,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - Added personalized lesson delivery, saved completion/resume, quick checks, Post-Assessment, practical draft/evaluation, and completion-gated Skill Result.
 - Replaced the Function 16 placeholder with a derived portfolio, skill evidence mapping, incomplete/Verified explanations, credential requirements, simulated issued/eligible states, safe sharing feedback, and browser print.
 - Replaced the Organization placeholder with a workspace-scoped shell, lifecycle-aware courses, shared Function 17 course analytics, fictional learning-only learner records, aggregate skill outcomes, working filters, and explicit no-data/recovery states.
+- Added a role-guarded, read-only Admin workspace for user/account/role/workspace, course lifecycle/outcome, and lightweight activity oversight; bypass entry is explicit and no Admin API or mutation is guessed.
 
 ## Business Rule Integrity
 
@@ -428,3 +447,4 @@ A learning path is exposed only after assessment evidence. Verified requires com
 8. Quick quiz, Post-Assessment, and Practical Assessment use centralized passing criteria; opening a screen never passes it.
 9. A frontend demo credential is shown as issued only when completion, assessment, applied evidence, per-skill verification, and certificate-setting requirements pass; it is explicitly not a public credential.
 10. Certificate criteria are shown whenever enabled and are included in publish readiness.
+11. Admin remains excluded from registration and Account Type; a generic bypass session cannot enter Admin, and frontend guards are documented as insufficient without backend authorization.
