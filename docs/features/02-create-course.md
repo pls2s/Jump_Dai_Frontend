@@ -39,7 +39,7 @@ Define the course basics, intended learners, outcomes, and completion certificat
 - Final review calls a mode-aware course service
 - Demo mode returns the seeded course slug and opens its local source workspace without a backend request
 - API mode calls authenticated `POST /api/courses` and opens `/creator/courses/{returnedId}/sources`
-- The API request sends only documented fields: `title`, `description`, and `goal`
+- The API request sends `title`, `description`, `target_learner`, `difficulty_level`, and the combined `learning_objective`
 
 ## States
 
@@ -51,11 +51,11 @@ Define the course basics, intended learners, outcomes, and completion certificat
 
 ## Mock behavior
 
-The wizard begins with realistic Digital Marketing Foundations content. In-progress values are saved locally. Demo mode simulates submission and continues to the slug-based mock workspace. In API mode, course name maps to `title`, description maps directly, and learning objectives are combined into the documented string `goal`.
+The wizard begins with realistic Digital Marketing Foundations content. In-progress values are saved locally. Demo mode simulates submission and continues to the slug-based mock workspace. In API mode, course name maps to `title`, description maps directly, difficulty maps to the backend enum, and the learning objectives are combined into the backend `learning_objective` field.
 
 ## Known limitations
 
-- Target learner, difficulty, objective arrays, and certificate settings are not included in the backend request because the documented course schema has no matching fields
+- Individual objective records and certificate settings are not persisted separately yet. The backend stores one combined `learning_objective`, and exposes `certificate_available` only for `ADVANCED` courses.
 - No backend draft autosave, collaborative editing, or server validation details beyond the general error envelope
 - Objective reordering is not implemented and no drag affordance is shown
-- Creator Home remains seeded; `/creator/courses` lists local fixtures in demo mode and backend-returned courses in API mode
+- `/creator/courses` lists local fixtures in demo mode and the Creator-owned backend courses in API mode
