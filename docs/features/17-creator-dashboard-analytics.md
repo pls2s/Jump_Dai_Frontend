@@ -89,7 +89,7 @@ Course lifecycle continues to use the existing generated-course local state. Ana
 - No real enrollments, event stream, aggregation, privacy controls, or real-time refresh
 - CSV is generated client-side from demo fixtures
 - Insights are deterministic observations, not AI-generated recommendations
-- Course analytics are course-scoped; no organization-wide reporting is implemented
+- Organization-wide reporting reuses these primitives in Function 18, but remains frontend-only
 
 ## Future backend/API integration
 

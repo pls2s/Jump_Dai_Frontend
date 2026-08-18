@@ -23,7 +23,7 @@ export default function FrontendPreviewIndexPage() {
           <p className="type-label text-action-primary">Development route index</p>
           <h1 className="type-h1 mt-2">Review the implemented SkillSync frontend</h1>
           <p className="type-body-large mt-4 text-text-secondary">
-            Open any current product screen from Functions 01–17 without backend authentication or prerequisite setup. Product rules remain enforced when bypass mode is off.
+            Open any current product screen from Functions 01–18 without backend authentication or prerequisite setup. Product rules remain enforced when bypass mode is off.
           </p>
           <div className="type-body-small mt-5 flex flex-wrap gap-x-5 gap-y-2 rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-900">
             <span><strong>Preview identity:</strong> Frontend Preview</span>

@@ -31,6 +31,10 @@ function scaleCount(value: number, range: AnalyticsTimeRange) {
   return Math.max(1, Math.round(value * rangeFactors[range]));
 }
 
+export function scaleAnalyticsCount(value: number, range: AnalyticsTimeRange) {
+  return scaleCount(value, range);
+}
+
 function clampPercent(value: number) {
   return Math.min(100, Math.max(0, Math.round(value)));
 }

@@ -7,6 +7,8 @@ export type NavigationIcon =
   | "account"
   | "learning"
   | "evidence"
+  | "learners"
+  | "skills"
   | "settings"
   | "components";
 

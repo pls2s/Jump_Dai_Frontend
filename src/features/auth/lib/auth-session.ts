@@ -149,7 +149,7 @@ export function routeForWorkspace(workspaceType: WorkspaceType) {
   const routes: Record<WorkspaceType, string> = {
     creator: "/creator",
     learner: "/learner",
-    organization: "/organization/onboarding",
+    organization: "/organization",
   };
   return routes[workspaceType];
 }

@@ -38,7 +38,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 01 — User & Authentication
 
 - **Requirement IDs:** 01
-- **Current routes:** `/`, `/sign-in`, `/create-account`, `/verify-otp`, `/account-type`, `/creator/account`, `/learner`, `/learner/onboarding` (redirect), `/organization/onboarding`.
+- **Current routes:** `/`, `/sign-in`, `/create-account`, `/verify-otp`, `/account-type`, `/creator/account`, `/learner`, `/learner/onboarding` (redirect), `/organization`, `/organization/onboarding` (redirect).
 - **Current status:** Implemented (frontend); backend contract gaps documented.
 - **Implemented behavior:** A centralized environment switch selects bypass, frontend demo, or API-connected behavior. Bypass accepts any non-empty credentials without API access. Demo mode completes fixture sign-in, validation, registration, six-digit OTP, persisted two-minute expiry, invalid/incomplete/expired states, resend/loading/success, workspace selection, persistent password-free session, role routing, editable locally persisted profile, guard behavior, logout confirmation, and refresh continuity. API mode retains exact documented register/login/current-user calls, Bearer-token session, API errors, read-only account display, and local logout.
 - **Missing behavior:** `API_doc.md` documents no OTP verification/resend, workspace selection, logout/revocation, profile-update, or role/workspace response contract. Password-reset delivery, Google OAuth, server authorization, and production session security also remain unavailable.
@@ -225,13 +225,13 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 18 — Organization Workspace
 
 - **Requirement IDs:** 18
-- **Current routes:** `/organization/onboarding` placeholder.
-- **Current status:** Future / Not Started.
-- **Implemented behavior:** Role-specific placeholder, account-type return, and logout.
-- **Missing behavior:** Organization profile, members, roles, invitations, assignments, and permission-aware progress.
-- **Flow problems found:** Organization role previously could not continue.
-- **Changes made:** Added intentional placeholder that does not grant Creator/Admin access.
-- **Remaining work:** Implement organization permissions before member data.
+- **Current routes:** `/organization`, `/organization/courses`, `/organization/courses/[courseId]`, `/organization/learners`, `/organization/learners/[learnerId]`, `/organization/skills`; `/organization/onboarding` redirects to the workspace.
+- **Current status:** Implemented (frontend).
+- **Implemented behavior:** Dedicated Organization shell; workspace identity/current-user context; Active Course, Active Learner, Completion, Verified Skill, and average-improvement summaries; lifecycle-aware course catalog; published course performance using the shared Function 17 funnel/assessment/skill/content components; fictional learning-only learner list/detail; aggregate skill coverage and attention rules; working course/status/time/learner/coverage filters; workspace access based on `workspaceType`; and explicit empty, no-activity, loading, error/retry, unknown-course, and unknown-learner states.
+- **Missing behavior:** Backend-authoritative organization identity, membership, permissions, course association, learner participation, privacy policy, analytics aggregation, and assignment/invitation contracts. These are not documented in `API_doc.md`, so the frontend sends no guessed Organization request.
+- **Flow problems found:** Organization authentication ended at a placeholder; no organization navigation, learning overview, course performance, learner outcomes, or aggregate skill outcomes were inspectable.
+- **Changes made:** Replaced the placeholder with one learning-focused workspace. Reused the existing course lifecycle, Function 17 analytics types/derivation, and skill attention rules; preserved the seeded `workspaceType: organization` plus `roles: [creator]` model without creating an Organization backend role; and kept Creator editing/Admin/HR capabilities out of the workspace.
+- **Remaining work:** Product acceptance and documented backend Organization, membership, authorization, analytics, and privacy contracts.
 
 ### 19 — Administrator
 
@@ -247,7 +247,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 20 — Notifications / Reports / Supporting States
 
 - **Requirement IDs:** 20
-- **Current routes:** Supporting states are embedded throughout Functions 01–17; analytics is `/creator/analytics`.
+- **Current routes:** Supporting states are embedded throughout Functions 01–18; analytics is `/creator/analytics` and Organization state variants are under `/organization`.
 - **Current status:** Partial.
 - **Implemented behavior:** Loading, error, success, validation, disabled reasons, empty states, retries, accessible application-level toasts, and focus-managed confirmation dialogs for current functions.
 - **Missing behavior:** Notification center, broader production report generation, and a documented backend failure taxonomy. Function 17 now provides a scoped client-side CSV export.
@@ -295,8 +295,18 @@ A learning path is exposed only after assessment evidence. Verified requires com
 
 - **Learner:** Selectable at account type; routes to `/learner`; uses a learner-only shell and can complete Functions 08–16 without Creator navigation.
 - **Creator:** Selectable; routes to `/creator`; current Creator functions 01–07 are available.
-- **Organization:** Selectable; routes to `/organization/onboarding`; cannot enter Creator/Admin functionality.
+- **Organization:** Selectable; routes to `/organization`; uses a dedicated learning-focused shell. Access keys from `workspaceType: organization` while retaining the seeded `roles: [creator]` value; no Admin or Creator-editing capability is implied.
 - **Admin:** Not selectable; no route exists; future access must be system-assigned and server-authorized.
+
+## Organization End-to-End Flow
+
+| Transition | Status | Audit result |
+| --- | --- | --- |
+| Authentication → Organization overview | Working | Organization demo/account-type access routes to `/organization`; wrong demo workspace redirects and bypass allows explicit direct preview. |
+| Overview → Organization courses | Working | Summary metrics and course activity link to the lifecycle-aware catalog. |
+| Courses → Course performance | Working | Published courses expose shared funnel, assessment, skill, and content analytics; no-activity and non-published courses receive explicit states. |
+| Overview → Learners → Learner detail | Working | Course/status filters lead to fictional learning-only records with progress, completions, verified skills, and recent activity. |
+| Overview → Skills & Outcomes | Working | Course/time/coverage filters update aggregate Pre/Post improvement, practical pass, retry, and attention signals. |
 
 ## Route Audit
 
@@ -323,7 +333,13 @@ A learning path is exposed only after assessment evidence. Verified requires com
 | `/learner/courses/[courseId]/skill-evidence/skills/[skillId]` | Portfolio Skills | Evidence result or next required assessment | Portfolio Skills | Unknown skill; partial/non-verified explanation | Learner | Derived skill evidence and existing verification engine |
 | `/learner/courses/[courseId]/skill-evidence/requirements` | Credentials section | Credential preview or continue assessment | Credentials section | Not eligible; certificate not offered | Learner | Completion checks, verified evidence, certificate setting |
 | `/learner/courses/[courseId]/skill-evidence/credentials/[credentialId]` | Issued/eligible credential card | Eligible → claim demo credential; Issued → evidence, copy, browser print | Portfolio Credentials | Unknown/unavailable credential; claim rejected when requirements fail or mock mode is off | Learner | Derived eligibility plus explicit persisted demo issuance; no public verification |
-| `/organization/onboarding` | Organization auth | Sign out | — | Wrong role redirects; future placeholder | Demo Organization | Organization demo session |
+| `/organization/onboarding` | Legacy Organization URL | Redirect to `/organization` | — | Wrong workspace is handled by Organization shell | Organization | Existing Organization session |
+| `/organization` | Organization auth/demo access | Courses, Learners, or Skills & Outcomes | — | Empty workspace; loading; API contract error/retry; wrong workspace redirect | Organization | `workspaceType: organization` or bypass; frontend fixtures |
+| `/organization/courses` | Organization sidebar/overview | Filter and open organization course | Overview | No courses; no matching status; loading/error | Organization | Organization course association fixture and shared lifecycle |
+| `/organization/courses/[courseId]` | Organization Courses | Inspect published learner/assessment/skill/content performance | Courses | Unknown course; non-published explanation; no learner activity; loading/error | Organization | Associated course plus shared Function 17 analytics fixture |
+| `/organization/learners` | Organization sidebar/overview | Filter and open learner outcomes | Overview | No learners; no matching filters; loading/error | Organization | Fictional learning-only roster fixture |
+| `/organization/learners/[learnerId]` | Organization Learners | Inspect current learning, completion, verified skills, and recent activity | Learners | Unknown learner; loading/error | Organization | Fictional learning-only learner record |
+| `/organization/skills` | Organization sidebar/overview | Filter aggregate skill coverage and attention outcomes | Overview | No skill data; no matching filters; loading/error | Organization | Shared assessment/skill analytics and deterministic attention rules |
 | `/creator` | Creator login/demo access | Create/continue course | — | Missing/wrong-role demo session redirects | Creator | Matching demo session or API session |
 | `/creator/courses` | Sidebar/home | Create/manage documents | Creator home | Demo empty/local state or API loading/network errors | Creator | Mode-aware local list or `GET /api/courses` |
 | `/creator/courses/new/[step]` | Create/Continue/Edit | Demo source workspace or backend course documents | Previous step/home | Validation and mode-appropriate create errors | Creator | Prior values; local demo submission or `POST /api/courses` on Review |
@@ -335,7 +351,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 | `/creator/courses/[courseId]/preview` | Review | Published success | Review | Not-ready checklist; publish failure/retry | Creator | Generated content, Ready source, full verification, certificate criteria |
 | `/creator/courses/[courseId]/published` | Publish success/My Courses | Unpublish or My Courses | My Courses | Missing/non-published state | Creator | Published lifecycle state |
 | `/creator/account` | Profile links | Demo/bypass Edit → Save/Cancel; confirmed sign out | Sidebar navigation | Inline validation/save errors; loading/current-user API error in API mode | Creator | Existing local session for edits; API mode uses read-only `GET /api/auth/me`; local session clear for logout |
-| `/creator/analytics` | Sidebar | Continue active course | Sidebar navigation | Honest empty state | Creator | Published course data (not available) |
+| `/creator/analytics[/[courseId]]` | Sidebar/Published course | Filter or inspect course, assessment, skill, and content performance; CSV export | Creator/Courses | Empty, no learner activity, non-published, loading, error/retry | Creator | Function 17 frontend analytics fixtures; no documented backend endpoint |
 | `/ui-preview` | Direct development URL only | Internal component inspection | — | — | Development | None |
 
 ## Interaction Audit
@@ -367,6 +383,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - Function 12 was a placeholder; no lesson completion, post-learning evidence, applied evidence, or final result existed.
 - Function 16 stopped at a placeholder and did not connect saved evidence, per-skill verification, certificate settings, or credential eligibility.
 - Standalone TypeScript relied on generated `LayoutProps`; temporary copy/success messages were duplicated; demo OTP had no expiry/resend; Creator profile was display-only.
+- Organization authentication ended at a placeholder with no learning overview, course performance, learner outcomes, aggregate skills, or dedicated navigation.
 
 ### Resolution
 
@@ -397,6 +414,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - Made bypass Sign In accept any non-empty credentials into a Creator preview session before any fixture or API logic; normal demo/API branches remain intact.
 - Added personalized lesson delivery, saved completion/resume, quick checks, Post-Assessment, practical draft/evaluation, and completion-gated Skill Result.
 - Replaced the Function 16 placeholder with a derived portfolio, skill evidence mapping, incomplete/Verified explanations, credential requirements, simulated issued/eligible states, safe sharing feedback, and browser print.
+- Replaced the Organization placeholder with a workspace-scoped shell, lifecycle-aware courses, shared Function 17 course analytics, fictional learning-only learner records, aggregate skill outcomes, working filters, and explicit no-data/recovery states.
 
 ## Business Rule Integrity
 

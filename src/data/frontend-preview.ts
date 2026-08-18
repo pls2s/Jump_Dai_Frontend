@@ -192,6 +192,23 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
       { label: "Analytics Error", href: "/creator/analytics?state=error", description: "Safe error and retry behavior" },
     ],
   },
+  {
+    functionId: "18",
+    title: "Organization",
+    routes: [
+      { label: "Organization Overview", href: "/organization", description: "Workspace metrics, course activity, recent learning, and skill development" },
+      { label: "Organization Courses", href: "/organization/courses", description: "Lifecycle-aware organization course catalog and working filters" },
+      { label: "Course Performance", href: "/organization/courses/digital-marketing-foundations", description: "Organization-scoped funnel, assessment, skill, and content outcomes" },
+      { label: "No Learner Activity", href: "/organization/courses/ai-productivity-basics", description: "Published course before learners begin" },
+      { label: "Organization Learners", href: "/organization/learners", description: "Learning-only learner progress overview" },
+      { label: "Learner Detail", href: "/organization/learners/learner-maya-chen", description: "Current learning, completed courses, verified skills, and recent activity" },
+      { label: "Skills & Outcomes", href: "/organization/skills", description: "Aggregate improvement, coverage, and attention signals" },
+      { label: "Empty Organization", href: "/organization?state=empty", description: "Workspace before courses or learner evidence exist" },
+      { label: "No Learners", href: "/organization/learners?state=empty", description: "Workspace learner empty state" },
+      { label: "Loading Organization", href: "/organization?state=loading", description: "Accessible persistent loading state" },
+      { label: "Organization Error", href: "/organization?state=error", description: "Safe error and retry behavior" },
+    ],
+  },
 ];
 
 export const frontendPreviewCourseId = FRONTEND_PREVIEW_COURSE_ID;
