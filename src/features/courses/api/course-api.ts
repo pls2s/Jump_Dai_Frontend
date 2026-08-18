@@ -5,37 +5,50 @@ export type ApiCourseStatus =
   | "GENERATING"
   | "WAITING_VERIFICATION"
   | "VERIFIED"
-  | "PUBLISHED";
+  | "PUBLISHED"
+  | "FAILED";
+
+export type ApiDifficultyLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
 export interface ApiCourse {
   id: number;
   title: string;
   description: string;
-  goal: string;
+  target_learner: string;
+  difficulty_level: ApiDifficultyLevel;
+  certificate_available: boolean;
+  learning_objective: string;
   status: ApiCourseStatus;
   creator_id: number;
-}
-
-export interface CreatedApiCourse extends ApiCourse {
   created_at: string;
 }
+
+export type CreatedApiCourse = ApiCourse;
 
 export interface CreateCourseInput {
   title: string;
   description: string;
-  goal: string;
+  targetLearner: string;
+  difficultyLevel: ApiDifficultyLevel;
+  learningObjective: string;
 }
 
 export function createCourse(input: CreateCourseInput, accessToken: string) {
   return apiRequest<CreatedApiCourse>("/api/courses", {
     method: "POST",
     token: accessToken,
-    body: input,
+    body: {
+      title: input.title,
+      description: input.description,
+      target_learner: input.targetLearner,
+      difficulty_level: input.difficultyLevel,
+      learning_objective: input.learningObjective,
+    },
   });
 }
 
 export function getCourses(accessToken: string) {
-  return apiRequest<Array<Pick<ApiCourse, "id" | "title" | "status">>>("/api/courses", {
+  return apiRequest<ApiCourse[]>("/api/courses", {
     method: "GET",
     token: accessToken,
   });
@@ -44,13 +57,6 @@ export function getCourses(accessToken: string) {
 export function getCourse(courseId: number, accessToken: string) {
   return apiRequest<ApiCourse>(`/api/courses/${courseId}`, {
     method: "GET",
-    token: accessToken,
-  });
-}
-
-export function deleteCourse(courseId: number, accessToken: string) {
-  return apiRequest<void>(`/api/courses/${courseId}`, {
-    method: "DELETE",
     token: accessToken,
   });
 }

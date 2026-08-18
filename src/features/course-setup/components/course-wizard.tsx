@@ -68,7 +68,13 @@ export function CourseWizard({ step }: { step: WizardStep }) {
       const created = await createConfiguredCourse({
         title: course.name.trim(),
         description: course.description.trim(),
-        goal: course.objectives.map((objective) => objective.trim()).join(" "),
+        targetLearner: course.targetLearner.trim(),
+        difficultyLevel: ({
+          Beginner: "BEGINNER",
+          Intermediate: "INTERMEDIATE",
+          Advanced: "ADVANCED",
+        } as const)[course.level],
+        learningObjective: course.objectives.map((objective) => objective.trim()).join("\n"),
       });
       router.push(`/creator/courses/${created.id}/sources`);
     } catch (caught) {
