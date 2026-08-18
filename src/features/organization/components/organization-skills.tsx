@@ -1,14 +1,15 @@
 "use client";
 
-import { CircleAlert, Target, TrendingUp, Users } from "lucide-react";
+import { CircleAlert, Download, Target, TrendingUp, Users } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 import { ContentContainer, PageHeader } from "@/components/layout";
-import { Badge, Card, Field, FieldLabel, Progress, Select } from "@/components/ui";
+import { Badge, Button, Card, Field, FieldLabel, Progress, Select, useToast } from "@/components/ui";
 import { analyticsTimeRangeLabels } from "@/data/mock/creator-analytics";
 import { organizationPreviewState, organizationRange, useOrganizationSnapshot } from "@/features/organization/hooks/use-organization-snapshot";
 import { OrganizationEmpty, OrganizationError, OrganizationLoading } from "@/features/organization/components/organization-states";
 import type { OrganizationSkillCoverage } from "@/features/organization/types";
+import { downloadCsv } from "@/lib/export/csv";
 
 const coverageOptions: Array<OrganizationSkillCoverage | "all"> = ["all", "strong", "developing", "needs-attention"];
 const coverageLabels: Record<OrganizationSkillCoverage, string> = { strong: "Strong coverage", developing: "Developing", "needs-attention": "Needs attention" };
@@ -26,10 +27,21 @@ export function OrganizationSkills() {
   const { snapshot, loading, error, retry, updateQuery } = useOrganizationSnapshot({ timeRange: range, selectedCourseId: courseId, previewState });
   const visibleSkills = snapshot?.skills.filter((skill) => coverage === "all" || skill.coverage === coverage) ?? [];
   const needsAttention = snapshot?.skills.filter((skill) => skill.coverage === "needs-attention").length ?? 0;
+  const { showToast } = useToast();
+
+  function exportSkillOutcomes() {
+    if (!visibleSkills.length) return;
+    downloadCsv({
+      filename: `skillsync-organization-skills-${courseId ?? "all-courses"}-${range}.csv`,
+      headers: ["Skill", "Learners", "Coverage", "Pre-Assessment", "Post-Assessment", "Average Improvement", "Practical Pass Rate", "Retry Rate"],
+      rows: visibleSkills.map((skill) => [skill.name, skill.learnerCount, coverageLabels[skill.coverage], `${skill.preScore}%`, `${skill.postScore}%`, skill.improvement, `${skill.practicalPassRate}%`, `${skill.retryRate}%`]),
+    });
+    showToast({ tone: "success", title: "Skill outcomes CSV exported", description: "The file reflects the current course, time range, and coverage filters." });
+  }
 
   return (
     <ContentContainer className="max-w-[96rem]">
-      <PageHeader eyebrow="Organization workspace" title="Skills & outcomes" description="Understand aggregate skill development without exposing individual assessment answers." breadcrumb={[{ label: "Overview", href: "/organization" }, { label: "Skills & outcomes" }]} />
+      <PageHeader eyebrow="Organization workspace" title="Skills & outcomes" description="Understand aggregate skill development without exposing individual assessment answers." breadcrumb={[{ label: "Overview", href: "/organization" }, { label: "Skills & outcomes" }]} actions={visibleSkills.length ? <Button variant="secondary" onClick={exportSkillOutcomes}><Download className="size-4" aria-hidden="true" />Export CSV</Button> : undefined} />
       {loading ? <OrganizationLoading label="Loading skill outcomes" /> : error || !snapshot ? <OrganizationError message={error} onRetry={retry} /> : snapshot.courses.length === 0 ? <OrganizationEmpty title="No skill data yet" description="Skill outcomes will appear after learners complete assessments and practical activities." /> : (
         <>
           <Card className="mt-7 grid gap-4 p-4 sm:grid-cols-3 sm:p-5">

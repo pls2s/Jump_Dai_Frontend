@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+
 import { AppShell, ContentContainer, PageHeader } from "@/components/layout";
 import { Badge } from "@/components/ui";
 import { navigationFor } from "@/data/navigation";

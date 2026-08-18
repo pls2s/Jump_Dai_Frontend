@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { BarChart3, Download, RefreshCw } from "lucide-react";
+import { BarChart3, Download } from "lucide-react";
 
 import { ContentContainer, PageHeader } from "@/components/layout";
-import { Button, ButtonLink, Card, Field, FieldLabel, Select, Spinner, useToast } from "@/components/ui";
+import { Button, ButtonLink, Card, ErrorState, Field, FieldLabel, LoadingState, Select, useToast } from "@/components/ui";
 import { analyticsTimeRangeLabels } from "@/data/mock/creator-analytics";
 import {
   AnalyticsEmptyState,
@@ -25,6 +25,7 @@ import type {
   AnalyticsTimeRange,
   CreatorAnalyticsSnapshot,
 } from "@/features/creator-analytics/types";
+import { downloadCsv } from "@/lib/export/csv";
 
 const validRanges: AnalyticsTimeRange[] = ["7d", "30d", "90d", "all"];
 const validPreviewStates: AnalyticsPreviewState[] = ["default", "empty", "loading", "error"];
@@ -95,15 +96,7 @@ export function AnalyticsWorkspace({ fixedCourseId }: { fixedCourseId?: string }
     if (!snapshot?.visibleCourses.length) return;
     const headers = ["Course", "Active Learners", "Course Starts", "Completions", "Completion Rate", "Average Post Score", "Practical Pass Rate", "Verified Skills"];
     const rows = snapshot.visibleCourses.map((course) => [course.title, course.activeLearners, course.courseStarts, course.completions, `${course.completionRate}%`, `${course.averageAssessmentScore}%`, `${course.practicalPassRate}%`, course.verifiedSkills]);
-    const csv = [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `skillsync-analytics-${selectedCourseId ?? "all-courses"}-${range}.csv`;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    downloadCsv({ filename: `skillsync-analytics-${selectedCourseId ?? "all-courses"}-${range}.csv`, headers, rows });
     showToast({ tone: "success", title: "Analytics CSV exported", description: "The file contains the metrics visible for the current filters." });
   }
 
@@ -137,9 +130,9 @@ export function AnalyticsWorkspace({ fixedCourseId }: { fixedCourseId?: string }
       )}
 
       {loading ? (
-        <Card className="mt-8 flex min-h-64 flex-col items-center justify-center p-8 text-center" role="status" aria-live="polite"><Spinner className="size-7" /><h2 className="type-title-large mt-5">Loading analytics</h2><p className="type-body-small mt-2 text-text-secondary">Preparing course, learner, assessment, and skill metrics…</p></Card>
+        <LoadingState title="Loading analytics" description="Preparing course, learner, assessment, and skill metrics…" />
       ) : error ? (
-        <Card className="mt-8 flex min-h-64 flex-col items-center justify-center p-8 text-center" role="alert"><span className="flex size-12 items-center justify-center rounded-full bg-status-error-subtle text-status-error"><BarChart3 className="size-6" aria-hidden="true" /></span><h2 className="type-title-large mt-5">Analytics unavailable</h2><p className="type-body-small mt-2 max-w-lg text-text-secondary">{error}</p><Button className="mt-5" onClick={retry}><RefreshCw className="size-4" aria-hidden="true" />Retry</Button></Card>
+        <ErrorState title="Analytics unavailable" description={error} onRetry={retry} icon={<BarChart3 className="size-6" aria-hidden="true" />} />
       ) : !snapshot ? null
         : !fixedCourseId && snapshot.totals.publishedCourses === 0 ? <div className="mt-8"><AnalyticsEmptyState /></div>
           : selectedCourse && selectedCourse.status !== "published" ? <div className="mt-8"><NonPublishedAnalytics title={selectedCourse.title} status={selectedCourse.status} /></div>
@@ -158,9 +151,4 @@ export function AnalyticsWorkspace({ fixedCourseId }: { fixedCourseId?: string }
                 )}
     </ContentContainer>
   );
-}
-
-function csvCell(value: string | number) {
-  const text = String(value);
-  return `"${text.replaceAll('"', '""')}"`;
 }

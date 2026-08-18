@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 
 import { Button } from "@/components/ui";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 
 export function Topbar({
   pageContext,
@@ -30,8 +31,9 @@ export function Topbar({
 
       <p className="type-label truncate text-text-secondary">{pageContext}</p>
 
-      {showCreatorProfile && (
-        <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-2">
+        <NotificationBell />
+        {showCreatorProfile && (
         <Link
           href="/creator/account"
           className="flex min-h-11 items-center gap-2 rounded-md p-1.5 text-left transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-border-focus/30"
@@ -44,8 +46,8 @@ export function Topbar({
             Alex Lee
           </span>
         </Link>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 }

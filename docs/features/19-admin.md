@@ -43,6 +43,8 @@ The current requirements/API do not define safe mutation contracts, so Function 
 
 Courses reuse `CourseLifecycleStatus`, the Creator course catalog, Organization owner associations, and Function 17 analytics. Admin may inspect ownership and existing Draft, Review, Published, or Unpublished lifecycle state. Published courses expose learner progression, assessment, skill, and content outcomes. Admin cannot edit Creator content or change lifecycle.
 
+The Courses view can export the active lifecycle filter as a small client-side CSV through the shared Function 20 export utility. It does not request or imply a server report.
+
 ## Platform activity
 
 The activity page contains deterministic account, course, and organization events with a working type filter. It is explicitly a lightweight oversight feed, not a tamper-resistant security audit log.
@@ -77,8 +79,8 @@ Frontend guards hide Admin content from ordinary frontend sessions but are not b
 - Read-only oversight; no account/content mutation
 - Small fictional roster rather than a production directory
 - Lightweight recent activity rather than a security audit log
-- No backend authorization, pagination, privacy policy, real-time updates, or export
-- No Function 20 notification center or reporting service
+- No backend authorization, pagination, privacy policy, real-time updates, or server-authoritative export
+- Function 20 notifications and CSV export remain deterministic browser behavior
 
 ## Future backend integration
 

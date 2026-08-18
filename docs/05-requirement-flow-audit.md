@@ -15,10 +15,36 @@
 
 - **Implemented** — major required UI, interaction, navigation, and critical states complete the frontend user goal.
 - **Partial** — meaningful UI or behavior exists, but the function cannot yet complete its frontend goal.
-- **Missing** — required behavior is absent from an otherwise current function.
-- **Future** — intentionally outside the current developed scope.
-- **Needs Fix** — current behavior contradicts a dependency or creates a broken journey.
-- **Needs Review** — repaired frontend flow is complete enough for product/design acceptance testing but still uses mocks.
+- **Placeholder** — an intentional destination exists, but the primary frontend goal is not implemented.
+- **Not Started** — no meaningful frontend implementation exists.
+
+## Final Function Classification
+
+This classification evaluates the frontend goal, navigation, major interactions, validation, and critical states. A missing backend contract does not reduce an otherwise complete mock/demo frontend to Partial.
+
+| Function | Classification | Evidence summary |
+| --- | --- | --- |
+| 00 Design Foundation | Implemented | Shared tokens, controls, toast, confirmation dialog, supporting states, responsive/focus foundations, and passing lint/type/build checks. |
+| 01 Authentication | Implemented | Login, registration, expiring/resendable OTP, workspace routing, profile editing, logout, bypass, and safe API-mode behavior. |
+| 02 Create Course | Implemented | Validated five-step configuration flow with persistence and knowledge-source handoff. |
+| 03 Knowledge Upload | Implemented | File/text/URL source states, validation, retry/delete, persistence, and readiness rules. |
+| 04 AI Knowledge Processing | Implemented | Staged analysis, failure/retry, results, grounding, and generator handoff. |
+| 05 AI Course Generator | Implemented | Staged generation, failure/retry, structured result, source grounding, and review handoff. |
+| 06 Creator Review / Human Verification | Implemented | Editable review workspace, source traceability, per-item status, persistence, and verification rules. |
+| 07 Preview & Publishing | Implemented | Preview, readiness, confirmations, publish failure/retry, lifecycle, and unpublish/republish. |
+| 08 Learning Goal & Learning Style | Implemented | Learner entry, validated editable preferences, persistence, and Pre-Assessment handoff. |
+| 09 Pre-Assessment | Implemented | Resumable MCQ/multi-select flow, review, validation, analysis, and scoring. |
+| 10 Skill Gap | Implemented | Derived priorities, strengths, statuses, and read-only answer review. |
+| 11 Personalized / Adaptive Learning Path | Implemented | Assessment-gated, preference-aware path generation, retry, versioning, and persistence. |
+| 12 Learning Experience | Implemented | Personalized content order, completion/resume progress, quick-check handoff, and responsive navigation. |
+| 13 Quiz / Post-Assessment | Implemented | Saved quiz/Post-Assessment flows, validation, feedback, scoring, retry, and before/after comparison. |
+| 14 Practical Assessment | Implemented | Structured draft, validation, confirmation, mock evaluation, rubric result, and retry. |
+| 15 Skill Result & Feedback | Implemented | Completion-gated combined result, comparison, feedback, and centralized verification. |
+| 16 Skill Evidence / Portfolio / Credential | Implemented | Evidence portfolio, skill detail, eligibility, explicit demo issuance, sharing, and print preview. |
+| 17 Creator Dashboard & Analytics | Implemented | Working dashboard, filters, course/learner/assessment/skill/content analytics, states, and CSV export. |
+| 18 Organization | Implemented | Workspace overview, courses, learners, skill outcomes, filters, access rules, and supporting states. |
+| 19 Admin | Implemented | Authorized read-only oversight for users, courses, and activity with filters/details/states. |
+| 20 Notifications / Reports / Supporting States | Implemented | Role-aware persisted notifications, scoped filtered exports, shared states, feedback/dialog consistency, and invalid-route recovery. |
 
 ## Requirement Coverage Matrix
 
@@ -50,7 +76,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 02
 - **Current routes:** `/creator/courses/new/basics`, `/audience`, `/objectives`, `/certificate`, `/review`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend).
 - **Implemented behavior:** Five-step wizard; course name/description; target learner; Beginner/Intermediate/Advanced; multiple objectives; certificate toggle and criteria; persistent values; Back; Continue; Save & exit; review; Edit links; final source handoff.
 - **Missing behavior:** Backend draft records, per-course persistence, collaborative editing, and true autosave status.
 - **Flow problems found:** Only course name controlled Continue; empty descriptions, audiences, or objectives could be skipped; disabled action did not explain all dependencies; nonfunctional drag affordance implied objective reordering.
@@ -61,7 +87,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 03
 - **Current routes:** `/creator/courses/digital-marketing-foundations/sources`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend).
 - **Implemented behavior:** PDF/document/slide file selection and drag/drop; file size/type validation; upload progress; processing; ready; failure; retry; manual text validation; URL validation; mock fetch/preview/error; delete confirmation; empty state; persistent mock sources; explicit AI readiness rule.
 - **Missing behavior:** Real storage, parsing, virus scanning, URL retrieval, extraction details, and backend persistence.
 - **Flow problems found:** Unsupported/oversized files were silently accepted; text relied only on native validation; URL fetch could not fail; source state reset on reload; AI dependency could be bypassed by manually opening analysis after deleting sources.
@@ -72,7 +98,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 04
 - **Current routes:** `/creator/courses/digital-marketing-foundations/analysis`; failure-state QA route adds `?state=failed`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend simulation).
 - **Implemented behavior:** Reading, topic extraction, concept summarization, relationship mapping, sequencing, grounded-context retrieval, source linking, partial progress, failure/retry, completion, topic/concept inspection, reference drawer, relationship chain, recommended order, source review, and generation handoff.
 - **Missing behavior:** Real AI/RAG execution, creator edits to analysis, accepting/rejecting topics, and persistence of analysis output.
 - **Flow problems found:** No failure or retry state; direct analysis ignored deleted sources; pipeline omitted an explicit grounded-retrieval stage; unknown course IDs rendered product UI.
@@ -83,7 +109,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 05
 - **Current routes:** `/creator/courses/[courseId]/generate`, `/generated`; failure QA uses `?state=failed` on Generate.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend simulation).
 - **Implemented behavior:** Readiness summary; source/topic/objective/audience/level context; seven understandable generation stages; failure/retry; structured outline, modules, lessons, objectives, exercises, Creator quizzes, practical task, rubric, final assessment, grounding, persisted result, and Review handoff.
 - **Missing behavior:** Real generation request/polling, RAG/LLM output, backend status, and server persistence.
 - **Flow problems found:** The earlier route was a terminal placeholder and generated no reviewable content.
@@ -94,7 +120,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 06
 - **Current routes:** `/creator/courses/[courseId]/review`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend).
 - **Implemented behavior:** Responsive course tree, selected-content inspection, source traceability, focused edit mode, Save/Cancel, content validation, unsaved-change confirmation within review controls, Not reviewed/In review/Verified/Needs changes states, per-item verification, persisted edits/statuses, progress, review-complete handoff, and Preview-before-complete support.
 - **Missing behavior:** Backend saves/verification, collaboration, comments, assignments, version history, and server audit trail.
 - **Flow problems found:** Generated content previously had no review destination or quality-control interaction.
@@ -105,7 +131,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 07
 - **Current routes:** `/creator/courses/[courseId]/preview`, `/published`; publish failure QA uses `?state=failed` on Preview.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend simulation).
 - **Implemented behavior:** Responsive learner preview, expandable modules/lessons, activity/assessment/certificate visibility, Draft/Review/Published/Unpublished model, reusable readiness checks, explicit disabled reasons, confirmation, Publishing state, failure/retry, success, view/copy/My Courses actions, Unpublish confirmation, preserved content, republish, and dynamic My Courses status/action.
 - **Missing behavior:** Backend Publish, public learner URL/access, real Unpublish endpoint, distribution, enrollment, and server lifecycle authority.
 - **Flow problems found:** No learner-perspective preview, readiness model, or lifecycle management existed.
@@ -116,7 +142,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 08
 - **Current routes:** `/learner`, `/learner/courses/[courseId]/learning-profile`; `/learner/onboarding` redirects to the workspace.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend).
 - **Implemented behavior:** Minimal Learner workspace; explicit Published-course start; one primary goal plus optional Other/detail; familiarity; multi-select content preferences; required pace; optional session length; inline validation; per-learner/course local persistence; editable return state; Function 08 preview handoff; and Function 09 navigation.
 - **Missing behavior:** Backend profile API, enrollment/catalog authority, server persistence, and a documented server-side personalization-input contract.
 - **Flow problems found:** Learner selection previously ended at a placeholder and collected none of the context required before assessment.
@@ -127,7 +153,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 09
 - **Current routes:** `/learner/courses/[courseId]/pre-assessment`; bypass previews use `?view=intro`, `question`, or `processing`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend simulation).
 - **Implemented behavior:** Course-aware intro; eight typed multiple-choice/multiple-select questions; one-question navigation; autosaved responses/index; inline unanswered validation; compact answer review; submission confirmation; meaningful four-stage evaluation; deterministic question, skill, and overall scoring.
 - **Missing behavior:** Backend attempt authority, randomized banks, server grading, and formal timing rules.
 - **Flow problems found:** The earlier Function 08 handoff stopped at a placeholder and could not produce assessment evidence.
@@ -138,7 +164,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 10
 - **Current routes:** `/learner/courses/[courseId]/skill-gap`, `/skill-gap/review`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend simulation).
 - **Implemented behavior:** Constructive overall readiness; per-competency score, progress, and text status; centralized 0–39/40–59/60–79/80–100 bands; the three lowest below-60 priority gaps; strengths; learner-friendly rationale; and read-only submitted-answer review.
 - **Missing behavior:** Backend-verified scores, normative benchmarks, creator feedback, and configurable course-specific weights.
 - **Flow problems found:** No evidence-based learner result existed between assessment and path generation.
@@ -149,7 +175,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 11
 - **Current routes:** `/learner/courses/[courseId]/learning-path`; Function 12 entry at `/learn`; bypass previews use `?view=generating`, `result`, or `?state=failed`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend simulation).
 - **Implemented behavior:** Assessment-gated five-stage generation; priority/recommended/quick-refresher ordering; learner-facing reasons; activity selection influenced by content preferences; pace-adjusted estimates; path version, timestamp, and source-assessment evidence; failure/retry; persisted result. Assessment provenance is shown without exposing internal attempt identifiers.
 - **Missing behavior:** Backend generation, live adaptation after later results, and server enrollment/prerequisite rules.
 - **Flow problems found:** No path could consume Function 08 context or Function 09 evidence.
@@ -160,7 +186,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 12
 - **Current routes:** `/learner/courses/[courseId]/learn`, `/learn/[lessonId]`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend).
 - **Implemented behavior:** Personalized-order lessons, compact responsive navigation, objective/explanation/concepts/example/source/practice content, visible preferred activity formats, explicit completion followed by an intentional Next action, current position, completed count/course progress, refresh resume, text navigation states, unavailable-item recovery, and quick-check handoff.
 - **Missing behavior:** Backend progress, enrollment authority, prerequisites, rich media, offline sync, and optional/mandatory policy configuration.
 - **Flow problems found:** Function 11 previously ended at a placeholder and Learner Home could not resume lesson progress.
@@ -171,7 +197,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 13
 - **Current routes:** `/learner/courses/[courseId]/quiz/[quizId]`, `/post-assessment`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend simulation).
 - **Implemented behavior:** One-question navigation, MCQ/multi-select, autosaved attempt, unanswered validation, quick feedback, exact-answer count, quick quiz, eight-question Post-Assessment, persisted staged analysis, centralized 60%/70% criteria, pass/needs-practice states, retry, and pre/post skill comparison.
 - **Missing behavior:** Backend question bank/grading, enforced timer, attempt policy, and course-authored configuration.
 - **Flow problems found:** Learning completion produced no post-learning evidence or improvement comparison.
@@ -182,7 +208,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 14
 - **Current routes:** `/learner/courses/[courseId]/practical-assessment`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend simulation).
 - **Implemented behavior:** Visible task brief/outcome/time/requirements, five structured response fields, learner-friendly weighted rubric, validation, Save draft, submission confirmation, staged evaluation, passing and needs-practice results, criterion plus strongest/improvement feedback, evidence summary, and retry.
 - **Missing behavior:** Real file evidence, backend AI/SME grading, creator review, resubmission history, and server storage.
 - **Flow problems found:** Knowledge score alone could not demonstrate applied competency.
@@ -193,7 +219,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 15
 - **Current routes:** `/learner/courses/[courseId]/result`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend simulation).
 - **Implemented behavior:** Overall competency score, pre/post improvement, skill-level comparison, practical score/evidence, concise strengths/improvements/next steps, directly previewable Completed/More practice status, and centralized Verified eligibility.
 - **Missing behavior:** Backend competency authority, reviewer verification, standardized scoring, and credential issuance.
 - **Flow problems found:** No single outcome combined lesson completion, knowledge, and applied evidence.
@@ -204,7 +230,7 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 
 - **Requirement IDs:** 16
 - **Current routes:** `/learner/courses/[courseId]/skill-evidence`, `/skill-evidence/skills/[skillId]`, `/skill-evidence/requirements`, `/skill-evidence/credentials/[credentialId]`.
-- **Current status:** Needs Review.
+- **Current status:** Implemented (frontend simulation).
 - **Implemented behavior:** Portfolio overview/skills/evidence/credentials sections; derived counts; per-skill competency, improvement, status, evidence count, and verification reason; assessment and learning result traceability; practical rubric evidence; evidence timeline; credential eligibility checklist; Not eligible/Eligible/Issued architecture; explicit persisted demo claim/issuance; certificate-disabled state; frontend credential preview; copy feedback; browser print; empty/partial states; learner-home integration; and bypass fixtures.
 - **Missing behavior:** Backend evidence authority, production issuance/revocation, public verification URLs, production PDF generation, external sharing, and multi-course aggregation beyond the seeded prototype.
 - **Flow problems found:** The previous destination stopped at a placeholder; evidence existed in Functions 09–15 but was not mapped into a reusable learner record; no certificate setting or completion rule was applied to credential presentation; a course-level result could have implied that every skill was Verified; and meeting eligibility previously implied Issued without a learner claim action.
@@ -247,13 +273,13 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 ### 20 — Notifications / Reports / Supporting States
 
 - **Requirement IDs:** 20
-- **Current routes:** Supporting states are embedded throughout Functions 01–19; analytics is `/creator/analytics`, Organization state variants are under `/organization`, and Admin state variants are under `/admin`.
-- **Current status:** Partial.
-- **Implemented behavior:** Loading, error, success, validation, disabled reasons, empty states, retries, accessible application-level toasts, and focus-managed confirmation dialogs for current functions.
-- **Missing behavior:** Notification center, broader production report generation, and a documented backend failure taxonomy. Function 17 now provides a scoped client-side CSV export.
-- **Flow problems found:** Several current flows lacked explicit failures or disabled reasons.
-- **Changes made:** Added auth/OTP/source/URL/AI/analytics errors, success feedback, retries, dependency explanations, a reusable success/error/information toast provider, and a Function 17 CSV export.
-- **Remaining work:** Add notifications and exports only with the owning future features.
+- **Current routes:** `/notifications`; `/creator/analytics`; `/organization/skills`; `/admin/courses`; `/dev/frontend-preview/supporting-states`; global Not Found recovery. State previews use documented query parameters only while bypass is enabled.
+- **Current status:** Implemented (frontend supporting layer).
+- **Implemented behavior:** Role-scoped notifications, unread count/filtering, mark-one/all-read persistence, valid navigation destinations, empty/loading/error/retry states, accessible shell badge, filtered Creator/Organization/Admin CSV exports, shared loading/error/empty/invalid primitives, shared toasts and confirmations, explained disabled controls, and global invalid-route recovery.
+- **Missing behavior:** Backend notification delivery/read synchronization, push/email/SMS, server-generated reports, server-authoritative export data, and a documented backend failure taxonomy.
+- **Flow problems found:** No notification center existed; reporting logic was isolated to Creator Analytics; simple loading/error/empty structures were repeated; there was no global product-friendly Not Found page.
+- **Changes made:** Added a typed mock notification service and role-aware center, persisted read receipts in the existing browser prototype style, added a shared CSV utility and filtered Organization/Admin exports, consolidated safe state wrappers, retained process-specific staged progress, and added Function 20 preview coverage.
+- **Remaining work:** Product acceptance plus documented notification/report authorization, pagination, retention, privacy, delivery, read-state, and export contracts. No undocumented API request was added.
 
 ## Creator End-to-End Flow
 
@@ -265,10 +291,10 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 | Knowledge Upload → AI Processing | Working | Requires at least one Ready source; direct-route bypass is guarded. |
 | AI Processing → Completed Analysis | Working | Visible stages, failure/retry, and result inspection are connected. |
 | Completed Analysis → AI Course Generator | Working | Analysis completion and a Ready source unlock the real generation entry. |
-| AI Course Generator → Creator Review | Needs Review | Staged mock generation persists a structured course and hands off to review. |
-| Creator Review → Preview | Needs Review | Editing, grounding, and item verification persist; Preview can open before completion. |
-| Preview → Publish | Needs Review | Publish remains disabled until all readiness rules and required verification pass. |
-| Publish → Published / Unpublished | Needs Review | Local publish, manage, unpublish, and republish lifecycle is connected. |
+| AI Course Generator → Creator Review | Working | Staged mock generation persists a structured course and hands off to review. |
+| Creator Review → Preview | Working | Editing, grounding, and item verification persist; Preview can open before completion. |
+| Preview → Publish | Working | Publish remains disabled until all readiness rules and required verification pass. |
+| Publish → Published / Unpublished | Working | Local publish, manage, unpublish, and republish lifecycle is connected. |
 | Creator dashboard → Published course analytics | Working | Creator home and My Courses expose View analytics only for Published courses. |
 | Analytics overview → Course performance | Working | Course/time filters update deterministic metrics and published courses open `/creator/analytics/[courseId]`. |
 | Course performance → Assessment / Skill outcomes | Working | Funnel, assessment, skill, content, attention, and insight sections share the selected course and time range. |
@@ -280,14 +306,14 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 | Authentication → Learner workspace | Working |
 | Learner workspace → Select / Start course | Working |
 | Start course → Learning Goal & Style | Working |
-| Goal / Style → Pre-Assessment | Needs Review |
-| Pre-Assessment → Skill Gap | Needs Review |
-| Skill Gap → Personalized Path | Needs Review |
-| Personalized Path → Learning Experience | Needs Review |
-| Learning Experience → Quiz / Post-Assessment | Needs Review |
-| Post-Assessment → Practical Assessment | Needs Review |
-| Practical Assessment → Skill Result | Needs Review |
-| Skill Result → Portfolio / Credential | Needs Review — evidence, eligibility, and credential preview flow connected |
+| Goal / Style → Pre-Assessment | Working |
+| Pre-Assessment → Skill Gap | Working |
+| Skill Gap → Personalized Path | Working |
+| Personalized Path → Learning Experience | Working |
+| Learning Experience → Quiz / Post-Assessment | Working |
+| Post-Assessment → Practical Assessment | Working |
+| Practical Assessment → Skill Result | Working |
+| Skill Result → Portfolio / Credential | Working — evidence, eligibility, and credential preview flow connected |
 
 A learning path is exposed only after assessment evidence. Verified requires completed learning plus passing knowledge, an individual skill threshold, and applied practical evidence. Credentials also require the course certificate setting. Issued credentials are clearly marked frontend demo records rather than public credentials.
 
@@ -357,6 +383,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 | `/admin/courses/[courseId]` | Admin Courses | Inspect ownership and learning outcomes | Courses | Unknown/non-published/no-activity course; loading/error | Admin | Shared course and analytics fixture; read-only |
 | `/admin/activity` | Admin sidebar/overview | Filter recent oversight events | Overview | No activity/no matches; loading/error | Admin | Deterministic frontend activity fixture |
 | `/dev/frontend-preview/admin` | Bypass-only preview index | Seed Admin preview role and redirect to allow-listed Admin destination | Preview index | Not Found when bypass is off; invalid destination falls back to `/admin` | Development | `NEXT_PUBLIC_FRONTEND_BYPASS=true` |
+| `/notifications` | Authenticated shell badge/direct route | Filter All/Unread, mark read/all read, or open a valid product destination | Role workspace | Empty, loading, unavailable/retry; wrong/missing session redirects | Creator/Learner/Organization/Admin | Role-scoped frontend fixtures in mock mode; no documented API endpoint |
 | `/creator` | Creator login/demo access | Create/continue course | — | Missing/wrong-role demo session redirects | Creator | Matching demo session or API session |
 | `/creator/courses` | Sidebar/home | Create/manage documents | Creator home | Demo empty/local state or API loading/network errors | Creator | Mode-aware local list or `GET /api/courses` |
 | `/creator/courses/new/[step]` | Create/Continue/Edit | Demo source workspace or backend course documents | Previous step/home | Validation and mode-appropriate create errors | Creator | Prior values; local demo submission or `POST /api/courses` on Review |
@@ -369,6 +396,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 | `/creator/courses/[courseId]/published` | Publish success/My Courses | Unpublish or My Courses | My Courses | Missing/non-published state | Creator | Published lifecycle state |
 | `/creator/account` | Profile links | Demo/bypass Edit → Save/Cancel; confirmed sign out | Sidebar navigation | Inline validation/save errors; loading/current-user API error in API mode | Creator | Existing local session for edits; API mode uses read-only `GET /api/auth/me`; local session clear for logout |
 | `/creator/analytics[/[courseId]]` | Sidebar/Published course | Filter or inspect course, assessment, skill, and content performance; CSV export | Creator/Courses | Empty, no learner activity, non-published, loading, error/retry | Creator | Function 17 frontend analytics fixtures; no documented backend endpoint |
+| `/dev/frontend-preview/supporting-states` | Function 20 preview group | Inspect loading, empty, error/retry, confirmation, feedback, disabled, and invalid states | Preview index | Not Found when bypass is off | Development | `NEXT_PUBLIC_FRONTEND_BYPASS=true` |
 | `/ui-preview` | Direct development URL only | Internal component inspection | — | — | Development | None |
 
 ## Interaction Audit
@@ -402,6 +430,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - Standalone TypeScript relied on generated `LayoutProps`; temporary copy/success messages were duplicated; demo OTP had no expiry/resend; Creator profile was display-only.
 - Organization authentication ended at a placeholder with no learning overview, course performance, learner outcomes, aggregate skills, or dedicated navigation.
 - Admin was correctly system-only but had no protected oversight route, user/course inspection, or platform activity view.
+- Supporting feedback existed, but there was no role-aware notification center, Organization/Admin export parity, reusable simple-state primitive, or global invalid-route recovery.
 
 ### Resolution
 
@@ -434,6 +463,7 @@ A learning path is exposed only after assessment evidence. Verified requires com
 - Replaced the Function 16 placeholder with a derived portfolio, skill evidence mapping, incomplete/Verified explanations, credential requirements, simulated issued/eligible states, safe sharing feedback, and browser print.
 - Replaced the Organization placeholder with a workspace-scoped shell, lifecycle-aware courses, shared Function 17 course analytics, fictional learning-only learner records, aggregate skill outcomes, working filters, and explicit no-data/recovery states.
 - Added a role-guarded, read-only Admin workspace for user/account/role/workspace, course lifecycle/outcome, and lightweight activity oversight; bypass entry is explicit and no Admin API or mutation is guessed.
+- Added role-aware notifications with persisted read state and valid destinations; consolidated simple loading/error/empty/invalid states; shared filtered CSV export across Creator, Organization, and Admin; and added a product-friendly global Not Found recovery.
 
 ## Business Rule Integrity
 
@@ -448,3 +478,5 @@ A learning path is exposed only after assessment evidence. Verified requires com
 9. A frontend demo credential is shown as issued only when completion, assessment, applied evidence, per-skill verification, and certificate-setting requirements pass; it is explicitly not a public credential.
 10. Certificate criteria are shown whenever enabled and are included in publish readiness.
 11. Admin remains excluded from registration and Account Type; a generic bypass session cannot enter Admin, and frontend guards are documented as insufficient without backend authorization.
+12. Notification audiences derive from the existing role/workspace session model, and every notification destination resolves to an implemented route.
+13. Reports export the currently filtered frontend analytics view and never claim server authority or create an undocumented API request.
