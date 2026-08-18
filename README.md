@@ -93,7 +93,7 @@ npm run dev
 
 [http://localhost:3000/dev/frontend-preview](http://localhost:3000/dev/frontend-preview)
 
-When enabled, SkillSync accepts any non-empty Sign In email/password into a persistent `Frontend Preview` Creator session, allows protected route guards to resolve locally, and supplies structured fixtures for direct route review. No login credential fixture is checked and no backend authentication request is made. The preview index links directly to Functions 01–16, including processing, result, evidence, eligibility, and failure variants.
+When enabled, SkillSync accepts any non-empty Sign In email/password into a persistent `Frontend Preview` Creator session, allows protected route guards to resolve locally, and supplies structured fixtures for direct route review. No login credential fixture is checked and no backend authentication request is made. The preview index links to Functions 01–19, including processing, result, evidence, eligibility, oversight, and failure variants.
 
 To restore normal behavior:
 
@@ -103,7 +103,7 @@ NEXT_PUBLIC_FRONTEND_BYPASS=false
 
 With bypass off, the existing `NEXT_PUBLIC_FRONTEND_DEMO_MODE` setting continues to choose between frontend demo authentication and the real API path. Set both flags to `false` for API-connected mode. Bypass defaults to off when the variable is missing and `/dev/frontend-preview` returns Not Found.
 
-To verify true bypass login, enter any non-empty values such as `test@test.com` and `abc`, then select **Sign in**. The default destination is `/creator`; role-specific preview buttons remain available and never expose Admin.
+To verify true bypass login, enter any non-empty values such as `test@test.com` and `abc`, then select **Sign in**. The default destination is `/creator`; the Sign In and Account Type screens never expose Admin. Function 19 is entered only through the development route index, which creates an explicit bypass-only Admin preview role before opening `/admin`.
 
 ## Demo accounts
 

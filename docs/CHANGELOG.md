@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-18 — Admin oversight
+
+### Added
+
+- Added a role-guarded Admin shell with Overview, Users, Courses, and Platform Activity navigation.
+- Added working user search/account-type filters, read-only user detail, and explicit role/workspace presentation.
+- Added lifecycle-aware course oversight with reusable learner, assessment, skill, and content outcome data.
+- Added deterministic platform activity, unknown-record recovery, and empty/loading/error/no-activity states.
+- Added an explicit bypass-only Admin preview handoff and Function 19 preview routes.
+
+### Changed
+
+- Role-based routing now recognizes a system-assigned Admin role without adding Admin to registration or Account Type.
+- Reused existing auth, course, Organization ownership, lifecycle, and analytics models rather than creating conflicting Admin domain types.
+
+No backend Admin authorization, `/api/admin/*` request, account mutation, role assignment, course editing, security audit log, or Function 20 notification/reporting system was added.
+
 ## 2026-08-18 — Organization Workspace
 
 ### Added

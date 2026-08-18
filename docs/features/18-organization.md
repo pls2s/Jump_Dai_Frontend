@@ -51,7 +51,7 @@ Course detail reuses Function 17’s typed KPI, funnel, assessment, skill, and c
 - Frontend bypass: direct preview allowed
 - Learner or Creator demo session: redirected to its own workspace
 - API session without documented Organization workspace data: redirected away; no Organization request is guessed
-- Admin remains unavailable and cannot be self-selected
+- Admin is not exposed by the Organization shell and cannot be self-selected; Function 19 uses a separate role-guarded workspace
 
 ## States
 

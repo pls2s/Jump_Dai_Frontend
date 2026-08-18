@@ -72,3 +72,19 @@ export function organizationNavigationFor(pathname: string): readonly Navigation
       : item.href === pathname || pathname.startsWith(`${item.href}/`),
   }));
 }
+
+export const adminNavigation: readonly NavigationItem[] = [
+  { label: "Overview", href: "/admin", icon: "home" },
+  { label: "Users", href: "/admin/users", icon: "learners" },
+  { label: "Courses", href: "/admin/courses", icon: "courses" },
+  { label: "Platform activity", href: "/admin/activity", icon: "analytics" },
+];
+
+export function adminNavigationFor(pathname: string): readonly NavigationItem[] {
+  return adminNavigation.map((item) => ({
+    ...item,
+    current: item.icon === "home"
+      ? pathname === item.href
+      : pathname === item.href || pathname.startsWith(`${item.href}/`),
+  }));
+}

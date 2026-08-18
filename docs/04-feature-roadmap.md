@@ -23,8 +23,8 @@ Status reflects whether a complete frontend user goal can be achieved—not whet
 | 16 | Skill Evidence / Portfolio / Credential | Needs Review | Course-scoped portfolio sections, per-skill evidence, incomplete/Verified states, evidence traceability, derived credential eligibility, explicit persisted demo claim/issuance, requirements, issued/eligible/not-offered states, preview sharing, and browser print work from persisted frontend results. No backend issuance or public verification exists. |
 | 17 | Creator Dashboard & Analytics | Implemented | Creator home metrics, lifecycle summary, recent course actions, course/time filters, learner funnel and drop-off, course/assessment/skill/content performance, deterministic insights, course detail, no-data/loading/error states, and client-side CSV export work from coherent frontend fixtures. No analytics backend contract exists. |
 | 18 | Organization Workspace | Implemented | Organization users reach a dedicated workspace with learning overview metrics, lifecycle-aware courses, reusable course analytics, a fictional learning-only learner roster/detail, aggregate skill outcomes, working filters, strict workspace access, and explicit empty/loading/error/no-activity states. No Organization backend contract exists. |
-| 19 | Administrator | Not Started | Admin cannot be self-selected and no Admin routes exist. |
-| 20 | Notifications / Reports / Supporting States | Partial | Current features cover local loading, success/error/information toasts, validation, disabled, empty, retry, confirmation, and Function 17 CSV export states. A notification center and broader report services are not implemented. |
+| 19 | Administrator | Implemented | A role-guarded, read-only Admin workspace provides platform user/workspace/role oversight, course lifecycle and outcome inspection, lightweight activity oversight, working filters/details, and explicit empty/loading/error states. Admin is available only through an explicit bypass preview or a future server-assigned Admin role; no Admin API contract exists. |
+| 20 | Notifications / Reports / Supporting States | Partial | Current features cover local loading, success/error/information toasts, validation, disabled, empty, retry, confirmation, Function 17 CSV export, and Function 19 recovery states. A notification center and broader report services are not implemented. |
 
 ## Current verified continuity
 
@@ -39,3 +39,5 @@ Functions 05–07 now preserve the required sequence:
 The Learner journey now runs through Functions 08–16: preferences, assessment, Skill Gap, personalized path, learning, knowledge checks, practical evidence, Skill Result, and the derived Skill Portfolio/Credential flow. Backend integration for these learner features remains separate future work.
 
 The Organization journey now runs `Organization authentication → Overview → Courses → Course performance → Learners → Learner outcomes → Skills & Outcomes` with frontend fixtures. It does not grant Creator editing, Admin access, or HR capabilities.
+
+The Admin oversight journey now runs `explicit Admin authorization → Overview → Users → User detail → Courses → Course outcome detail → Platform activity`. Admin remains excluded from registration, and the frontend does not claim server authorization or Admin APIs that `API_doc.md` does not document.
