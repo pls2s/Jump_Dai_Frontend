@@ -36,9 +36,10 @@ export function creatorNavigationFor(pathname: string): readonly NavigationItem[
       pathname.startsWith("/creator/courses") &&
       !pathname.startsWith("/creator/courses/new") &&
       !pathname.includes("/sources");
+    const isAnalytics = item.icon === "analytics" && pathname.startsWith("/creator/analytics");
     const isExact = item.href === pathname;
 
-    return { ...item, current: isCourseCreation || isSources || isCourses || isExact };
+    return { ...item, current: isCourseCreation || isSources || isCourses || isAnalytics || isExact };
   });
 }
 

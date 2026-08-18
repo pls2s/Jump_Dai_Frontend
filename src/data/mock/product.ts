@@ -3,6 +3,7 @@ import type {
   CourseSetup,
   KnowledgeSource,
 } from "@/types/product";
+import { creatorCourseCatalog } from "@/data/mock/creator-analytics";
 
 export const defaultCourseSetup: CourseSetup = {
   name: "Digital Marketing Foundations",
@@ -31,24 +32,23 @@ export const frontendPreviewCourse = {
   progress: 64,
 } as const;
 
-export const mockCourses = [
-  {
-    id: "digital-marketing-foundations",
-    name: "Digital Marketing Foundations",
-    status: "Draft",
-    currentStep: "Knowledge Sources",
-    updatedAt: "Updated today",
-    progress: 64,
-  },
-  {
-    id: "customer-interview-essentials",
-    name: "Customer Interview Essentials",
-    status: "Draft",
-    currentStep: "Course setup",
-    updatedAt: "Updated 3 days ago",
-    progress: 28,
-  },
-] as const;
+const courseProgress = {
+  "digital-marketing-foundations": 100,
+  "ai-productivity-basics": 100,
+  "customer-experience-essentials": 84,
+  "customer-interview-essentials": 28,
+  "content-planning-workshop": 100,
+} as const;
+
+export const mockCourses = creatorCourseCatalog.map((course) => ({
+  id: course.id,
+  name: course.title,
+  status: course.status === "review" ? "Review" : `${course.status[0].toUpperCase()}${course.status.slice(1)}`,
+  lifecycle: course.status,
+  currentStep: course.status === "draft" ? "Course setup" : course.status === "review" ? "Human Verification" : course.status === "published" ? "Published" : "Ready to republish",
+  updatedAt: course.updatedAt,
+  progress: courseProgress[course.id as keyof typeof courseProgress],
+}));
 
 export function getMockCourse(courseId: string) {
   return mockCourses.find((course) => course.id === courseId)

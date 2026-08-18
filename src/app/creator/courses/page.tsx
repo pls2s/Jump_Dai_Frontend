@@ -60,7 +60,7 @@ export default function CoursesPage() {
               <div className="flex items-start justify-between gap-4"><span className="flex size-10 items-center justify-center rounded-md bg-blue-100 text-blue-700"><BookOpen className="size-5" aria-hidden="true" /></span><Badge variant={statusVariant[course.status]}>{statusLabel[course.status]}</Badge></div>
               <h2 className="type-title-large mt-5">{course.title}</h2>
               <p className="type-body-small mt-1 text-text-secondary">Course {course.id}</p>
-              <ButtonLink href={course.destination} variant="secondary" className="mt-5">{course.actionLabel}<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink>
+              <div className="mt-5 flex flex-wrap gap-2"><ButtonLink href={course.destination} variant="secondary">{course.actionLabel}<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink>{course.analyticsHref && <ButtonLink href={course.analyticsHref}>View analytics</ButtonLink>}</div>
             </Card>
           ))}
         </div>

@@ -1,5 +1,6 @@
 export * from "./auth";
 export * from "./auth-users";
+export * from "./creator-analytics";
 export * from "./generated-course";
 export * from "./learner";
 export * from "./learning-path";

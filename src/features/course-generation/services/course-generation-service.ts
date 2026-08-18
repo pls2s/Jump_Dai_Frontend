@@ -1,5 +1,5 @@
 import { demoDelay } from "@/lib/mock/demo-services";
-import { FRONTEND_PREVIEW_COURSE_ID } from "@/data/mock/product";
+import { getMockCourse } from "@/data/mock/product";
 import { isFrontendBypassEnabled } from "@/lib/config";
 import type { GeneratedCourseState } from "@/types/product";
 import {
@@ -35,6 +35,15 @@ export async function unpublishGeneratedCourse(state: GeneratedCourseState) {
 
 export function loadGeneratedCourse(courseId: string) {
   const stored = readGeneratedCourseState(courseId);
-  if (stored || !isFrontendBypassEnabled || courseId !== FRONTEND_PREVIEW_COURSE_ID) return stored;
-  return writeGeneratedCourseState(createGeneratedCourseState(courseId));
+  if (stored || !isFrontendBypassEnabled) return stored;
+  const mockCourse = getMockCourse(courseId);
+  if (!mockCourse) return null;
+  const created = createGeneratedCourseState(courseId);
+  const lifecycle = "lifecycle" in mockCourse ? mockCourse.lifecycle : created.lifecycle;
+  return writeGeneratedCourseState({
+    ...created,
+    lifecycle,
+    course: { ...created.course, title: mockCourse.name },
+    publishedAt: lifecycle === "published" ? new Date().toISOString() : undefined,
+  });
 }
