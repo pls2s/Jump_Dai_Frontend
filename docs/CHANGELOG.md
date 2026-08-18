@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-18 — Organization Workspace
+
+### Added
+
+- Added a dedicated Organization shell with Overview, Courses, Learners, and Skills & Outcomes navigation.
+- Added organization learning metrics, lifecycle-aware course views, and shared course performance analytics.
+- Added fictional learning-only learner overview/detail and aggregate skill outcome views.
+- Added working course, status, time-range, learner-status, and skill-coverage filters.
+- Added empty Organization, no learner activity, loading, error/retry, unknown course, and unknown learner states.
+
+### Changed
+
+- Organization authentication now routes to `/organization`; the legacy `/organization/onboarding` URL redirects forward.
+- Reused Function 17 course, assessment, skill, and content analytics rather than creating a conflicting model.
+- Added Function 18 routes and state variants to the development-only frontend preview index.
+
+No Organization backend endpoint, new backend role, Admin UI, HRM, payroll, recruitment, or assignment system was added.
+
 ## 2026-08-17 — Creator Dashboard & Analytics
 
 ### Added

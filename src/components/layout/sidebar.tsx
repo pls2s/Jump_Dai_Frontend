@@ -9,7 +9,9 @@ import {
   GraduationCap,
   Home,
   Settings,
+  Target,
   UserRound,
+  Users,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -28,6 +30,8 @@ const iconMap: Record<NavigationIcon, LucideIcon> = {
   account: UserRound,
   learning: GraduationCap,
   evidence: BriefcaseBusiness,
+  learners: Users,
+  skills: Target,
   settings: Settings,
   components: Boxes,
 };

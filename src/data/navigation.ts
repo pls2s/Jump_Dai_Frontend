@@ -56,3 +56,19 @@ export function learnerNavigationFor(pathname: string): readonly NavigationItem[
       : item.href === pathname || pathname.startsWith(`${item.href}/`),
   }));
 }
+
+export const organizationNavigation: readonly NavigationItem[] = [
+  { label: "Overview", href: "/organization", icon: "home" },
+  { label: "Courses", href: "/organization/courses", icon: "courses" },
+  { label: "Learners", href: "/organization/learners", icon: "learners" },
+  { label: "Skills & Outcomes", href: "/organization/skills", icon: "skills" },
+];
+
+export function organizationNavigationFor(pathname: string): readonly NavigationItem[] {
+  return organizationNavigation.map((item) => ({
+    ...item,
+    current: item.icon === "home"
+      ? pathname === item.href
+      : item.href === pathname || pathname.startsWith(`${item.href}/`),
+  }));
+}
