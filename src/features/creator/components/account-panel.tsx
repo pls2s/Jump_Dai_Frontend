@@ -45,7 +45,7 @@ export function AccountPanel() {
       return;
     }
     setSessionMode(session.mode);
-    setWorkspaceType(session.user.workspaceType);
+    setWorkspaceType(session.user.workspaceType ?? undefined);
     setRoles(session.user.roles ?? []);
     setLoading(true);
     setErrors({});

@@ -30,8 +30,8 @@ export function LearnerShell({ children }: { children: ReactNode }) {
       router.replace("/sign-in");
       return;
     }
-    if (session.mode === "demo" && session.user.workspaceType !== "learner") {
-      router.replace(routeForWorkspace(session.user.workspaceType));
+    if (session.mode !== "bypass" && session.user.workspaceType !== "learner") {
+      router.replace(session.user.workspaceType ? routeForWorkspace(session.user.workspaceType) : "/sign-in");
     }
   }, [router]);
 
