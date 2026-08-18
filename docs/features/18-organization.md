@@ -45,6 +45,8 @@ The Skills view aggregates learner count, Pre/Post score, improvement, practical
 
 Course detail reuses Function 17’s typed KPI, funnel, assessment, skill, and content performance components. Organization totals and course/skill filters are composed in the Function 18 service and derivation layer rather than hardcoded in pages.
 
+The Skills & Outcomes view exports the currently filtered skill, participation, improvement, practical-pass, and retry values as a client-side CSV through the shared Function 20 export utility.
+
 ## Access rules
 
 - Organization demo session: allowed
@@ -75,13 +77,13 @@ The existing auth session persists Organization workspace identity. Course lifec
 
 ## API limitations
 
-`API_doc.md` documents no Organization profile, membership, course-association, learner roster, organization analytics, permission, or export endpoint. In API mode, the Function 18 service sends no request and shows a safe contract-gap error.
+`API_doc.md` documents no Organization profile, membership, course-association, learner roster, organization analytics, permission, or export endpoint. In API mode, the Function 18 service sends no request and shows a safe contract-gap error. The current CSV is produced only from the visible frontend fixture data.
 
 ## Known limitations
 
 - Organization identity, roster, course association, and outcomes are frontend fixtures
 - The visible roster is a small fictional sample, not all learners represented by aggregate metrics
-- No invitations, assignments, member management, privacy policy, real-time events, or organization export
+- No invitations, assignments, member management, privacy policy, real-time events, or server-authoritative organization report
 - No Creator editing, Admin, HRM, payroll, recruitment, or employee-performance functionality
 
 ## Future backend integration

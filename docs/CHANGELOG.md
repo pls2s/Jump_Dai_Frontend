@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-18 — Notifications, reports, and supporting states
+
+### Added
+
+- Added a role-aware notification center with unread filtering, mark-one/all-read behavior, valid destinations, persisted read state, and an accessible shell badge.
+- Added shared loading, error/retry, empty, and invalid-entity state primitives plus a bypass-only supporting-state preview.
+- Added filtered Organization skill and Admin course CSV exports through a shared client-side export utility.
+- Added a clear global Not Found recovery page.
+
+### Changed
+
+- Reused the shared CSV utility for Creator Analytics export.
+- Standardized Organization and Admin loading/error/empty wrappers on the shared supporting-state primitives.
+- Expanded the development preview index through Function 20 and documented the final frontend audit.
+
+No notification delivery service, push/email/SMS system, backend report generation, or undocumented API endpoint was added.
+
 ## 2026-08-18 — Admin oversight
 
 ### Added

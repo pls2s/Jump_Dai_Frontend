@@ -225,6 +225,28 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
       { label: "Admin Error", href: "/dev/frontend-preview/admin?destination=%2Fadmin%3Fstate%3Derror", description: "Safe error and retry behavior" },
     ],
   },
+  {
+    functionId: "20",
+    title: "Notifications / Reports / Supporting States",
+    routes: [
+      { label: "Notifications", href: "/notifications", description: "Role-aware updates with valid SkillSync destinations" },
+      { label: "Unread Notifications", href: "/notifications?filter=unread", description: "Unread filtering and persisted read state" },
+      { label: "No Notifications", href: "/notifications?state=empty", description: "All-caught-up notification state" },
+      { label: "Notification Loading", href: "/notifications?state=loading", description: "Accessible notification loading announcement" },
+      { label: "Notification Error", href: "/notifications?state=error", description: "Safe notification error and Retry" },
+      { label: "Creator CSV Report", href: "/creator/analytics", description: "Course performance export using active filters" },
+      { label: "Organization CSV Report", href: "/organization/skills", description: "Filtered aggregate skill outcome export" },
+      { label: "Admin CSV Report", href: "/dev/frontend-preview/admin?destination=%2Fadmin%2Fcourses", description: "Lifecycle-filtered platform course export" },
+      { label: "Shared State Index", href: "/dev/frontend-preview/supporting-states", description: "Loading, empty, error, feedback, confirmation, disabled, and invalid states" },
+      { label: "Generic Loading", href: "/dev/frontend-preview/supporting-states?view=loading", description: "Shared accessible loading pattern" },
+      { label: "Generic Empty", href: "/dev/frontend-preview/supporting-states?view=empty", description: "Meaningful empty state and valid action" },
+      { label: "Generic Error / Retry", href: "/dev/frontend-preview/supporting-states?view=error", description: "Shared recovery pattern" },
+      { label: "Confirmation Dialog", href: "/dev/frontend-preview/supporting-states?view=confirmation", description: "Focus-managed confirmation behavior" },
+      { label: "Disabled CTA Reason", href: "/dev/frontend-preview/supporting-states?view=disabled", description: "Unavailable action with associated explanation" },
+      { label: "Invalid Entity", href: "/dev/frontend-preview/supporting-states?view=invalid", description: "Friendly invalid-link recovery" },
+      { label: "Global Not Found", href: "/this-route-does-not-exist", description: "Application-level 404 recovery" },
+    ],
+  },
 ];
 
 export const frontendPreviewCourseId = FRONTEND_PREVIEW_COURSE_ID;

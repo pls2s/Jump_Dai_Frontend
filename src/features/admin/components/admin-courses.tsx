@@ -1,15 +1,16 @@
 "use client";
 
-import { BookOpenCheck } from "lucide-react";
+import { BookOpenCheck, Download } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { ContentContainer, PageHeader } from "@/components/layout";
-import { Badge, ButtonLink, Card, Field, FieldLabel, Progress, Select } from "@/components/ui";
+import { Badge, Button, ButtonLink, Card, Field, FieldLabel, Progress, Select, useToast } from "@/components/ui";
 import { AssessmentSection, ContentPerformanceSection, SkillPerformanceSection } from "@/features/creator-analytics/components/analytics-sections";
 import { AdminEmpty, AdminError, AdminLoading } from "@/features/admin/components/admin-states";
 import { adminPreviewState, useAdminSnapshot } from "@/features/admin/hooks/use-admin-snapshot";
 import type { CourseLifecycleStatus } from "@/types/product";
+import { downloadCsv } from "@/lib/export/csv";
 
 const statuses: Array<CourseLifecycleStatus | "all"> = ["all", "published", "review", "draft", "unpublished"];
 const statusLabels: Record<CourseLifecycleStatus, string> = { draft: "Draft", review: "In review", published: "Published", unpublished: "Unpublished" };
@@ -20,7 +21,19 @@ export function AdminCourses() {
   const { snapshot, loading, error, retry } = useAdminSnapshot(adminPreviewState(searchParams.get("state")));
   const [status, setStatus] = useState<CourseLifecycleStatus | "all">("all");
   const courses = snapshot?.courses.filter((course) => status === "all" || course.status === status) ?? [];
-  return <ContentContainer className="max-w-[96rem]"><PageHeader eyebrow="Platform administration" title="Courses" description="Inspect ownership, lifecycle, and learner activity without editing Creator-owned content." breadcrumb={[{ label: "Admin", href: "/admin" }, { label: "Courses" }]} />{loading ? <AdminLoading label="Loading platform courses" /> : error || !snapshot ? <AdminError message={error} onRetry={retry} /> : snapshot.courses.length === 0 ? <AdminEmpty title="No courses found" description="Platform courses will appear here after Creators begin course setup." /> : <><Card className="mt-7 max-w-sm p-4 sm:p-5"><Field><FieldLabel htmlFor="admin-course-status">Course status</FieldLabel><Select id="admin-course-status" value={status} onChange={(event) => setStatus(event.target.value as CourseLifecycleStatus | "all")}>{statuses.map((item) => <option key={item} value={item}>{item === "all" ? "All statuses" : statusLabels[item]}</option>)}</Select></Field></Card>{courses.length === 0 ? <AdminEmpty title="No courses match this filter" description="Choose another lifecycle status to inspect platform courses." /> : <div className="mt-8 grid gap-4 md:grid-cols-2">{courses.map((course) => { const analytics = course.analytics; return <Card key={course.id} className="p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><span className="flex size-10 items-center justify-center rounded-md bg-blue-100 text-blue-700"><BookOpenCheck className="size-5" aria-hidden="true" /></span><Badge variant={statusVariants[course.status]}>{statusLabels[course.status]}</Badge></div><h2 className="type-title-large mt-5">{course.title}</h2><p className="type-body-small mt-1 text-text-secondary">Owner: {course.ownerName}</p><p className="type-caption mt-1 text-text-tertiary">{course.organizationName ?? "Independent Creator content"}</p>{course.status === "published" ? <dl className="mt-5 grid grid-cols-2 gap-4 border-y border-border-default py-4"><Metric label="Learner starts" value={String(analytics?.courseStarts ?? 0)} /><Metric label="Completion" value={`${analytics?.completionRate ?? 0}%`} /><Metric label="Post-assessment" value={`${analytics?.averageAssessmentScore ?? 0}%`} /><Metric label="Verified skills" value={String(analytics?.verifiedSkills ?? 0)} /></dl> : <p className="type-body-small mt-5 rounded-md bg-neutral-50 p-3 text-text-secondary">Learner activity is unavailable until this existing lifecycle reaches Published.</p>}<ButtonLink href={`/admin/courses/${course.id}`} variant="secondary" size="sm" className="mt-5">Inspect course</ButtonLink></Card>; })}</div>}</>}</ContentContainer>;
+  const { showToast } = useToast();
+
+  function exportCourseOversight() {
+    if (!courses.length) return;
+    downloadCsv({
+      filename: `skillsync-admin-courses-${status}.csv`,
+      headers: ["Course", "Owner", "Organization", "Status", "Learner Starts", "Completion Rate", "Average Post Score", "Verified Skills"],
+      rows: courses.map((course) => [course.title, course.ownerName, course.organizationName, statusLabels[course.status], course.analytics?.courseStarts ?? 0, `${course.analytics?.completionRate ?? 0}%`, `${course.analytics?.averageAssessmentScore ?? 0}%`, course.analytics?.verifiedSkills ?? 0]),
+    });
+    showToast({ tone: "success", title: "Course oversight CSV exported", description: "The file reflects the current lifecycle filter." });
+  }
+
+  return <ContentContainer className="max-w-[96rem]"><PageHeader eyebrow="Platform administration" title="Courses" description="Inspect ownership, lifecycle, and learner activity without editing Creator-owned content." breadcrumb={[{ label: "Admin", href: "/admin" }, { label: "Courses" }]} actions={courses.length ? <Button variant="secondary" onClick={exportCourseOversight}><Download className="size-4" aria-hidden="true" />Export CSV</Button> : undefined} />{loading ? <AdminLoading label="Loading platform courses" /> : error || !snapshot ? <AdminError message={error} onRetry={retry} /> : snapshot.courses.length === 0 ? <AdminEmpty title="No courses found" description="Platform courses will appear here after Creators begin course setup." /> : <><Card className="mt-7 max-w-sm p-4 sm:p-5"><Field><FieldLabel htmlFor="admin-course-status">Course status</FieldLabel><Select id="admin-course-status" value={status} onChange={(event) => setStatus(event.target.value as CourseLifecycleStatus | "all")}>{statuses.map((item) => <option key={item} value={item}>{item === "all" ? "All statuses" : statusLabels[item]}</option>)}</Select></Field></Card>{courses.length === 0 ? <AdminEmpty title="No courses match this filter" description="Choose another lifecycle status to inspect platform courses." /> : <div className="mt-8 grid gap-4 md:grid-cols-2">{courses.map((course) => { const analytics = course.analytics; return <Card key={course.id} className="p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><span className="flex size-10 items-center justify-center rounded-md bg-blue-100 text-blue-700"><BookOpenCheck className="size-5" aria-hidden="true" /></span><Badge variant={statusVariants[course.status]}>{statusLabels[course.status]}</Badge></div><h2 className="type-title-large mt-5">{course.title}</h2><p className="type-body-small mt-1 text-text-secondary">Owner: {course.ownerName}</p><p className="type-caption mt-1 text-text-tertiary">{course.organizationName ?? "Independent Creator content"}</p>{course.status === "published" ? <dl className="mt-5 grid grid-cols-2 gap-4 border-y border-border-default py-4"><Metric label="Learner starts" value={String(analytics?.courseStarts ?? 0)} /><Metric label="Completion" value={`${analytics?.completionRate ?? 0}%`} /><Metric label="Post-assessment" value={`${analytics?.averageAssessmentScore ?? 0}%`} /><Metric label="Verified skills" value={String(analytics?.verifiedSkills ?? 0)} /></dl> : <p className="type-body-small mt-5 rounded-md bg-neutral-50 p-3 text-text-secondary">Learner activity is unavailable until this existing lifecycle reaches Published.</p>}<ButtonLink href={`/admin/courses/${course.id}`} variant="secondary" size="sm" className="mt-5">Inspect course</ButtonLink></Card>; })}</div>}</>}</ContentContainer>;
 }
 
 export function AdminCourseDetail({ courseId }: { courseId: string }) {

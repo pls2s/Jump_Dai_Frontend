@@ -93,7 +93,7 @@ npm run dev
 
 [http://localhost:3000/dev/frontend-preview](http://localhost:3000/dev/frontend-preview)
 
-When enabled, SkillSync accepts any non-empty Sign In email/password into a persistent `Frontend Preview` Creator session, allows protected route guards to resolve locally, and supplies structured fixtures for direct route review. No login credential fixture is checked and no backend authentication request is made. The preview index links to Functions 01–19, including processing, result, evidence, eligibility, oversight, and failure variants.
+When enabled, SkillSync accepts any non-empty Sign In email/password into a persistent `Frontend Preview` Creator session, allows protected route guards to resolve locally, and supplies structured fixtures for direct route review. No login credential fixture is checked and no backend authentication request is made. The preview index links to Functions 01–20, including processing, result, evidence, eligibility, oversight, notifications, exports, and supporting-state variants.
 
 To restore normal behavior:
 
@@ -145,13 +145,16 @@ npm run start
 | Entry and auth | `/`, `/sign-in`, `/create-account`, `/verify-otp`, `/account-type`, `/organization/onboarding` |
 | Learner workspace | `/learner`, `/learner/courses/[courseId]/learning-profile`, `/pre-assessment`, `/skill-gap`, `/skill-gap/review`, `/learning-path`, `/learn/[lessonId]`, `/quiz/[quizId]`, `/post-assessment`, `/practical-assessment`, `/result`, `/skill-evidence` |
 | Creator workspace | `/creator`, `/creator/courses`, `/creator/analytics`, `/creator/account` |
+| Organization workspace | `/organization`, `/organization/courses`, `/organization/learners`, `/organization/skills` |
+| Admin oversight | `/admin`, `/admin/users`, `/admin/courses`, `/admin/activity` |
+| Notifications | `/notifications` |
 | Course setup | `/creator/courses/new/basics`, `/audience`, `/objectives`, `/certificate`, `/review` |
 | Knowledge sources | `/creator/courses/[courseId]/sources` |
 | Knowledge analysis | `/creator/courses/[courseId]/analysis` |
 | AI course generation | `/creator/courses/[courseId]/generate`, `/generated` |
 | Creator review | `/creator/courses/[courseId]/review` |
 | Preview and publishing | `/creator/courses/[courseId]/preview`, `/published` |
-| Internal development | `/ui-preview` |
+| Internal development | `/ui-preview`, `/dev/frontend-preview/supporting-states` |
 | Frontend bypass index | `/dev/frontend-preview` (bypass mode only) |
 
 ## Creator Demo Flow
