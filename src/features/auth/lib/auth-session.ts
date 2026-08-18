@@ -4,12 +4,13 @@ import type { AuthResult } from "../api/auth-api";
 
 const SESSION_KEY = "skillsync-auth-session";
 const PENDING_REGISTRATION_KEY = "skillsync-demo-pending-registration";
+const PENDING_API_REGISTRATION_KEY = "skillsync-api-pending-registration";
 
 export interface SessionUser {
   id: number;
   name: string;
   email: string;
-  workspaceType?: WorkspaceType;
+  workspaceType?: WorkspaceType | null;
   roles?: UserRole[];
 }
 
@@ -40,6 +41,12 @@ export interface PendingDemoRegistration {
   email: string;
   verified?: boolean;
   otpExpiresAt?: number;
+}
+
+export interface PendingApiRegistration {
+  name: string;
+  email: string;
+  mockVerificationCode?: string;
 }
 
 export function saveApiAuthSession(result: AuthResult, remember = true) {
@@ -131,6 +138,7 @@ export function clearAuthSession() {
   localStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+  sessionStorage.removeItem(PENDING_API_REGISTRATION_KEY);
 }
 
 export function savePendingDemoRegistration(registration: PendingDemoRegistration) {
@@ -151,6 +159,26 @@ export function getPendingDemoRegistration(): PendingDemoRegistration | null {
 export function clearPendingDemoRegistration() {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+}
+
+export function savePendingApiRegistration(registration: PendingApiRegistration) {
+  sessionStorage.setItem(PENDING_API_REGISTRATION_KEY, JSON.stringify(registration));
+}
+
+export function getPendingApiRegistration(): PendingApiRegistration | null {
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem(PENDING_API_REGISTRATION_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as PendingApiRegistration;
+  } catch {
+    return null;
+  }
+}
+
+export function clearPendingApiRegistration() {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(PENDING_API_REGISTRATION_KEY);
 }
 
 export function updateStoredSessionProfile(profile: { name: string; email: string }) {

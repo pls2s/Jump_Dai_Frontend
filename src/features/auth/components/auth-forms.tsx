@@ -22,7 +22,7 @@ import {
   Input,
   useToast,
 } from "@/components/ui";
-import { FRONTEND_DEMO_OTP, type WorkspaceType } from "@/data/mock";
+import { FRONTEND_DEMO_OTP, MOCK_AUTH_USERS, type MockAuthUser, type WorkspaceType } from "@/data/mock";
 import {
   completeDemoRegistration,
   createAccount,
@@ -48,6 +48,8 @@ export function SignInForm() {
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [quickAccessPending, setQuickAccessPending] = useState<WorkspaceType | null>(null);
+  const [skipLoginOpen, setSkipLoginOpen] = useState(false);
+  const [skipLoginPending, setSkipLoginPending] = useState<number | null>(null);
   const [previewPending, setPreviewPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState(
@@ -99,6 +101,26 @@ export function SignInForm() {
     }
   }
 
+  async function skipLogin(account: MockAuthUser) {
+    setSkipLoginPending(account.id);
+    setError("");
+    setNotice("");
+    try {
+      const destination = isFrontendBypassEnabled
+        ? await enterFrontendPreview(account.workspaceType)
+        : (await signIn({
+          email: account.email,
+          password: account.password,
+          remember: true,
+        })).destination;
+      router.push(destination);
+    } catch (caught) {
+      setError(errorMessage(caught, "We couldn’t sign in with this demo account."));
+    } finally {
+      setSkipLoginPending(null);
+    }
+  }
+
   function unsupportedAction(label: string) {
     setNotice("");
     setError(`${label} is not available in the current prototype. Use email and password to continue.`);
@@ -140,6 +162,45 @@ export function SignInForm() {
       <Button variant="secondary" size="lg" className="w-full" onClick={() => unsupportedAction("Google sign-in")} disabled={pending}>
         <span className="flex size-6 items-center justify-center rounded-full bg-surface-default text-sm font-bold text-blue-700">G</span>Continue with Google
       </Button>
+
+      <div className="mt-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full"
+          onClick={() => setSkipLoginOpen((open) => !open)}
+          aria-expanded={skipLoginOpen}
+          aria-controls="skip-login-accounts"
+          disabled={pending || skipLoginPending !== null}
+        >
+          {skipLoginOpen ? "Hide demo accounts" : "Skip login"}
+        </Button>
+        {skipLoginOpen && (
+          <section id="skip-login-accounts" className="mt-3 rounded-lg border border-border-default bg-neutral-25 p-3.5" aria-labelledby="skip-login-heading">
+            <p id="skip-login-heading" className="type-caption font-semibold tracking-wide text-text-secondary uppercase">Sign in with a demo account</p>
+            <div className="mt-2 grid gap-2">
+              {MOCK_AUTH_USERS.map((account) => (
+                <Button
+                  key={account.id}
+                  variant="secondary"
+                  size="sm"
+                  className="h-auto min-h-12 justify-start px-3 text-left"
+                  onClick={() => void skipLogin(account)}
+                  isLoading={skipLoginPending === account.id}
+                  loadingLabel="Signing in…"
+                  disabled={pending || skipLoginPending !== null}
+                >
+                  <span className="flex min-w-0 flex-col items-start">
+                    <span>{account.name}</span>
+                    <span className="type-caption font-normal text-text-tertiary">{account.email} · {account.workspaceType}</span>
+                  </span>
+                </Button>
+              ))}
+            </div>
+            <p className="type-caption mt-2 text-text-tertiary">Development accounts seeded in the backend · password: password123</p>
+          </section>
+        )}
+      </div>
 
       {shouldUseFrontendMocks && (
         <section className="mt-5 rounded-lg border border-border-default bg-neutral-25 p-3.5" aria-labelledby="demo-access-heading">
@@ -227,15 +288,18 @@ export function OtpForm() {
   const [registrationEmail, setRegistrationEmail] = useState("");
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+  const [mockVerificationCode, setMockVerificationCode] = useState("");
 
   useEffect(() => {
-    if (!shouldUseFrontendMocks) return;
     const timer = window.setTimeout(() => {
       const context = getDemoOtpContext();
       if (!context) return;
       setRegistrationEmail(context.email);
-      setExpiresAt(context.expiresAt);
-      setRemainingSeconds(Math.max(0, Math.ceil((context.expiresAt - Date.now()) / 1000)));
+      setMockVerificationCode(context.mockVerificationCode ?? "");
+      if (context.expiresAt) {
+        setExpiresAt(context.expiresAt);
+        setRemainingSeconds(Math.max(0, Math.ceil((context.expiresAt - Date.now()) / 1000)));
+      }
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -247,10 +311,6 @@ export function OtpForm() {
     }, 1000);
     return () => window.clearInterval(interval);
   }, [expiresAt]);
-
-  if (!shouldUseFrontendMocks) {
-    return <ContractUnavailable title="Email verification is not connected" description="The current API contract documents no OTP verification or resend endpoint. SkillSync will not submit a guessed request." />;
-  }
 
   function updateDigit(index: number, value: string) {
     const digit = value.replace(/\D/g, "").slice(-1);
@@ -277,7 +337,7 @@ export function OtpForm() {
       setError("Enter all six digits to continue.");
       return;
     }
-    if (remainingSeconds === 0) {
+    if (shouldUseFrontendMocks && remainingSeconds === 0) {
       setError("This verification code has expired. Resend the code to continue.");
       return;
     }
@@ -300,11 +360,20 @@ export function OtpForm() {
     try {
       const context = await resendRegistrationOtp();
       setRegistrationEmail(context.email);
-      setExpiresAt(context.expiresAt);
-      setRemainingSeconds(Math.max(0, Math.ceil((context.expiresAt - Date.now()) / 1000)));
+      setMockVerificationCode(context.mockVerificationCode ?? "");
+      if (context.expiresAt) {
+        setExpiresAt(context.expiresAt);
+        setRemainingSeconds(Math.max(0, Math.ceil((context.expiresAt - Date.now()) / 1000)));
+      }
       setDigits(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
-      showToast({ tone: "success", title: "A new verification code has been sent", description: `Use it within ${formatOtpTime(Math.ceil((context.expiresAt - Date.now()) / 1000))}.` });
+      showToast({
+        tone: "success",
+        title: "A new verification code has been sent",
+        description: context.expiresAt
+          ? `Use it within ${formatOtpTime(Math.ceil((context.expiresAt - Date.now()) / 1000))}.`
+          : "Use the six-digit code to continue.",
+      });
     } catch (caught) {
       setError(errorMessage(caught, "We couldn’t resend the verification code."));
     } finally {
@@ -317,16 +386,17 @@ export function OtpForm() {
       <AuthBackLink href="/create-account">Back</AuthBackLink>
       <span className="flex size-11 items-center justify-center rounded-lg bg-blue-100 text-blue-700"><KeyRound className="size-5" aria-hidden="true" /></span>
       <h1 className="type-h1 mt-5">Check your email</h1>
-      <p className="mt-3 text-text-secondary">Enter the six-digit development code{registrationEmail ? <> sent to <strong className="font-semibold text-text-primary">{registrationEmail}</strong></> : ""} to continue.</p>
+      <p className="mt-3 text-text-secondary">Enter the six-digit code{registrationEmail ? <> sent to <strong className="font-semibold text-text-primary">{registrationEmail}</strong></> : ""} to continue.</p>
       <form onSubmit={verify} className="mt-8" noValidate>
         <fieldset aria-describedby={error ? "otp-error" : "otp-expiry"}><legend className="sr-only">Six digit verification code</legend><div className="grid grid-cols-6 gap-2 sm:gap-3" onPaste={handlePaste}>{digits.map((digit, index) => <Input key={index} ref={(node) => { inputRefs.current[index] = node; }} aria-label={`Digit ${index + 1}`} inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} maxLength={1} value={digit} validation={error ? "error" : "default"} onChange={(event) => updateDigit(index, event.target.value)} onKeyDown={(event) => handleKey(index, event)} className="px-0 text-center text-xl font-semibold" />)}</div></fieldset>
         {error && <FieldError id="otp-error" className="mt-4">{error}</FieldError>}
-        <div id="otp-expiry" className="type-body-small mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2.5 text-blue-900">
+        {shouldUseFrontendMocks && <div id="otp-expiry" className="type-body-small mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2.5 text-blue-900">
           <span className="flex items-center gap-2"><Clock3 className="size-4" aria-hidden="true" />{remainingSeconds === null ? "Checking code expiry…" : remainingSeconds > 0 ? <>Code expires in <span role="timer" className="font-semibold tabular-nums">{formatOtpTime(remainingSeconds)}</span></> : <span role="status" className="font-semibold text-status-error">This verification code has expired.</span>}</span>
           <Button type="button" variant="ghost" size="sm" className="min-h-9 px-2 text-blue-800" onClick={() => void resend()} isLoading={resending} loadingLabel="Resending…" disabled={pending}><RefreshCw className="size-4" aria-hidden="true" />Resend code</Button>
-        </div>
-        <p className="type-caption mt-4 rounded-md bg-yellow-50 p-3 text-neutral-700">Frontend Demo Mode code: <strong>{FRONTEND_DEMO_OTP}</strong></p>
-        <Button type="submit" size="lg" className="mt-7 w-full" disabled={remainingSeconds === 0 || resending} aria-describedby={remainingSeconds === 0 ? "otp-expiry" : undefined} isLoading={pending} loadingLabel="Verifying…">Verify and continue</Button>
+        </div>}
+        {!shouldUseFrontendMocks && <div className="mt-4"><Button type="button" variant="ghost" size="sm" onClick={() => void resend()} isLoading={resending} loadingLabel="Resending…" disabled={pending}><RefreshCw className="size-4" aria-hidden="true" />Resend code</Button></div>}
+        {(shouldUseFrontendMocks || mockVerificationCode) && <p className="type-caption mt-4 rounded-md bg-yellow-50 p-3 text-neutral-700">{shouldUseFrontendMocks ? "Frontend Demo Mode code" : "Mock backend code"}: <strong>{shouldUseFrontendMocks ? FRONTEND_DEMO_OTP : mockVerificationCode}</strong></p>}
+        <Button type="submit" size="lg" className="mt-7 w-full" disabled={(shouldUseFrontendMocks && remainingSeconds === 0) || resending} aria-describedby={shouldUseFrontendMocks && remainingSeconds === 0 ? "otp-expiry" : undefined} isLoading={pending} loadingLabel="Verifying…">Verify and continue</Button>
       </form>
       {isFrontendBypassEnabled && (
         <ButtonLink href="/account-type" variant="ghost" size="sm" className="mt-3 w-full">Continue in preview mode</ButtonLink>
@@ -352,10 +422,6 @@ export function AccountTypeForm() {
   const [selected, setSelected] = useState<WorkspaceType>("creator");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-
-  if (!shouldUseFrontendMocks) {
-    return <ContractUnavailable title="Workspace selection is not connected" description="The current API response has no role or workspace field, and no account-type endpoint is documented." />;
-  }
 
   async function continueToWorkspace() {
     setPending(true);
@@ -383,18 +449,6 @@ export function AccountTypeForm() {
       {error && <FieldError className="mt-4">{error}</FieldError>}
       <Button size="lg" className="mt-7 w-full" onClick={continueToWorkspace} isLoading={pending} loadingLabel="Opening workspace…">Continue</Button>
       <p className="type-caption mt-4 flex items-center justify-center gap-1.5 text-text-tertiary"><ShieldCheck className="size-4" aria-hidden="true" />Admin access is system-assigned and cannot be selected.</p>
-    </div>
-  );
-}
-
-function ContractUnavailable({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="w-full">
-      <AuthBackLink href="/sign-in">Back to sign in</AuthBackLink>
-      <span className="flex size-11 items-center justify-center rounded-lg bg-blue-100 text-blue-700"><KeyRound className="size-5" aria-hidden="true" /></span>
-      <h1 className="type-h1 mt-5">{title}</h1>
-      <p className="mt-3 text-text-secondary">{description}</p>
-      <ButtonLink href="/sign-in" size="lg" className="mt-7 w-full">Return to sign in</ButtonLink>
     </div>
   );
 }

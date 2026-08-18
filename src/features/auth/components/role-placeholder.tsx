@@ -26,8 +26,8 @@ export function RolePlaceholder({
       return;
     }
     const expectedWorkspace = role.toLowerCase();
-    if (session.mode === "demo" && session.user.workspaceType !== expectedWorkspace) {
-      router.replace(routeForWorkspace(session.user.workspaceType));
+    if (session.mode !== "bypass" && session.user.workspaceType !== expectedWorkspace) {
+      router.replace(session.user.workspaceType ? routeForWorkspace(session.user.workspaceType) : "/sign-in");
     }
   }, [role, router]);
 

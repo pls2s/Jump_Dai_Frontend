@@ -7,16 +7,27 @@ import {
 } from "@/data/mock";
 import { isFrontendBypassEnabled, shouldUseFrontendMocks } from "@/lib/config";
 import { demoDelay } from "@/lib/mock/demo-services";
-import { getCurrentUser, login, register, type AuthUser } from "../api/auth-api";
 import {
+  getCurrentUser,
+  login,
+  register,
+  resendVerification,
+  selectWorkspace,
+  verifyEmail,
+  type AuthUser,
+} from "../api/auth-api";
+import {
+  clearPendingApiRegistration,
   clearPendingDemoRegistration,
   getAuthSession,
+  getPendingApiRegistration,
   getPendingDemoRegistration,
   routeForWorkspace,
   createFrontendBypassSession,
   saveFrontendBypassSession,
   saveApiAuthSession,
   saveAuthSession,
+  savePendingApiRegistration,
   savePendingDemoRegistration,
   updateStoredSessionProfile,
   type AuthSession,
@@ -31,7 +42,8 @@ export class AuthFlowError extends Error {
 
 export interface DemoOtpContext {
   email: string;
-  expiresAt: number;
+  expiresAt?: number;
+  mockVerificationCode?: string;
 }
 
 function nextDemoOtpExpiry() {
@@ -74,7 +86,12 @@ export async function signIn(input: { email: string; password: string; remember:
 
   const result = await login({ email: input.email, password: input.password });
   saveApiAuthSession(result, input.remember);
-  return { session: getAuthSession()!, destination: "/creator" };
+  const destination = result.nextStep === "workspace_selection"
+    ? "/account-type"
+    : result.user.workspaceType
+      ? routeForWorkspace(result.user.workspaceType)
+      : "/sign-in";
+  return { session: getAuthSession()!, destination };
 }
 
 export async function enterDemoWorkspace(workspaceType: WorkspaceType) {
@@ -99,12 +116,26 @@ export async function createAccount(input: { name: string; email: string; passwo
     savePendingDemoRegistration({ name: input.name, email: input.email, otpExpiresAt: nextDemoOtpExpiry() });
     return "/verify-otp";
   }
-  await register(input);
-  return "/sign-in?registered=1";
+  const result = await register(input);
+  savePendingApiRegistration({
+    name: result.user.name,
+    email: result.user.email,
+    mockVerificationCode: result.mockVerificationCode,
+  });
+  return "/verify-otp";
 }
 
 export async function verifyRegistrationOtp(code: string) {
-  if (!shouldUseFrontendMocks) throw new AuthFlowError("OTP verification is not available in API mode.");
+  if (!shouldUseFrontendMocks) {
+    const registration = getPendingApiRegistration();
+    if (!registration) throw new AuthFlowError("Your registration session is missing. Create your account again.");
+    const result = await verifyEmail({ email: registration.email, code });
+    saveApiAuthSession(result, true);
+    clearPendingApiRegistration();
+    if (result.nextStep === "workspace_selection") return "/account-type";
+    if (result.user.workspaceType) return routeForWorkspace(result.user.workspaceType);
+    throw new AuthFlowError("The backend did not return an account workspace.");
+  }
   const registration = getPendingDemoRegistration();
   if (!registration) throw new AuthFlowError("Your registration session is missing. Create your account again.");
   await demoDelay(400);
@@ -117,7 +148,15 @@ export async function verifyRegistrationOtp(code: string) {
 }
 
 export function getDemoOtpContext(): DemoOtpContext | null {
-  if (!shouldUseFrontendMocks) return null;
+  if (!shouldUseFrontendMocks) {
+    const registration = getPendingApiRegistration();
+    return registration
+      ? {
+          email: registration.email,
+          mockVerificationCode: registration.mockVerificationCode,
+        }
+      : null;
+  }
   const registration = getPendingDemoRegistration();
   if (!registration) return null;
   if (registration.otpExpiresAt) {
@@ -129,7 +168,19 @@ export function getDemoOtpContext(): DemoOtpContext | null {
 }
 
 export async function resendRegistrationOtp(): Promise<DemoOtpContext> {
-  if (!shouldUseFrontendMocks) throw new AuthFlowError("OTP resend is not available in API mode.");
+  if (!shouldUseFrontendMocks) {
+    const registration = getPendingApiRegistration();
+    if (!registration) throw new AuthFlowError("Your registration session is missing. Create your account again.");
+    const result = await resendVerification({ email: registration.email });
+    savePendingApiRegistration({
+      ...registration,
+      mockVerificationCode: result.mock_verification_code,
+    });
+    return {
+      email: registration.email,
+      mockVerificationCode: result.mock_verification_code,
+    };
+  }
   const registration = getPendingDemoRegistration();
   if (!registration) throw new AuthFlowError("Your registration session is missing. Create your account again.");
   await demoDelay(450);
@@ -139,7 +190,21 @@ export async function resendRegistrationOtp(): Promise<DemoOtpContext> {
 }
 
 export async function completeDemoRegistration(workspaceType: WorkspaceType) {
-  if (!shouldUseFrontendMocks) throw new AuthFlowError("Workspace selection is not available in API mode.");
+  if (!shouldUseFrontendMocks) {
+    const session = getAuthSession();
+    if (!session || session.mode !== "api") throw new AuthFlowError("Verify your email before choosing a workspace.");
+    const user = await selectWorkspace(session.accessToken, workspaceType);
+    saveApiAuthSession(
+      {
+        accessToken: session.accessToken,
+        tokenType: session.tokenType,
+        user,
+        nextStep: "complete",
+      },
+      true,
+    );
+    return routeForWorkspace(user.workspaceType ?? workspaceType);
+  }
   if (isFrontendBypassEnabled) return enterFrontendPreview(workspaceType);
   const registration = getPendingDemoRegistration();
   if (!registration?.verified) throw new AuthFlowError("Verify your email before choosing a workspace.");
@@ -165,7 +230,15 @@ export async function loadCurrentAccount(): Promise<AuthUser> {
   if (!session) throw new AuthFlowError("Your session has ended. Sign in again.");
   if (session.mode === "demo" || session.mode === "bypass") {
     await demoDelay(250);
-    return { id: session.user.id, name: session.user.name, email: session.user.email };
+    return {
+      id: session.user.id,
+      name: session.user.name,
+      email: session.user.email,
+      emailVerified: true,
+      workspaceType: session.user.workspaceType,
+      roles: session.user.roles ?? [],
+      onboardingCompleted: true,
+    };
   }
   return getCurrentUser(session.accessToken);
 }
@@ -179,5 +252,13 @@ export async function updateCurrentAccount(input: { name: string; email: string 
   await demoDelay(350);
   const updated = updateStoredSessionProfile({ name: input.name.trim(), email: input.email.trim() });
   if (!updated) throw new AuthFlowError("Your session has ended. Sign in again.");
-  return { id: updated.user.id, name: updated.user.name, email: updated.user.email };
+  return {
+    id: updated.user.id,
+    name: updated.user.name,
+    email: updated.user.email,
+    emailVerified: true,
+    workspaceType: updated.user.workspaceType,
+    roles: updated.user.roles ?? [],
+    onboardingCompleted: true,
+  };
 }

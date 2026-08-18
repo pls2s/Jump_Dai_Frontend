@@ -75,7 +75,26 @@ Restart `npm run dev` after changing the flag. In this mode:
 - Creator course setup uses a demo course, then continues through mock sources and mock knowledge analysis.
 - No authentication, course, profile, or document request is sent to the backend during the normal demo journey.
 
-Use `123456` as the development-only OTP. Set `NEXT_PUBLIC_FRONTEND_DEMO_MODE=false` to restore the existing API-connected authentication and course/document integrations. API mode requires the backend at `NEXT_PUBLIC_API_URL`.
+Use `123456` as the development-only OTP. Set `NEXT_PUBLIC_FRONTEND_DEMO_MODE=false` to use the API-connected authentication and course/document integrations. API mode requires the backend at `NEXT_PUBLIC_API_BASE_URL` (or the legacy `NEXT_PUBLIC_API_URL`).
+
+## API-connected local flow
+
+Start the backend in `skillsync-server`:
+
+```bash
+source .venv/bin/activate
+uvicorn app.main:app --reload
+```
+
+The frontend local configuration in `.env.local` must be:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api
+NEXT_PUBLIC_FRONTEND_DEMO_MODE=false
+NEXT_PUBLIC_FRONTEND_BYPASS=false
+```
+
+Then run `npm run dev` and open [http://localhost:3000/sign-in](http://localhost:3000/sign-in). API mode now supports Register → mock OTP (`123456`) → workspace selection → sign in. The backend development CORS allowlist includes this Next.js origin.
 
 ## Frontend Bypass Mode
 
@@ -259,8 +278,8 @@ docs/
 The environment template contains both public configuration values:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_FRONTEND_DEMO_MODE=true
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api
+NEXT_PUBLIC_FRONTEND_DEMO_MODE=false
 NEXT_PUBLIC_FRONTEND_BYPASS=false
 ```
 
@@ -272,8 +291,8 @@ NEXT_PUBLIC_FRONTEND_BYPASS=false
 - **Demo access is missing:** enable Demo Mode or Bypass Mode, then restart `npm run dev`; public environment values are compiled into the frontend.
 - **Frontend preview index returns Not Found:** set `NEXT_PUBLIC_FRONTEND_BYPASS=true` in `.env.local`, then restart `npm run dev`.
 - **API mode reports that SkillSync cannot be reached:** start the backend and confirm `NEXT_PUBLIC_API_URL`; restart `npm run dev` after changing a public environment variable.
-- **The browser reports a CORS error:** `API_doc.md` currently allows only the old Vite origin on port 5173. Add the current Next.js origin `http://localhost:3000` to the backend development CORS allowlist.
-- **OTP or workspace selection is unavailable in API mode:** those capabilities have no endpoints, request schemas, or response schemas in `API_doc.md`; the frontend deliberately does not guess them. Use demo mode for the frontend-only journey.
+- **The browser reports a CORS error:** confirm the backend is current and `CORS_ORIGINS` includes `http://localhost:3000`, then restart `uvicorn`.
+- **OTP or workspace selection fails in API mode:** ensure the backend is running, create a new account from the frontend, and enter the mock code `123456`. The mock token and registration state are reset whenever the backend restarts.
 - **Port 3000 is occupied:** run `npm run dev -- --port 3001` and open the URL printed by Next.js.
 - **Course values look stale:** the wizard intentionally saves demo values in `localStorage` under `skillsync-course-setup`. Clear site data to reset the prototype.
 - **Source changes should be reset:** clear site data for the `skillsync-sources:*` localStorage keys.

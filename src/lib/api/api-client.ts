@@ -1,4 +1,15 @@
-const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
+const configuredApiUrl =
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:8000";
+const API_URL = configuredApiUrl.replace(/\/+$/, "");
+
+function getRequestUrl(path: string) {
+  const normalizedPath = API_URL.endsWith("/api") && path.startsWith("/api/")
+    ? path.slice("/api".length)
+    : path;
+  return `${API_URL}${normalizedPath}`;
+}
 
 interface ApiSuccess<T> {
   success: true;
@@ -39,7 +50,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(getRequestUrl(path), {
       ...init,
       headers: requestHeaders,
       body: formData ?? (body === undefined ? undefined : JSON.stringify(body)),
