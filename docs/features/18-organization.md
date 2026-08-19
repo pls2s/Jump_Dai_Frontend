@@ -17,7 +17,7 @@ Organization workspace user. The current seeded account deliberately remains `wo
 - `/organization/learners/[learnerId]` — learner progress and verified-skill detail
 - `/organization/skills` — aggregate skill outcomes and filters
 - `/organization/onboarding` — legacy redirect to `/organization`
-- `?state=empty`, `?state=loading`, and `?state=error` — direct bypass previews where relevant
+- `?state=empty`, `?state=loading`, and `?state=error` — direct frontend-mock previews where relevant
 
 ## Workspace model
 
@@ -52,7 +52,8 @@ The Skills & Outcomes view exports the currently filtered skill, participation, 
 - Organization demo session: allowed
 - Frontend bypass: direct preview allowed
 - Learner or Creator demo session: redirected to its own workspace
-- API session without documented Organization workspace data: redirected away; no Organization request is guessed
+- API session with the Organization workspace and Creator permission: allowed
+- API session for another workspace or without Creator permission: backend returns `403 FORBIDDEN`
 - Admin is not exposed by the Organization shell and cannot be self-selected; Function 19 uses a separate role-guarded workspace
 
 ## States
@@ -69,23 +70,31 @@ The Skills & Outcomes view exports the currently filtered skill, participation, 
 
 ## Mock data
 
-`src/data/mock/organization.ts` contains Organization identity, course-owner labels, a fictional learning-only roster, skill learner counts, and recent activity. Course and outcome metrics reuse `src/data/mock/creator-analytics.ts` so the same course does not acquire conflicting performance values.
+Frontend mock mode uses `src/data/mock/organization.ts`. API mode receives an equivalent, isolated static fixture from `skillsync-server/app/data/mock_organization.py`; API data is mapped in `src/features/organization/api/organization-api.ts` before it reaches the existing pages.
 
 ## Persistence
 
 The existing auth session persists Organization workspace identity. Course lifecycle remains in the existing generated-course store. Filters use URL search parameters. Function 18 adds no competing localStorage subsystem.
 
-## API limitations
+## API contract
 
-`API_doc.md` documents no Organization profile, membership, course-association, learner roster, organization analytics, permission, or export endpoint. In API mode, the Function 18 service sends no request and shows a safe contract-gap error. The current CSV is produced only from the visible frontend fixture data.
+All endpoints require `Authorization: Bearer <access_token>`, an Organization workspace, and the Creator role. The mock API exposes learning-only aggregate data and never includes individual answers or HR data.
+
+- `GET /api/organization` — full snapshot used by the connected Organization pages
+- `GET /api/organization/courses` and `GET /api/organization/courses/{course_id}` — course lifecycle and aggregate performance
+- `GET /api/organization/learners` and `GET /api/organization/learners/{learner_id}` — learning progress and verified skills
+- `GET /api/organization/skills` — aggregate skill outcome records
+
+The connected UI reads the full snapshot through `GET /api/organization`. Course, learner, and skill endpoints are available for future focused loading without adding another frontend route. API mode intentionally ignores the frontend-only `state` preview query parameter. The existing CSV export remains client-side and exports the visible API data; there is no server-side organization export endpoint.
 
 ## Known limitations
 
-- Organization identity, roster, course association, and outcomes are frontend fixtures
+- Current backend records are static mock data and are not persisted or recalculated from course activity
 - The visible roster is a small fictional sample, not all learners represented by aggregate metrics
+- Time-range controls are UI filters for the mock snapshot; the present API does not yet accept range query parameters
 - No invitations, assignments, member management, privacy policy, real-time events, or server-authoritative organization report
 - No Creator editing, Admin, HRM, payroll, recruitment, or employee-performance functionality
 
 ## Future backend integration
 
-Backend owners must document Organization identity, membership/authorization, course association, learner-data privacy, aggregation semantics, time ranges, and error responses before replacing the frontend service. The existing UI can consume those contracts without changing its route or component structure.
+Replace the static fixture with persisted organization associations, authorization scoped to organization membership, privacy-aware aggregate queries, real time-range parameters, and server-side exports. The existing UI can consume those contracts without changing its route or component structure.

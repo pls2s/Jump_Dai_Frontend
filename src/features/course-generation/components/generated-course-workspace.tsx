@@ -73,7 +73,7 @@ function ApiGeneratedCourseWorkspace({ courseId, backendCourseId }: { courseId: 
           </Card>
         ))}
       </section>
-      <div className="mt-7 flex flex-col-reverse justify-between gap-3 sm:flex-row"><ButtonLink href={`/creator/courses/${courseId}/generate`} variant="secondary"><ArrowLeft className="size-4" aria-hidden="true" />Back to generation</ButtonLink><ButtonLink href={`/creator/courses/${courseId}/sources`} size="lg">Review knowledge sources<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink></div>
+      <div className="mt-7 flex flex-col-reverse justify-between gap-3 sm:flex-row"><ButtonLink href={`/creator/courses/${courseId}/generate`} variant="secondary"><ArrowLeft className="size-4" aria-hidden="true" />Back to generation</ButtonLink><div className="flex flex-col gap-2 sm:flex-row"><ButtonLink href={`/creator/courses/${courseId}/sources`} variant="secondary">Review knowledge sources</ButtonLink><ButtonLink href={`/creator/courses/${courseId}/review`} size="lg">Review & verify<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink></div></div>
     </ContentContainer>
   );
 }

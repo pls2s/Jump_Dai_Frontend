@@ -73,8 +73,8 @@ export async function loadCourseList(): Promise<CourseListItem[]> {
       id: String(course.id),
       title: course.title,
       status,
-      destination: `/creator/courses/${course.id}/sources`,
-      actionLabel: "Manage sources",
+      destination: courseDestination(String(course.id), status),
+      actionLabel: courseActionLabel(status),
     };
   });
 }

@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Edit3, Eye, Flag, Save, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Edit3, Eye, FileCheck2, Flag, Save, ShieldCheck } from "lucide-react";
 
 import { ContentContainer, PageHeader } from "@/components/layout";
-import { Badge, Button, ButtonLink, Card, ConfirmationDialog, Field, FieldError, FieldLabel, Input, Progress, Spinner, Textarea } from "@/components/ui";
+import { Badge, Button, ButtonLink, Card, ConfirmationDialog, Field, FieldLabel, Input, Progress, Spinner, Textarea } from "@/components/ui";
 import { getAuthSession } from "@/features/auth/lib/auth-session";
 import {
   getCourseGenerationStatus,
@@ -285,7 +285,7 @@ function ApiReviewWorkspace({ courseId, backendCourseId }: { courseId: string; b
       </section>
       <div className="mt-7 flex flex-col-reverse justify-between gap-3 border-t border-border-default pt-7 sm:flex-row sm:items-center"><ButtonLink href={`/creator/courses/${courseId}/generated`} variant="secondary"><ArrowLeft className="size-4" aria-hidden="true" />Back to generated course</ButtonLink><div className="flex flex-col gap-2 sm:flex-row"><Button variant="secondary" onClick={() => void saveChanges()} disabled={!dirty || !isAwaitingVerification} isLoading={saving} loadingLabel="Saving…"><Save className="size-4" aria-hidden="true" />Save changes</Button><Button onClick={() => setConfirmingVerify(true)} disabled={dirty || !isAwaitingVerification || saving} isLoading={verifying} loadingLabel="Verifying…"><ShieldCheck className="size-4" aria-hidden="true" />Verify course</Button></div></div>
       {dirty && <p className="type-caption mt-3 text-status-warning">Save your edits before verifying the course.</p>}
-      {!isAwaitingVerification && <Card className="mt-7 border-green-200 bg-status-success-subtle p-5"><div className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 size-5 shrink-0 text-status-success" aria-hidden="true" /><div><h2 className="type-title-large">Course verified</h2><p className="mt-1 text-text-secondary">The Backend has marked this learning path as verified. Publishing is the next integration.</p></div></div></Card>}
+      {!isAwaitingVerification && <Card className="mt-7 border-green-200 bg-status-success-subtle p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 size-5 shrink-0 text-status-success" aria-hidden="true" /><div><h2 className="type-title-large">Course verified</h2><p className="mt-1 text-text-secondary">The Backend has marked this learning path as verified and ready for publication.</p></div></div><ButtonLink href={`/creator/courses/${courseId}/preview`}>Publish course<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink></div></Card>}
       <ConfirmationDialog open={confirmingVerify} title="Verify this learning path?" description="This confirms that you reviewed the complete source-grounded learning path. You can publish it in the next step." confirmLabel="Verify course" pending={verifying} pendingLabel="Verifying…" onConfirm={() => void verifyCourse()} onCancel={() => setConfirmingVerify(false)} />
     </ContentContainer>
   );
@@ -293,10 +293,10 @@ function ApiReviewWorkspace({ courseId, backendCourseId }: { courseId: string; b
 
 function validateApiLearningPath(learningPath: ApiGeneratedLearningPath) {
   if (learningPath.overview.trim().length < 1) return "Add a learning-path overview before saving.";
-  for (const module of learningPath.modules) {
-    if (module.title.trim().length < 1 || module.description.trim().length < 1) return "Every module needs a title and description.";
-    if (module.learning_objectives.length === 0) return "Every module needs at least one learning objective.";
-    for (const lesson of module.lessons) {
+  for (const pathModule of learningPath.modules) {
+    if (pathModule.title.trim().length < 1 || pathModule.description.trim().length < 1) return "Every module needs a title and description.";
+    if (pathModule.learning_objectives.length === 0) return "Every module needs at least one learning objective.";
+    for (const lesson of pathModule.lessons) {
       if (lesson.title.trim().length < 1 || lesson.summary.trim().length < 1) return "Every lesson needs a title and summary.";
       if (lesson.source_references.length === 0) return "Every lesson needs at least one source chunk citation.";
     }
@@ -305,5 +305,5 @@ function validateApiLearningPath(learningPath: ApiGeneratedLearningPath) {
 }
 
 function MissingReviewDependency({ courseId, message }: { courseId: string; message?: string }) {
-  return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] max-w-3xl items-center"><Card className="w-full p-7 text-center sm:p-10"><AlertTriangle className="mx-auto size-10 text-status-warning" aria-hidden="true" /><h1 className="type-h1 mt-5">Generate the course before review</h1><p className="mt-3 text-text-secondary">Human Verification requires a stored AI-generated course draft.</p><ButtonLink href={`/creator/courses/${courseId}/generate`} className="mt-7">Open AI Course Generator<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink></Card></ContentContainer>;
+  return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] max-w-3xl items-center"><Card className="w-full p-7 text-center sm:p-10"><AlertTriangle className="mx-auto size-10 text-status-warning" aria-hidden="true" /><h1 className="type-h1 mt-5">Generate the course before review</h1><p className="mt-3 text-text-secondary">{message ?? "Human Verification requires a stored AI-generated course draft."}</p><ButtonLink href={`/creator/courses/${courseId}/generate`} className="mt-7">Open AI Course Generator<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink></Card></ContentContainer>;
 }

@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { AnalyticsTimeRange } from "@/features/creator-analytics/types";
 import { loadOrganizationWorkspace } from "@/features/organization/services/organization-service";
 import type { OrganizationPreviewState, OrganizationSnapshot } from "@/features/organization/types";
+import { shouldUseFrontendMocks } from "@/lib/config";
 
 const ranges: AnalyticsTimeRange[] = ["7d", "30d", "90d", "all"];
 const previewStates: OrganizationPreviewState[] = ["default", "empty", "loading", "error"];
@@ -37,7 +38,7 @@ export function useOrganizationSnapshot({
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    if (previewState === "loading") {
+    if (shouldUseFrontendMocks && previewState === "loading") {
       setLoading(true);
       setError("");
       return;

@@ -44,17 +44,17 @@ export function NotificationWorkspace() {
     void retry();
   }
 
-  function markOneRead(id: string) {
-    if (markRead(id)) showToast({ tone: "success", title: "Notification marked as read" });
+  async function markOneRead(id: string) {
+    if (await markRead(id)) showToast({ tone: "success", title: "Notification marked as read" });
   }
 
-  function openNotification(item: SkillSyncNotification) {
-    markRead(item.id);
+  async function openNotification(item: SkillSyncNotification) {
+    await markRead(item.id);
     router.push(item.destination);
   }
 
-  function markAll() {
-    if (markAllRead()) showToast({ tone: "success", title: "All notifications marked as read" });
+  async function markAll() {
+    if (await markAllRead()) showToast({ tone: "success", title: "All notifications marked as read" });
   }
 
   return (
@@ -66,7 +66,7 @@ export function NotificationWorkspace() {
             <Button variant={filter === "all" ? "primary" : "secondary"} size="sm" aria-pressed={filter === "all"} onClick={() => updateQuery({ filter: null })}>All</Button>
             <Button variant={filter === "unread" ? "primary" : "secondary"} size="sm" aria-pressed={filter === "unread"} onClick={() => updateQuery({ filter: "unread" })}>Unread <span aria-hidden="true">({feed.unreadCount})</span><span className="sr-only">, {feed.unreadCount} notifications</span></Button>
           </div>
-          {visibleItems.length === 0 ? <EmptyState title="You’re all caught up" description="There are no unread notifications. You can still review previous updates under All." icon={<CheckCheck className="size-6" aria-hidden="true" />} /> : <ol className="mt-6 grid gap-3">{visibleItems.map((item) => <NotificationItem key={item.id} item={item} onMarkRead={() => markOneRead(item.id)} onOpen={() => openNotification(item)} />)}</ol>}
+          {visibleItems.length === 0 ? <EmptyState title="You’re all caught up" description="There are no unread notifications. You can still review previous updates under All." icon={<CheckCheck className="size-6" aria-hidden="true" />} /> : <ol className="mt-6 grid gap-3">{visibleItems.map((item) => <NotificationItem key={item.id} item={item} onMarkRead={() => void markOneRead(item.id)} onOpen={() => void openNotification(item)} />)}</ol>}
         </>
       )}
     </ContentContainer>

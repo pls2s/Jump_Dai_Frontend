@@ -12,8 +12,17 @@ import { loadSkillResultExperience, saveSkillResult } from "@/features/learner-j
 import type { LearnerJourneyState, LearnerSkillResult } from "@/features/learner-journey/types";
 import { courseCompletionChecks, createLearnerSkillResult } from "@/features/skill-result/lib/skill-result-engine";
 import { buildSkillPortfolio } from "@/features/skill-portfolio/lib/portfolio-builder";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
+import { ApiSkillResultWorkspace } from "@/features/learner-quiz/components/api-assessment-workspaces";
 
 export function SkillResultWorkspace({ courseId, courseTitle, previewState }: { courseId: string; courseTitle: string; previewState?: string }) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Preparing your assessment results…</div></ContentContainer>;
+  if (mode === "api") return <ApiSkillResultWorkspace courseId={courseId} courseTitle={courseTitle} />;
+  return <DemoSkillResultWorkspace courseId={courseId} courseTitle={courseTitle} previewState={previewState} />;
+}
+
+function DemoSkillResultWorkspace({ courseId, courseTitle, previewState }: { courseId: string; courseTitle: string; previewState?: string }) {
   const router = useRouter();
   const [journey, setJourney] = useState<LearnerJourneyState | null>(null);
   const [result, setResult] = useState<LearnerSkillResult | null>(null);

@@ -11,6 +11,8 @@ import { getAuthSession } from "@/features/auth/lib/auth-session";
 import { createEmptyLearningProfile, readLearningProfile } from "@/features/learner-onboarding/lib/learning-profile-store";
 import { saveLearningProfile } from "@/features/learner-onboarding/services/learning-profile-service";
 import type { FamiliarityLevel, LearnerLearningProfile, LearningGoal, LearningPace, LearningPreference, SessionLength } from "@/features/learner-onboarding/types";
+import { ApiError } from "@/lib/api/api-client";
+import { getApiLearningProfile, saveApiLearningProfile, type ApiLearningProfile, type ApiLearningStyle } from "@/features/personalized-learning/api/personalized-learning-api";
 import { SelectableOption } from "./selectable-option";
 
 type ProfileErrors = Partial<Record<"goal" | "familiarity" | "preferences" | "pace" | "form", string>>;
@@ -23,16 +25,34 @@ export function LearningProfileForm({ courseId, courseTitle }: { courseId: strin
   const [errors, setErrors] = useState<ProfileErrors>({});
 
   useEffect(() => {
+    let active = true;
     const timer = window.setTimeout(() => {
       const session = getAuthSession();
       if (!session) {
         router.replace("/sign-in");
         return;
       }
+      if (session.mode === "api") {
+        void getApiLearningProfile(session.accessToken)
+          .then((saved) => {
+            if (active) setProfile(profileFromApi(saved, courseId));
+          })
+          .catch((error: unknown) => {
+            if (!active || (error instanceof ApiError && error.status === 404)) return;
+            setErrors({ form: error instanceof Error ? error.message : "We couldn’t load your saved learning preferences." });
+          })
+          .finally(() => {
+            if (active) setLoading(false);
+          });
+        return;
+      }
       setProfile(readLearningProfile(session.user.id, courseId) ?? createEmptyLearningProfile(session.user.id, courseId));
       setLoading(false);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
   }, [courseId, router]);
 
   function update(updates: Partial<LearnerLearningProfile>) {
@@ -59,10 +79,19 @@ export function LearningProfileForm({ courseId, courseTitle }: { courseId: strin
 
     setSaving(true);
     try {
-      await saveLearningProfile(profile);
+      const session = getAuthSession();
+      if (!session) {
+        router.replace("/sign-in");
+        return;
+      }
+      if (session.mode === "api") {
+        await saveApiLearningProfile(profileToApiInput(profile), session.accessToken);
+      } else {
+        await saveLearningProfile(profile);
+      }
       router.push(`/learner/courses/${courseId}/pre-assessment`);
-    } catch {
-      setErrors({ form: "We couldn’t save your learning preferences. Your selections are still on this page; try again." });
+    } catch (error) {
+      setErrors({ form: error instanceof Error ? error.message : "We couldn’t save your learning preferences. Your selections are still on this page; try again." });
     } finally {
       setSaving(false);
     }
@@ -146,4 +175,49 @@ export function LearningProfileForm({ courseId, courseTitle }: { courseId: strin
 
 function SectionHeading({ icon: Icon, id, title, description }: { icon: typeof Target; id: string; title: string; description: string }) {
   return <div className="flex items-start gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-800"><Icon className="size-4.5" aria-hidden="true" /></span><div><h2 id={id} className="type-title-large">{title}</h2><p className="type-body-small mt-1 max-w-2xl text-text-secondary">{description}</p></div></div>;
+}
+
+const preferenceToStyle: Record<LearningPreference, ApiLearningStyle> = {
+  "short-explanations": "READING_WRITING",
+  "step-by-step": "READING_WRITING",
+  "hands-on": "KINESTHETIC",
+  "visual-summaries": "VISUAL",
+  "quick-quizzes": "MIXED",
+  "real-world-scenarios": "MIXED",
+};
+
+const styleToPreference: Record<ApiLearningStyle, LearningPreference> = {
+  VISUAL: "visual-summaries",
+  AUDITORY: "short-explanations",
+  READING_WRITING: "step-by-step",
+  KINESTHETIC: "hands-on",
+  MIXED: "real-world-scenarios",
+};
+
+function profileToApiInput(profile: LearnerLearningProfile) {
+  const selectedGoal = learningGoalOptions.find((option) => option.id === profile.goal)?.label ?? "Build a new skill";
+  const learningGoal = profile.goal === "other"
+    ? profile.otherGoal.trim() || profile.goalDetail.trim() || selectedGoal
+    : [selectedGoal, profile.goalDetail.trim()].filter(Boolean).join(" — ");
+  const learningStyles = Array.from(new Set(profile.learningPreferences.map((preference) => preferenceToStyle[preference])));
+
+  return {
+    learning_goal: learningGoal,
+    target_role: profile.goal === "new-role" && profile.goalDetail.trim() ? profile.goalDetail.trim() : null,
+    learning_styles: learningStyles,
+    weekly_learning_hours: profile.pace === "quick" ? 2 : profile.pace === "in-depth" ? 6 : 4,
+  };
+}
+
+function profileFromApi(saved: ApiLearningProfile, courseId: string): LearnerLearningProfile {
+  const profile = createEmptyLearningProfile(saved.learner_id, courseId);
+  return {
+    ...profile,
+    goal: "other",
+    otherGoal: saved.learning_goal,
+    goalDetail: saved.target_role ? `Target role: ${saved.target_role}` : "",
+    learningPreferences: Array.from(new Set(saved.learning_styles.map((style) => styleToPreference[style]))),
+    pace: saved.weekly_learning_hours <= 2 ? "quick" : saved.weekly_learning_hours >= 6 ? "in-depth" : "balanced",
+    updatedAt: saved.updated_at,
+  };
 }

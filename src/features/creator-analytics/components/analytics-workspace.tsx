@@ -26,6 +26,8 @@ import type {
   CreatorAnalyticsSnapshot,
 } from "@/features/creator-analytics/types";
 import { downloadCsv } from "@/lib/export/csv";
+import { ApiAnalyticsWorkspace } from "@/features/creator-analytics/components/api-analytics-workspace";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
 
 const validRanges: AnalyticsTimeRange[] = ["7d", "30d", "90d", "all"];
 const validPreviewStates: AnalyticsPreviewState[] = ["default", "empty", "loading", "error"];
@@ -39,6 +41,13 @@ function analyticsPreviewState(value: string | null): AnalyticsPreviewState {
 }
 
 export function AnalyticsWorkspace({ fixedCourseId }: { fixedCourseId?: string }) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <LoadingState title="Loading analytics" description="Preparing creator metrics…" />;
+  if (mode === "api") return <ApiAnalyticsWorkspace fixedCourseId={fixedCourseId} />;
+  return <DemoAnalyticsWorkspace fixedCourseId={fixedCourseId} />;
+}
+
+function DemoAnalyticsWorkspace({ fixedCourseId }: { fixedCourseId?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

@@ -2,47 +2,27 @@
 
 ## Purpose
 
-Turn pre-assessment evidence into a learner-friendly summary of current strengths, developing competencies, and priority areas.
+Show assessment scores, below-target topics, and topics that meet the learner’s current target without treating lower scores as a failure.
 
-## Primary user
-
-Learner.
-
-## Routes
+## Route
 
 - `/learner/courses/[courseId]/skill-gap`
-- `/learner/courses/[courseId]/skill-gap/review`
+- Next: `/learner/courses/[courseId]/learning-path?view=generating`
 
-## User flow
+## API integration
 
-Completed assessment → skill snapshot → optional read-only answer review → Build my learning path.
+API learner sessions read:
 
-## Main components
+- `GET /api/learning/skill-gap-analysis`
 
-- `SkillGapWorkspace`
-- `AssessmentReview`
-- shared progress, badge, card, and learner-shell patterns
+The page displays the backend assessment’s overall score, learner level, target score, and topic scores. Priority areas are the backend’s `knowledge_gaps`; topics meeting the target are transparently derived from topic scores at or above `passing_score`.
 
-## Data model
+No local skill snapshot is substituted when the backend reports that a pre-assessment is missing. The learner is instead sent back to Function 09.
 
-Question scores aggregate into typed `SkillScore` records. Central bands are: 0–39 Needs focus, 40–59 Developing, 60–79 Proficient, and 80–100 Strong. Scores below 60% are learning-path priorities; the result highlights at most the three lowest competencies while retaining all scores for path generation.
+## Demo behavior
 
-## Validation and states
-
-The route requires a completed assessment result outside bypass mode. It represents loading, missing-result guidance, result, empty-priority, and empty-strength states without framing lower scores as failure.
-
-## Mock logic and persistence
-
-The result is calculated deterministically from saved responses and stored with the learner journey. Review shows the learner answer, expected answer, correctness text/icon, and concise explanation only after submission.
+Demo/bypass sessions retain the prior local skill-score and answer-review experience. API sessions do not offer the local answer-review route, because individual answers are not persisted by the backend contract.
 
 ## Dependencies
 
-Requires Function 09 completion. Its priority/strength IDs are consumed by Function 11.
-
-## Known limitations
-
-No normative benchmarks, weighted competency model, confidence interval, or backend result verification.
-
-## Future backend/API integration
-
-Replace local scoring only after assessment result and skill-level response contracts are documented. Preserve the current constructive status model in the UI.
+Requires a completed Function 09 API pre-assessment. Its result is used by Function 11.

@@ -7,6 +7,6 @@ export default async function SkillResultPage({ params, searchParams }: { params
   const { courseId } = await params;
   const { state } = await searchParams;
   const course = getLearnerDemoCourse(courseId);
-  if (!course) notFound();
-  return <SkillResultWorkspace courseId={courseId} courseTitle={course.title} previewState={state} />;
+  if (!course && !/^\d+$/.test(courseId)) notFound();
+  return <SkillResultWorkspace courseId={courseId} courseTitle={course?.title ?? `Course #${courseId}`} previewState={state} />;
 }

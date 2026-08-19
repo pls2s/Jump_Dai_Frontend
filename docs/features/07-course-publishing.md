@@ -2,88 +2,40 @@
 
 ## Purpose
 
-Let a Creator inspect the course from a learner perspective and publish only after all required content and verification conditions are satisfied.
-
-## Primary user
-
-Creator.
-
-## Requirements covered
-
-- Learner-style responsive preview without editing controls inside the canvas
-- Expandable modules and lessons
-- Objectives, activities, assessments, practical task, and certificate information
-- Lifecycle states: Draft, Review, Published, Unpublished
-- Reusable publish-readiness checklist
-- Disabled Publish action with explicit reasons
-- Publish confirmation and simulated processing
-- Publish failure and retry
-- Published success with view, My Courses, and copy-link actions
-- Unpublish confirmation and publish-again flow
-- My Courses status and action integration
+Let a Creator publish a verified, source-grounded learning path to the public Backend catalog.
 
 ## Routes
 
 - `/creator/courses/[courseId]/preview`
 - `/creator/courses/[courseId]/published`
-- `/creator/courses/[courseId]/preview?state=failed` for deterministic publish-failure QA
 
-## User flow
+## API integration
 
-Creator Review → Preview → readiness check → Publish confirmation → Published success → View published course → optional Unpublish → Preview and publish again.
+For numeric Creator course IDs in API mode, publication uses:
 
-## Main screens
+- `GET /api/courses/{course_id}/learning-path` to show the reviewable generated content
+- `GET /api/courses/{course_id}/generation-status` to confirm the `VERIFIED` prerequisite
+- `POST /api/courses/{course_id}/publish` to publish the verified course
+- `GET /api/catalog/courses/{course_id}` to render the public catalog result
 
-- Creator preview header and learner preview canvas
-- Publish-readiness sidebar
-- Publish confirmation dialog
-- Publish failure/retry state
-- Publish success state
-- Published course management view
-- Unpublished success/recovery state
-
-## Components
-
-- `PreviewWorkspace`
-- `PublishedCourseWorkspace`
-- `CoursePreviewCanvas`
-- Shared `ConfirmationDialog`
-
-## Interactions
-
-- Native expandable module/lesson disclosure works by keyboard and touch
-- Publish opens confirmation only when all readiness checks pass
-- Confirmation prevents duplicate submission while Publishing
-- Copy course link copies an existing Creator-access prototype route
-- Unpublish preserves all course content and review state
-- My Courses selects status-appropriate destinations and action labels
+The publish action is disabled until the Backend status is `VERIFIED`; the Backend independently enforces the same requirement. After publication, the Published screen reads the public catalog rather than local browser state.
 
 ## States
 
-- Not ready
-- Ready
-- Publishing
-- Publish failed / retry
-- Published
-- Unpublishing
-- Unpublished
+- Loading or missing learning path
+- Verification required
+- Verified and ready to publish
+- Publish confirmation
+- Publishing or recoverable Backend error
+- Published catalog result
+- Already published
 
-## Mock behavior
+## Current limitations
 
-Publish and Unpublish update browser state after a short delay. They do not expose a public learner route or call a backend.
+- The Backend public catalog exposes a course detail API, not a dedicated learner-facing Next.js route or enrollment flow.
+- There is no Backend unpublish endpoint, so API-mode pages intentionally do not show an unpublish control.
+- The Backend learning-path contract currently contains overview, modules, lessons, and citations; it does not contain the richer demo-only exercise/quiz/practical preview content.
 
-## Persistence
+## Demo behavior
 
-Lifecycle, published timestamp, content, and verification remain in the per-course generated-state record. Refresh and navigation preserve them.
-
-## Known limitations
-
-- No real public URL, access control, learner enrollment, distribution, or backend publication
-- Unpublish is frontend-only because `API_doc.md` documents Publish but no Unpublish endpoint
-- Device simulator chrome and full learner progress are intentionally out of scope
-
-## Future backend integration points
-
-- `POST /api/courses/{course_id}/verify`
-- `POST /api/courses/{course_id}/publish`
-- A future documented Unpublish endpoint and public course URL contract are required before real integration
+Slug-based demo and bypass routes retain the existing browser-only preview, readiness checklist, publish simulation, and unpublish flow.
