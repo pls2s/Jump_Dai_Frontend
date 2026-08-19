@@ -28,6 +28,7 @@ import { ContentContainer, PageHeader } from "@/components/layout";
 import {
   Badge,
   Button,
+  ButtonLink,
   Card,
   ConfirmationDialog,
   Field,
@@ -40,7 +41,14 @@ import {
 } from "@/components/ui";
 import { initialKnowledgeSources } from "@/data/mock/product";
 import { getAuthSession } from "@/features/auth/lib/auth-session";
-import { deleteDocument, getDocuments, uploadDocument, type ApiCourseDocument, type ApiDocumentStatus } from "@/features/knowledge-sources/api/document-api";
+import {
+  deleteDocument,
+  getKnowledgeSources,
+  processKnowledgeSource,
+  uploadDocument,
+  type ApiCourseDocument,
+  type ApiDocumentStatus,
+} from "@/features/knowledge-sources/api/document-api";
 import { ApiError } from "@/lib/api/api-client";
 import { cn } from "@/lib/cn";
 import { fetchDemoUrl } from "@/lib/mock/demo-services";
@@ -51,7 +59,7 @@ export type SourceAddMode = "file" | "text" | "url";
 type Feedback = { tone: "error" | "success"; text: string };
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
-const allowedExtensions = ["pdf", "doc", "docx", "ppt", "pptx"];
+const allowedExtensions = ["pdf", "doc", "docx", "ppt", "pptx", "txt", "md"];
 
 const statusConfig: Record<SourceStatus, { variant: "info" | "warning" | "success" | "error"; icon: typeof CheckCircle2 }> = {
   Uploading: { variant: "info", icon: UploadCloud },
@@ -81,13 +89,21 @@ const apiStatusToSourceStatus: Record<ApiDocumentStatus, SourceStatus> = {
 };
 
 function sourceFromApi(document: ApiCourseDocument): KnowledgeSource {
+  const chunkCount = document.chunk_count ?? 0;
+  const sourceType = document.source_type === "URL" ? "URL" : sourceTypeFor(document.filename);
   return {
     id: `document-${document.id}`,
     name: document.filename,
-    type: sourceTypeFor(document.filename),
-    meta: typeof document.size === "number" ? humanFileSize(document.size) : document.file_type?.toUpperCase() ?? "Backend document",
+    type: sourceType,
+    meta: chunkCount > 0
+      ? `${chunkCount} ${chunkCount === 1 ? "chunk" : "chunks"}`
+      : typeof document.size === "number"
+        ? humanFileSize(document.size)
+        : document.file_type?.toUpperCase() ?? "Backend document",
     status: apiStatusToSourceStatus[document.status],
     updatedAt: "From backend",
+    chunkCount,
+    processingError: document.processing_error,
   };
 }
 
@@ -108,6 +124,7 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
   const [urlError, setUrlError] = useState("");
   const [loadingSources, setLoadingSources] = useState(backendCourseId !== null);
   const [deletingSource, setDeletingSource] = useState(false);
+  const [processingSources, setProcessingSources] = useState(false);
   const readyCount = sources.filter((source) => source.status === "Ready").length;
 
   const loadBackendDocuments = useCallback(async () => {
@@ -125,8 +142,8 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
     setLoadingSources(true);
     setFeedback(null);
     try {
-      const documents = await getDocuments(backendCourseId, session.accessToken);
-      setSources(documents.map(sourceFromApi));
+      const knowledgeSources = await getKnowledgeSources(backendCourseId, session.accessToken);
+      setSources(knowledgeSources.map(sourceFromApi));
     } catch (caught) {
       setFeedback({ tone: "error", text: caught instanceof ApiError ? caught.message : "We couldn’t load this course’s documents." });
     } finally {
@@ -173,6 +190,79 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
     setSources((current) => current.map((source) => source.id === id ? { ...source, ...updates } : source));
   }
 
+  function backendSourceId(id: string) {
+    const value = Number(id.replace("document-", ""));
+    return Number.isInteger(value) && value > 0 ? value : null;
+  }
+
+  async function processBackendSources(sourceIds?: string[]) {
+    if (backendCourseId === null) return;
+    const session = getAuthSession();
+    if (!session) {
+      router.push("/sign-in");
+      return;
+    }
+    if (session.mode !== "api") {
+      setFeedback({ tone: "error", text: "Knowledge Processing requires an API session." });
+      return;
+    }
+
+    const candidates = sources.filter((source) => {
+      const selected = sourceIds?.includes(source.id) ?? true;
+      return selected && backendSourceId(source.id) !== null && (source.status === "Uploaded" || source.status === "Failed");
+    });
+    if (candidates.length === 0) {
+      setFeedback({
+        tone: readyCount > 0 ? "success" : "error",
+        text: readyCount > 0
+          ? "Every uploaded source has already been processed and is ready for AI generation."
+          : "Upload a TXT, Markdown, or selectable-text PDF before processing.",
+      });
+      return;
+    }
+
+    setProcessingSources(true);
+    setFeedback(null);
+    setSources((current) => current.map((source) => candidates.some((candidate) => candidate.id === source.id)
+      ? { ...source, status: "Processing", processingError: null, updatedAt: "Extracting text…" }
+      : source));
+
+    const results = await Promise.allSettled(candidates.map(async (source) => {
+      const sourceId = backendSourceId(source.id);
+      if (sourceId === null) throw new Error("Invalid knowledge source id");
+      return { id: source.id, result: await processKnowledgeSource(sourceId, session.accessToken) };
+    }));
+
+    let completed = 0;
+    let failed = 0;
+    results.forEach((result, index) => {
+      const source = candidates[index];
+      if (result.status === "fulfilled") {
+        completed += 1;
+        updateSource(source.id, sourceFromApi(result.value.result.source));
+        return;
+      }
+      failed += 1;
+      updateSource(source.id, {
+        status: "Failed",
+        updatedAt: "Processing failed",
+        processingError: result.reason instanceof ApiError ? result.reason.message : "We couldn’t extract text from this source.",
+      });
+    });
+    setProcessingSources(false);
+    if (failed > 0) {
+      setFeedback({
+        tone: "error",
+        text: completed > 0
+          ? `${completed} source${completed === 1 ? "" : "s"} processed, but ${failed} failed. Try a TXT, Markdown, or selectable-text PDF.`
+          : "We couldn’t process these sources. Use a TXT, Markdown, or selectable-text PDF and try again.",
+      });
+    } else {
+      const chunksCreated = results.reduce((total, result) => total + (result.status === "fulfilled" ? result.value.result.chunks_created : 0), 0);
+      setFeedback({ tone: "success", text: `${completed} source${completed === 1 ? "" : "s"} processed into ${chunksCreated} knowledge chunk${chunksCreated === 1 ? "" : "s"}.` });
+    }
+  }
+
   function simulateFile(file: globalThis.File) {
     const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
     if (!allowedExtensions.includes(extension)) {
@@ -209,7 +299,7 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
       void uploadDocument(backendCourseId, file, session.accessToken)
         .then((document) => {
           setSources((current) => current.map((source) => source.id === id ? sourceFromApi(document) : source));
-          setFeedback({ tone: "success", text: `${document.filename} was uploaded. Refresh the list to retrieve its latest processing status.` });
+          setFeedback({ tone: "success", text: `${document.filename} was uploaded. Process it when you’re ready to extract knowledge chunks.` });
         })
         .catch((caught) => {
           updateSource(id, { status: "Failed", progress: undefined, updatedAt: "Upload failed" });
@@ -315,7 +405,7 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
 
   function retrySource(id: string) {
     if (backendCourseId !== null && id.startsWith("document-")) {
-      setFeedback({ tone: "error", text: "The current API contract has no document retry endpoint. Delete the failed document and upload it again." });
+      void processBackendSources([id]);
       return;
     }
     updateSource(id, { status: "Processing", updatedAt: "Retrying now" });
@@ -399,8 +489,8 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
                 <div onDragOver={(event) => event.preventDefault()} onDrop={handleDrop} className="rounded-lg border-2 border-dashed border-blue-200 bg-blue-50/50 p-8 text-center transition hover:border-blue-400 hover:bg-blue-50">
                   <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-700"><UploadCloud className="size-6" aria-hidden="true" /></span>
                   <h3 className="mt-4 font-semibold">Drag and drop files here</h3>
-                  <p className="type-body-small mt-1 text-text-secondary">PDF, DOC, DOCX, PPT, or PPTX · up to 25 MB each</p>
-                  <input ref={fileInputRef} className="sr-only" type="file" multiple accept=".pdf,.doc,.docx,.ppt,.pptx" onChange={(event) => handleFiles(event.target.files)} />
+                  <p className="type-body-small mt-1 text-text-secondary">PDF, DOC, DOCX, PPT, PPTX, TXT, or Markdown · up to 25 MB each</p>
+                  <input ref={fileInputRef} className="sr-only" type="file" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md" onChange={(event) => handleFiles(event.target.files)} />
                   <Button variant="secondary" className="mt-5" onClick={() => fileInputRef.current?.click()}>Choose files</Button>
                 </div>
               )}
@@ -433,7 +523,7 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
         <aside className="xl:sticky xl:top-26 xl:self-start">
           <Card className="overflow-hidden border-blue-200 shadow-sm">
             <div className="bg-blue-800 p-5 text-white"><Sparkles className="size-6 text-yellow-300" aria-hidden="true" /><h2 className="type-title-large mt-4">Ready for AI analysis?</h2><p className="type-body-small mt-2 text-blue-100">SkillSync will extract topics, concepts, learning relationships, and source references.</p></div>
-            <div className="p-5"><div className="flex items-center justify-between gap-4"><span className="type-body-small text-text-secondary">Sources ready</span><strong>{readyCount}</strong></div>{backendCourseId === null ? <><Button size="lg" className="mt-5 w-full" disabled={readyCount === 0} aria-describedby={readyCount === 0 ? "analysis-disabled-reason" : undefined} onClick={() => router.push(`/creator/courses/${courseId}/analysis`)}>Analyze knowledge with AI<ArrowRight className="size-4" aria-hidden="true" /></Button>{readyCount === 0 && <p id="analysis-disabled-reason" className="type-caption mt-3 text-text-secondary">Analysis is unavailable until at least one source has the Ready status.</p>}</> : <><Button size="lg" className="mt-5 w-full" disabled>AI analysis API not documented</Button><p className="type-caption mt-3 text-text-secondary">The API contract documents course generation, but not this separate knowledge-analysis step. No backend request will be guessed.</p></>}<p className="type-caption mt-4 text-text-tertiary">You can refresh while backend documents finish processing.</p></div>
+            <div className="p-5"><div className="flex items-center justify-between gap-4"><span className="type-body-small text-text-secondary">Sources ready</span><strong>{readyCount}</strong></div>{backendCourseId === null ? <><Button size="lg" className="mt-5 w-full" disabled={readyCount === 0} aria-describedby={readyCount === 0 ? "analysis-disabled-reason" : undefined} onClick={() => router.push(`/creator/courses/${courseId}/analysis`)}>Analyze knowledge with AI<ArrowRight className="size-4" aria-hidden="true" /></Button>{readyCount === 0 && <p id="analysis-disabled-reason" className="type-caption mt-3 text-text-secondary">Analysis is unavailable until at least one source has the Ready status.</p>}</> : <><Button size="lg" className="mt-5 w-full" onClick={() => void processBackendSources()} isLoading={processingSources} loadingLabel="Processing…">Process knowledge sources<Sparkles className="size-4" aria-hidden="true" /></Button>{readyCount > 0 && <ButtonLink href={`/creator/courses/${courseId}/generate`} variant="secondary" className="mt-3 w-full">Generate course with Typhoon<ArrowRight className="size-4" aria-hidden="true" /></ButtonLink>}<p className="type-caption mt-3 text-text-secondary">Extracts TXT, Markdown, and selectable-text PDF files into source-grounded chunks for AI generation.</p></>}<p className="type-caption mt-4 text-text-tertiary">You can refresh while backend documents finish processing.</p></div>
           </Card>
         </aside>
       </div>
@@ -456,7 +546,7 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
 function SourceRow({ source, onDelete, onRetry }: { source: KnowledgeSource; onDelete: () => void; onRetry: () => void }) {
   const config = statusConfig[source.status];
   const StatusIcon = config.icon;
-  return <Card className="p-4 sm:p-5"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-neutral-100 text-text-secondary"><File className="size-5" aria-hidden="true" /></span><div className="min-w-0 flex-1"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><h3 className="truncate font-semibold">{source.name}</h3><p className="type-caption mt-0.5 text-text-tertiary">{source.type} · {source.meta} · {source.updatedAt}</p></div><div className="flex shrink-0 items-center gap-2"><Badge variant={config.variant}><StatusIcon className={cn("size-3.5", source.status === "Processing" && "animate-spin")} aria-hidden="true" />{source.status}</Badge>{source.status === "Failed" && <Button variant="ghost" size="sm" onClick={onRetry}><RefreshCw className="size-4" aria-hidden="true" />Retry</Button>}<Button variant="ghost" size="icon" onClick={onDelete} aria-label={`Delete ${source.name}`}><Trash2 className="size-4" aria-hidden="true" /></Button></div></div>{source.status === "Uploading" && <Progress value={source.progress ?? 0} showValue size="sm" className="mt-3" />}{source.status === "Failed" && <p className="type-caption mt-2 flex items-center gap-1.5 text-status-error"><AlertTriangle className="size-3.5" aria-hidden="true" />We couldn’t read this file. Your other sources are safe. Retry it or upload a new copy.</p>}</div></div></Card>;
+  return <Card className="p-4 sm:p-5"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-neutral-100 text-text-secondary"><File className="size-5" aria-hidden="true" /></span><div className="min-w-0 flex-1"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><h3 className="truncate font-semibold">{source.name}</h3><p className="type-caption mt-0.5 text-text-tertiary">{source.type} · {source.meta} · {source.updatedAt}</p></div><div className="flex shrink-0 items-center gap-2"><Badge variant={config.variant}><StatusIcon className={cn("size-3.5", source.status === "Processing" && "animate-spin")} aria-hidden="true" />{source.status}</Badge>{source.status === "Failed" && <Button variant="ghost" size="sm" onClick={onRetry}><RefreshCw className="size-4" aria-hidden="true" />Retry</Button>}<Button variant="ghost" size="icon" onClick={onDelete} aria-label={`Delete ${source.name}`}><Trash2 className="size-4" aria-hidden="true" /></Button></div></div>{source.status === "Uploading" && <Progress value={source.progress ?? 0} showValue size="sm" className="mt-3" />}{source.status === "Failed" && <p className="type-caption mt-2 flex items-center gap-1.5 text-status-error"><AlertTriangle className="size-3.5" aria-hidden="true" />{source.processingError ?? "We couldn’t read this file. Your other sources are safe. Retry it or upload a new copy."}</p>}</div></div></Card>;
 }
 
 function EmptySources({ onAdd }: { onAdd: () => void }) {

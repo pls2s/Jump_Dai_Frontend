@@ -49,9 +49,11 @@ Understand what the AI is doing, inspect extracted topics and concepts, verify s
 - Open/closed reference drawer
 - Final success handoff
 
-## Mock behavior
+## API integration
 
-All separate knowledge analysis, relationships, counts, summaries, and references are structured mock data. `API_doc.md` documents AI course generation, not this pre-generation analysis endpoint, so numeric backend courses show an explicit unavailable state instead of issuing a guessed request.
+For a numeric Creator course in API mode, Source Management loads `GET /api/courses/{course_id}/knowledge-sources` and processes uploaded sources with `POST /api/knowledge-sources/{source_id}/process`. The UI updates each source to `Ready` with its returned chunk count, or to `Failed` with the safe backend error. Processing supports TXT, Markdown, and selectable-text PDF files; DOC/DOCX/PPT/PPTX remain uploadable but can safely fail during local text extraction.
+
+The separate analysis screen's topic graph, relationships, summaries, and source-reference drawer remain structured frontend mock data. It is not presented as an API result yet.
 
 ## Known limitations
 

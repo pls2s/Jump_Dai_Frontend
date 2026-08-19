@@ -21,6 +21,8 @@ export interface KnowledgeSource {
   status: SourceStatus;
   updatedAt: string;
   progress?: number;
+  chunkCount?: number;
+  processingError?: string | null;
 }
 
 export interface SourceReference {
