@@ -9,6 +9,15 @@ export interface ApiCourseDocument {
   file_type?: string;
   size?: number;
   status: ApiDocumentStatus;
+  source_type?: "FILE" | "URL";
+  chunk_count?: number;
+  processing_error?: string | null;
+  updated_at?: string;
+}
+
+export interface ProcessKnowledgeSourceResult {
+  source: ApiCourseDocument;
+  chunks_created: number;
 }
 
 export function uploadDocument(courseId: number, file: File, accessToken: string) {
@@ -24,6 +33,22 @@ export function uploadDocument(courseId: number, file: File, accessToken: string
 export function getDocuments(courseId: number, accessToken: string) {
   return apiRequest<ApiCourseDocument[]>(`/api/courses/${courseId}/documents`, {
     method: "GET",
+    token: accessToken,
+  });
+}
+
+/** Read source status and chunk counts after Knowledge Processing. */
+export function getKnowledgeSources(courseId: number, accessToken: string) {
+  return apiRequest<ApiCourseDocument[]>(`/api/courses/${courseId}/knowledge-sources`, {
+    method: "GET",
+    token: accessToken,
+  });
+}
+
+/** Extract a source and save its locally indexed knowledge chunks. */
+export function processKnowledgeSource(sourceId: number, accessToken: string) {
+  return apiRequest<ProcessKnowledgeSourceResult>(`/api/knowledge-sources/${sourceId}/process`, {
+    method: "POST",
     token: accessToken,
   });
 }

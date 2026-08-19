@@ -29,13 +29,13 @@ Combine files, notes, and web sources; understand processing state; recover from
 ## Interactions
 
 - For numeric backend course IDs, drag/drop or file picker sends multipart field `file` to `POST /api/courses/{course_id}/documents`
-- Backend documents load from `GET /api/courses/{course_id}/documents`; confirmed deletion calls `DELETE /api/documents/{document_id}`
+- Backend sources load from `GET /api/courses/{course_id}/knowledge-sources`; confirmed deletion calls `DELETE /api/documents/{document_id}`
 - Unsupported and oversized files show specific, recoverable errors
-- Upload moves through Uploading → Processing → Ready
+- Backend uploads move through Uploading → Uploaded; Knowledge Processing then moves supported files through Processing → Ready or Failed
 - Pasted text is added as a ready source with a computed word count
 - URL fetch shows a safe mock preview before addition
 - Invalid or simulated-unavailable URLs show an error and alternate next action
-- Mock failed sources can be retried; backend failures explain that no retry endpoint is documented
+- Failed backend sources retry through the Knowledge Processing endpoint
 - Delete requires confirmation
 - Analyze knowledge with AI is enabled when at least one source is Ready
 
@@ -50,12 +50,12 @@ Combine files, notes, and web sources; understand processing state; recover from
 
 ## Mock behavior
 
-Seeded slug-based demo courses retain local ready/failed sources and browser timers. Frontend Demo Mode routes newly configured courses to this slug-based flow, so it makes no document API calls. Numeric backend course routes use documented file APIs only in API mode. Manual text and URL modes remain visibly marked frontend-only because no corresponding endpoints are documented.
+Seeded slug-based demo courses retain local ready/failed sources and browser timers. Frontend Demo Mode routes newly configured courses to this slug-based flow, so it makes no document API calls. Numeric backend course routes use documented file APIs and Knowledge Processing in API mode. Manual text and the current URL-preview UI remain frontend-only.
 
 ## Known limitations
 
-- Backend file processing is displayed from returned document status; no automatic polling interval is assumed, so users refresh status manually
-- Manual-text and URL sources are not persisted to the backend
-- File size/type limits are enforced only in frontend mock behavior
+- Processing is user-triggered; no automatic polling interval is assumed, so users can refresh source status manually
+- Manual-text is not persisted to the backend; the URL endpoint exists but is not wired to the current URL-preview UI yet
+- API-mode files use the backend's 25 MB upload limit and supported-type validation
 - URL metadata and content preview are static mock values
-- Separate knowledge-analysis and document-retry endpoints are not documented
+- The topic-graph analysis workspace remains frontend mock data; it is separate from source extraction and chunking
