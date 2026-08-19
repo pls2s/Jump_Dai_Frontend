@@ -31,6 +31,12 @@ The centralized knowledge-check engine calculates question, skill, exact-correct
 
 Post-Assessment requires all personalized lessons complete. Practical Assessment requires a passing Post-Assessment. A submitted failing score never satisfies course completion.
 
-## Known limitations and future backend integration
+## API mode
 
-Quick checks use the generated single-question lesson fixture; Post-Assessment reuses related competency questions. There is no server question bank, timer enforcement, attempt limit, or backend grading contract.
+For a numeric backend course ID, the existing Post-Assessment route enrolls the learner, reads `GET /api/courses/{course_id}/assessments`, and submits `POST /api/assessments/{assessment_id}/submit`. The learner must finish all backend lessons first; Function 12 does not yet expose its lesson UI, so lessons can currently be completed through Swagger before opening this page.
+
+The backend contract provides assessment topics and stores one learner-entered score per topic. It does not return questions, answers, timer controls, attempts limits, or server-side grading. API mode therefore does not present frontend mock questions as backend questions.
+
+## Known limitations
+
+Quick lesson quizzes have no matching backend endpoint. A Creator must create or generate the course's `POST_ASSESSMENT` definition first. Mock backend data resets when the backend server reloads.

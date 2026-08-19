@@ -65,6 +65,11 @@ function demoUserSession(workspaceType: WorkspaceType): AuthSession {
   };
 }
 
+function destinationForApiUser(user: Pick<AuthUser, "roles" | "workspaceType">) {
+  if (user.roles.includes("admin")) return "/admin";
+  return user.workspaceType ? routeForWorkspace(user.workspaceType) : "/sign-in";
+}
+
 export async function signIn(input: { email: string; password: string; remember: boolean }) {
   if (isFrontendBypassEnabled) {
     await demoDelay(140);
@@ -88,9 +93,7 @@ export async function signIn(input: { email: string; password: string; remember:
   saveApiAuthSession(result, input.remember);
   const destination = result.nextStep === "workspace_selection"
     ? "/account-type"
-    : result.user.workspaceType
-      ? routeForWorkspace(result.user.workspaceType)
-      : "/sign-in";
+    : destinationForApiUser(result.user);
   return { session: getAuthSession()!, destination };
 }
 

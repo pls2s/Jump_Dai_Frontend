@@ -9,12 +9,21 @@ import { Badge, ButtonLink, Card, Field, FieldLabel, Input, Select } from "@/com
 import { AdminEmpty, AdminError, AdminLoading } from "@/features/admin/components/admin-states";
 import { adminPreviewState, useAdminSnapshot } from "@/features/admin/hooks/use-admin-snapshot";
 import { adminCategoryFor, filterAdminUsers } from "@/features/admin/lib/admin-engine";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
 import type { AdminUserFilter, AdminUserRecord } from "@/features/admin/types";
+import { ApiAdminUserDetail, ApiAdminUsers } from "./api-admin-users";
 
 const filters: AdminUserFilter[] = ["all", "learner", "creator", "organization", "admin"];
 const labels: Record<Exclude<AdminUserFilter, "all">, string> = { learner: "Learner", creator: "Creator", organization: "Organization", admin: "Admin" };
 
 export function AdminUsers() {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer><AdminLoading label="Loading platform users" /></ContentContainer>;
+  if (mode === "api") return <ApiAdminUsers />;
+  return <DemoAdminUsers />;
+}
+
+function DemoAdminUsers() {
   const searchParams = useSearchParams();
   const { snapshot, loading, error, retry } = useAdminSnapshot(adminPreviewState(searchParams.get("state")));
   const [filter, setFilter] = useState<AdminUserFilter>("all");
@@ -44,6 +53,13 @@ function UserCard({ user }: { user: AdminUserRecord }) {
 }
 
 export function AdminUserDetail({ userId }: { userId: string }) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer><AdminLoading label="Loading user account" /></ContentContainer>;
+  if (mode === "api") return <ApiAdminUserDetail userId={userId} />;
+  return <DemoAdminUserDetail userId={userId} />;
+}
+
+function DemoAdminUserDetail({ userId }: { userId: string }) {
   const searchParams = useSearchParams();
   const { snapshot, loading, error, retry } = useAdminSnapshot(adminPreviewState(searchParams.get("state")));
   const user = snapshot?.users.find((item) => item.id === userId);

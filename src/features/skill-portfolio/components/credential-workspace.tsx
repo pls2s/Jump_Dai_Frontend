@@ -24,12 +24,21 @@ import {
   issueDemoCredential,
   loadSkillPortfolio,
 } from "@/features/skill-portfolio/services/skill-portfolio-service";
+import { ApiCredentialWorkspace } from "@/features/skill-portfolio/components/api-portfolio-workspaces";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
 import type {
   PortfolioPreviewState,
   SkillPortfolioSnapshot,
 } from "@/features/skill-portfolio/types";
 
 export function CredentialWorkspace({ courseId, credentialId, previewState }: { courseId: string; credentialId: string; previewState: PortfolioPreviewState }) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Preparing credential…</div></ContentContainer>;
+  if (mode === "api") return <ApiCredentialWorkspace courseId={courseId} credentialId={credentialId} />;
+  return <DemoCredentialWorkspace courseId={courseId} credentialId={credentialId} previewState={previewState} />;
+}
+
+function DemoCredentialWorkspace({ courseId, credentialId, previewState }: { courseId: string; credentialId: string; previewState: PortfolioPreviewState }) {
   const router = useRouter();
   const { showToast } = useToast();
   const [portfolio, setPortfolio] = useState<SkillPortfolioSnapshot | null>(null);

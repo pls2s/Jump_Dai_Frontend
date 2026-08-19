@@ -7,6 +7,6 @@ export default async function PostAssessmentPage({ params, searchParams }: { par
   const { courseId } = await params;
   const { view, result } = await searchParams;
   const course = getLearnerDemoCourse(courseId);
-  if (!course) notFound();
-  return <KnowledgeCheckWorkspace courseId={courseId} courseTitle={course.title} definition={postAssessmentDefinition} previewView={view} previewResult={result} />;
+  if (!course && !/^\d+$/.test(courseId)) notFound();
+  return <KnowledgeCheckWorkspace courseId={courseId} courseTitle={course?.title ?? `Course #${courseId}`} definition={postAssessmentDefinition} previewView={view} previewResult={result} />;
 }

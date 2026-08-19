@@ -28,6 +28,8 @@ import {
   SkillStatusBadge,
 } from "@/features/skill-portfolio/components/portfolio-shared";
 import { loadSkillPortfolio } from "@/features/skill-portfolio/services/skill-portfolio-service";
+import { ApiPortfolioWorkspace } from "@/features/skill-portfolio/components/api-portfolio-workspaces";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
 import type {
   PortfolioPreviewState,
   PortfolioTab,
@@ -42,6 +44,21 @@ const tabs: Array<{ id: PortfolioTab; label: string }> = [
 ];
 
 export function PortfolioWorkspace({
+  courseId,
+  initialTab,
+  previewState,
+}: {
+  courseId: string;
+  initialTab: PortfolioTab;
+  previewState: PortfolioPreviewState;
+}) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Preparing your skill portfolio…</div></ContentContainer>;
+  if (mode === "api") return <ApiPortfolioWorkspace courseId={courseId} initialTab={initialTab} />;
+  return <DemoPortfolioWorkspace courseId={courseId} initialTab={initialTab} previewState={previewState} />;
+}
+
+function DemoPortfolioWorkspace({
   courseId,
   initialTab,
   previewState,

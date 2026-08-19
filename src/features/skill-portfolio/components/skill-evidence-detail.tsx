@@ -18,12 +18,21 @@ import {
   SkillStatusBadge,
 } from "@/features/skill-portfolio/components/portfolio-shared";
 import { loadSkillPortfolio } from "@/features/skill-portfolio/services/skill-portfolio-service";
+import { ApiSkillEvidenceDetail } from "@/features/skill-portfolio/components/api-portfolio-workspaces";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
 import type {
   PortfolioPreviewState,
   SkillPortfolioSnapshot,
 } from "@/features/skill-portfolio/types";
 
 export function SkillEvidenceDetail({ courseId, skillId, previewState }: { courseId: string; skillId: string; previewState: PortfolioPreviewState }) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Loading skill evidence…</div></ContentContainer>;
+  if (mode === "api") return <ApiSkillEvidenceDetail courseId={courseId} skillId={skillId} />;
+  return <DemoSkillEvidenceDetail courseId={courseId} skillId={skillId} previewState={previewState} />;
+}
+
+function DemoSkillEvidenceDetail({ courseId, skillId, previewState }: { courseId: string; skillId: string; previewState: PortfolioPreviewState }) {
   const router = useRouter();
   const { showToast } = useToast();
   const [portfolio, setPortfolio] = useState<SkillPortfolioSnapshot | null>(null);

@@ -19,7 +19,7 @@ interface BackendAuthUser {
   email: string;
   email_verified: boolean;
   workspace_type: WorkspaceType | null;
-  roles: Array<"LEARNER" | "CREATOR">;
+  roles: Array<"LEARNER" | "CREATOR" | "ADMIN">;
   onboarding_completed: boolean;
 }
 

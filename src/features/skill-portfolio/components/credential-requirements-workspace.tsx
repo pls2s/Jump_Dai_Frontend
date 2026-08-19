@@ -12,12 +12,21 @@ import {
   RequirementMark,
 } from "@/features/skill-portfolio/components/portfolio-shared";
 import { loadSkillPortfolio } from "@/features/skill-portfolio/services/skill-portfolio-service";
+import { ApiCredentialRequirementsNotice } from "@/features/skill-portfolio/components/api-portfolio-workspaces";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
 import type {
   PortfolioPreviewState,
   SkillPortfolioSnapshot,
 } from "@/features/skill-portfolio/types";
 
 export function CredentialRequirementsWorkspace({ courseId, previewState }: { courseId: string; previewState: PortfolioPreviewState }) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Checking credential requirements…</div></ContentContainer>;
+  if (mode === "api") return <ApiCredentialRequirementsNotice courseId={courseId} />;
+  return <DemoCredentialRequirementsWorkspace courseId={courseId} previewState={previewState} />;
+}
+
+function DemoCredentialRequirementsWorkspace({ courseId, previewState }: { courseId: string; previewState: PortfolioPreviewState }) {
   const router = useRouter();
   const [portfolio, setPortfolio] = useState<SkillPortfolioSnapshot | null>(null);
   useEffect(() => {

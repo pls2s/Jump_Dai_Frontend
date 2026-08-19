@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { NOTIFICATION_CHANGE_EVENT } from "@/features/notifications/lib/notification-store";
 import { loadNotificationFeed, markEveryNotificationRead, markNotificationRead } from "@/features/notifications/services/notification-service";
 import type { NotificationFeed, NotificationPreviewState } from "@/features/notifications/types";
+import { shouldUseFrontendMocks } from "@/lib/config";
 
 export function useNotifications(previewState: NotificationPreviewState = "default") {
   const [feed, setFeed] = useState<NotificationFeed | null>(null);
@@ -12,7 +13,7 @@ export function useNotifications(previewState: NotificationPreviewState = "defau
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    if (previewState === "loading") {
+    if (shouldUseFrontendMocks && previewState === "loading") {
       setLoading(true);
       setError("");
       return;
@@ -39,16 +40,29 @@ export function useNotifications(previewState: NotificationPreviewState = "defau
     };
   }, [load]);
 
-  function markRead(id: string) {
-    if (!markNotificationRead(id)) return false;
-    setFeed((current) => current ? { ...current, items: current.items.map((item) => item.id === id ? { ...item, read: true } : item), unreadCount: Math.max(0, current.unreadCount - (current.items.find((item) => item.id === id)?.read ? 0 : 1)) } : current);
-    return true;
+  async function markRead(id: string) {
+    try {
+      const nextFeed = await markNotificationRead(id);
+      if (!nextFeed) return false;
+      setFeed(nextFeed);
+      return true;
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "The notification could not be marked as read.");
+      return false;
+    }
   }
 
-  function markAllRead() {
-    if (!feed || !markEveryNotificationRead(feed.items.map((item) => item.id))) return false;
-    setFeed({ ...feed, items: feed.items.map((item) => ({ ...item, read: true })), unreadCount: 0 });
-    return true;
+  async function markAllRead() {
+    if (!feed) return false;
+    try {
+      const nextFeed = await markEveryNotificationRead(feed.items.map((item) => item.id));
+      if (!nextFeed) return false;
+      setFeed(nextFeed);
+      return true;
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Notifications could not be marked as read.");
+      return false;
+    }
   }
 
   return { feed, loading, error, retry: load, markRead, markAllRead };

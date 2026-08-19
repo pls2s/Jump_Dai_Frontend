@@ -10,7 +10,7 @@ System-assigned SkillSync Admin. Admin is a `UserRole`, not a selectable `Worksp
 
 ## Requirement-supported capabilities
 
-The repository requirement audit names user, role, content, account, and audit-access management as the Function 19 area. The current frontend implements the safe, contract-independent oversight portion: read-only users/accounts/roles/workspaces, course/content lifecycle and outcomes, and lightweight recent activity. It does not add unsupported deletion, impersonation, password reset, arbitrary role assignment, or course editing.
+The repository requirement audit names user, role, content, account, and audit-access management as the Function 19 area. In API mode, the existing Users routes use the documented backend Admin user-management contract for account listing, role replacement, and account suspension/reactivation. Course oversight and platform activity remain the existing frontend fixtures because no matching backend contracts exist.
 
 ## Routes
 
@@ -27,6 +27,8 @@ The repository requirement audit names user, role, content, account, and audit-a
 
 The Admin shell requires `session.user.roles` to contain `admin`. Creator, Learner, and Organization sessions redirect to their own workspace. A normal bypass session still defaults to Creator and cannot open Admin. The development preview index uses a dedicated bypass-only handoff that seeds a system-role preview session before opening an allow-listed `/admin` destination.
 
+When API mode is enabled, signing in with the seed Admin account (`admin@skillsync.local` / `password123`) now opens `/admin`; the Users navigation item then opens the live management view.
+
 Admin is absent from Create Account and Account Type. No `?role=admin` authorization exists. The Organization fixture remains `workspaceType: organization` plus `roles: [creator]`; Admin does not change that architecture.
 
 ## Admin overview
@@ -35,9 +37,9 @@ Summary metrics are derived from the current fixtures: total users, learners, cr
 
 ## User oversight
 
-Users can be searched by name/email and filtered by Learner, Creator, Organization, or Admin. User detail shows only the existing account identity, workspace, roles, joining label, and SkillSync activity summary. It exposes no password, secret, HR, payroll, employment, or unrelated personal data.
+Users can be searched by name/email and filtered by Learner, Creator, Organization, or Admin. In API mode these filters run locally over the backend's Admin account list. User detail shows only backend account identity, workspace, email verification, onboarding, role, and active/suspended status; the list endpoint is used to locate the selected account because there is no per-user GET endpoint.
 
-The current requirements/API do not define safe mutation contracts, so Function 19 does not pretend to disable/delete accounts, reset passwords, impersonate users, or assign roles.
+An Admin can replace another account’s `LEARNER`, `CREATOR`, and/or `ADMIN` roles, with at least one role required, and suspend or reactivate it. The UI protects the current Admin account from removing its own `ADMIN` role or suspending itself, avoiding accidental loss of access. It does not expose deletion, impersonation, password reset, or unrelated personal data.
 
 ## Course oversight
 
@@ -67,21 +69,26 @@ The activity page contains deterministic account, course, and organization event
 
 ## Security limitations
 
-Frontend guards hide Admin content from ordinary frontend sessions but are not backend authorization. Production security requires server-issued Admin role data and server-side authorization on every Admin request. The current API login response does not expose role/workspace authorization data to make a normal API-mode Admin session possible.
+Frontend guards hide Admin content from ordinary frontend sessions but are not backend authorization. The mock backend returns the `ADMIN` role during sign-in and enforces that role on every `/api/users` management request. Production still requires server-side authorization, audit logging, privacy rules, and persistent data.
 
 ## API limitations
 
-`API_doc.md` names `ADMIN` as a role and assigns Permission to the backend, but documents no Admin dashboard, user list/detail, role, account status, course oversight, or audit/activity endpoint. Function 19 sends no guessed `/api/admin/*` request.
+The live API-mode user management contract is:
+
+- `GET /api/users` — list accounts; requires an `ADMIN` token
+- `PUT /api/users/{user_id}/roles` — replace roles with a non-empty `LEARNER`/`CREATOR`/`ADMIN` list
+- `PATCH /api/users/{user_id}/status` — set `is_active`; suspending invalidates that user’s mock tokens
+
+No `/api/admin/*` endpoint is guessed. The backend does not currently expose Admin course oversight, activity/audit events, per-user retrieval, pagination, or server-side search/filtering.
 
 ## Known limitations
 
-- Deterministic frontend fixtures, not live platform data
-- Read-only oversight; no account/content mutation
-- Small fictional roster rather than a production directory
-- Lightweight recent activity rather than a security audit log
-- No backend authorization, pagination, privacy policy, real-time updates, or server-authoritative export
+- Admin Users is live only when signed in through API mode as `admin@skillsync.local`; the other Admin pages remain deterministic frontend fixtures
+- The mock backend resets user changes when its server process restarts or reloads
+- No per-user GET, pagination, server-side search/filtering, privacy policy, real-time updates, server-authoritative export, or audit log
+- Course/content oversight and platform activity are not backend-admin APIs yet
 - Function 20 notifications and CSV export remain deterministic browser behavior
 
 ## Future backend integration
 
-Backend owners must document Admin authentication/authorization, role/workspace claims, user/course oversight resources, permitted mutations, pagination/filter semantics, privacy rules, audit-event guarantees, and errors before the frontend service can switch from fixtures. The UI and route boundary can consume those contracts without adding guessed endpoints.
+Backend owners should next document per-user retrieval, pagination/filter semantics, course oversight resources, privacy rules, audit-event guarantees, and errors. The existing UI and route boundary can consume those contracts without adding guessed endpoints.

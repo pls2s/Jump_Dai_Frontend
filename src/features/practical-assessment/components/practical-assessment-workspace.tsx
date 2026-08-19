@@ -10,8 +10,10 @@ import { practicalAssessmentDefinition } from "@/data/mock";
 import { getAuthSession } from "@/features/auth/lib/auth-session";
 import { ensurePracticalDraft, loadPracticalExperience, savePracticalAssessment } from "@/features/learner-journey/services/learning-experience-service";
 import type { LearnerJourneyState, PracticalAssessmentState, PracticalDraft } from "@/features/learner-journey/types";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
 import { evaluatePracticalDraft, practicalDraftErrors } from "@/features/practical-assessment/lib/practical-evaluator";
 import { cn } from "@/lib/cn";
+import { ApiPracticalAssessmentWorkspace } from "@/features/learner-quiz/components/api-assessment-workspaces";
 
 const evaluationSteps = ["Checking submission completeness", "Evaluating against the rubric", "Measuring applied competency", "Preparing feedback"];
 type DraftErrors = Partial<Record<keyof PracticalDraft, string>>;
@@ -25,6 +27,13 @@ const fields: Array<{ key: keyof PracticalDraft; label: string; prompt: string; 
 ];
 
 export function PracticalAssessmentWorkspace({ courseId, courseTitle, previewState }: { courseId: string; courseTitle: string; previewState?: string }) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Loading practical assessment…</div></ContentContainer>;
+  if (mode === "api") return <ApiPracticalAssessmentWorkspace courseId={courseId} courseTitle={courseTitle} />;
+  return <DemoPracticalAssessmentWorkspace courseId={courseId} courseTitle={courseTitle} previewState={previewState} />;
+}
+
+function DemoPracticalAssessmentWorkspace({ courseId, courseTitle, previewState }: { courseId: string; courseTitle: string; previewState?: string }) {
   const router = useRouter();
   const [journey, setJourney] = useState<LearnerJourneyState | null>(null);
   const [practical, setPractical] = useState<PracticalAssessmentState | null>(null);

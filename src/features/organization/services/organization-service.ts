@@ -1,3 +1,5 @@
+import { getApiOrganizationSnapshot } from "@/features/organization/api/organization-api";
+import { getAuthSession } from "@/features/auth/lib/auth-session";
 import { loadCreatorAnalytics } from "@/features/creator-analytics/services/creator-analytics-service";
 import type { AnalyticsTimeRange } from "@/features/creator-analytics/types";
 import { buildOrganizationSnapshot } from "@/features/organization/lib/organization-engine";
@@ -21,9 +23,11 @@ export async function loadOrganizationWorkspace({
   previewState?: OrganizationPreviewState;
 } = {}) {
   if (!shouldUseFrontendMocks) {
-    throw new OrganizationWorkspaceError(
-      "Organization learning data isn’t connected for this account yet. No organization data was changed.",
-    );
+    const session = getAuthSession();
+    if (!session || session.mode !== "api") {
+      throw new OrganizationWorkspaceError("Sign in to the Organization workspace to load learning data.");
+    }
+    return getApiOrganizationSnapshot(session.accessToken, { timeRange, selectedCourseId });
   }
   if (previewState === "error") {
     throw new OrganizationWorkspaceError(

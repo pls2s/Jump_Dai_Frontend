@@ -30,6 +30,12 @@ Drafts persist locally on Save draft. A deterministic mock evaluator scores obje
 
 The practical must be evaluated, pass, and contain a submitted evidence summary. Opening the task or saving a draft does not satisfy completion.
 
-## Known limitations and future backend integration
+## API mode
 
-No file upload, real AI/SME evaluation, resubmission history, creator review, or server evidence storage. These require documented submission and grading APIs.
+For a numeric backend course ID, this existing route reads the learner's latest saved Post-Assessment through `GET /api/assessments/{assessment_id}/my-attempts` and unlocks only after a passing result. It submits the completed plan as `evidence_text` with `POST /api/assessments/{assessment_id}/submit`.
+
+The existing frontend rubric calculates a prototype total score and sends it to every backend topic because the current contract accepts topic scores but has no server-side practical evaluator. The backend persists the evidence and returns its stored score, pass status, and feedback. This distinction is visible in the UI.
+
+## Known limitations
+
+No file upload, real AI/SME evaluation, server rubric, resubmission UI/history, or Creator review UI is connected. Creator review remains available through its backend endpoint only. Mock backend data resets when the backend server reloads.

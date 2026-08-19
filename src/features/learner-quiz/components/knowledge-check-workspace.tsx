@@ -17,7 +17,9 @@ import {
   submitKnowledgeCheck,
 } from "@/features/learner-journey/services/learning-experience-service";
 import type { KnowledgeCheckDefinition, LearnerJourneyState } from "@/features/learner-journey/types";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
 import { cn } from "@/lib/cn";
+import { ApiAssessmentUnavailable, ApiPostAssessmentWorkspace } from "./api-assessment-workspaces";
 
 type CheckView = "intro" | "question" | "submitting" | "analyzing" | "result";
 
@@ -29,6 +31,17 @@ const analysisSteps = [
 ];
 
 export function KnowledgeCheckWorkspace({ courseId, courseTitle, definition, previewView, previewResult }: { courseId: string; courseTitle: string; definition: KnowledgeCheckDefinition; previewView?: string; previewResult?: string }) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Loading knowledge check…</div></ContentContainer>;
+  if (mode === "api") {
+    return definition.kind === "post-assessment"
+      ? <ApiPostAssessmentWorkspace courseId={courseId} courseTitle={courseTitle} />
+      : <ApiAssessmentUnavailable courseId={courseId} />;
+  }
+  return <DemoKnowledgeCheckWorkspace courseId={courseId} courseTitle={courseTitle} definition={definition} previewView={previewView} previewResult={previewResult} />;
+}
+
+function DemoKnowledgeCheckWorkspace({ courseId, courseTitle, definition, previewView, previewResult }: { courseId: string; courseTitle: string; definition: KnowledgeCheckDefinition; previewView?: string; previewResult?: string }) {
   const router = useRouter();
   const [journey, setJourney] = useState<LearnerJourneyState | null>(null);
   const [view, setView] = useState<CheckView>(previewView === "question" || previewView === "submitting" || previewView === "analyzing" || previewView === "result" ? previewView : "intro");
