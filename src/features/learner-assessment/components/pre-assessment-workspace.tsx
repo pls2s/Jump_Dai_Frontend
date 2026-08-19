@@ -41,6 +41,8 @@ import type {
   LearnerJourneyState,
 } from "@/features/learner-journey/types";
 import { cn } from "@/lib/cn";
+import { ApiPreAssessmentWorkspace } from "@/features/personalized-learning/components/api-learning-flow";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
 
 type AssessmentView = "intro" | "question" | "review" | "processing";
 
@@ -52,6 +54,21 @@ const evaluationSteps = [
 ];
 
 export function PreAssessmentWorkspace({
+  courseId,
+  courseTitle,
+  previewView,
+}: {
+  courseId: string;
+  courseTitle: string;
+  previewView?: string;
+}) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <LoadingState label="Loading your assessment…" />;
+  if (mode === "api") return <ApiPreAssessmentWorkspace courseId={courseId} courseTitle={courseTitle} />;
+  return <DemoPreAssessmentWorkspace courseId={courseId} courseTitle={courseTitle} previewView={previewView} />;
+}
+
+function DemoPreAssessmentWorkspace({
   courseId,
   courseTitle,
   previewView,

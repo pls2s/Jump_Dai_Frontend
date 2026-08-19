@@ -2,74 +2,38 @@
 
 ## Purpose
 
-Collect the learner’s primary outcome, self-perceived familiarity, and flexible content/pace preferences before Pre-Assessment. These inputs provide context for later personalization but do not replace assessment evidence.
-
-## Primary user
-
-Learner.
+Collect a learner’s goal and study preferences before the pre-assessment. In API mode, the saved values are the real inputs used to generate a personalized path.
 
 ## Route
 
-- Workspace: `/learner`
-- Learning profile: `/learner/courses/[courseId]/learning-profile`
-- Function 09 handoff: `/learner/courses/[courseId]/pre-assessment`
-- Legacy `/learner/onboarding` redirects to `/learner`
+- `/learner/courses/[courseId]/learning-profile`
+- Next: `/learner/courses/[courseId]/pre-assessment`
 
-## Flow
+## API integration
 
-Learner authentication → Learner workspace → Published course → Start learning → Learning Goal & Style → save → Pre-Assessment.
+An authenticated API learner uses:
 
-Returning to the learning-profile route restores saved selections for editing.
+- `GET /api/learning/profile` — restore the saved backend profile
+- `PUT /api/learning/profile` — save `learning_goal`, optional `target_role`, `learning_styles`, and `weekly_learning_hours`
 
-The development preview index exposes the Learner workspace, Learning Profile, and Pre-Assessment entry together under Function 08 so the handoff can be reviewed without completing unrelated screens.
+The UI translates its flexible content preferences into the backend’s supported styles: `VISUAL`, `AUDITORY`, `READING_WRITING`, `KINESTHETIC`, and `MIXED`. Pace becomes the weekly-hours value (quick 2, balanced 4, in-depth 6).
 
-## Form fields
+The UI-only familiarity and session-length fields remain required/useful form context, but the current backend contract does not persist them.
 
-- Primary learning goal: new skill, current role, new role, refresh, required course, explore, or Other
-- Optional Other text
-- Optional goal detail, limited to 500 characters with a count
-- Familiarity: new, basics, some experience, or confident
-- Content preferences: short explanations, step-by-step examples, hands-on practice, visual summaries, quick quizzes, and real-world scenarios
-- Pace: quick and focused, balanced, or in-depth
-- Optional session length: 10–15, 20–30, 30–45 minutes, or flexible
+## Demo behavior
 
-Preferences are framed as adjustable content preferences, not scientifically fixed learning styles. Pace never skips required competency content.
+Demo/bypass sessions keep using the existing typed localStorage profile. API sessions never replace a failed backend request with demo data.
 
-## Validation
+## Validation and states
 
-Submission requires one learning goal, one familiarity value, at least one content preference, and one pace. Errors render next to and are associated with the relevant fieldset. Goal detail, Other text, and session length are optional.
-
-## States
-
-- Loading saved preferences
-- New profile
-- Previously saved/editable profile
-- Inline validation errors
-- Saving
-- Save failure with selections retained
-- Successful transition to the Pre-Assessment intro
-
-## Mock persistence
-
-Structured option fixtures live in `src/data/mock/learner.ts`. Profiles use the typed `LearnerLearningProfile` contract and persist in localStorage under `skillsync-learner-learning-profile:{learnerId}:{courseId}`. No credential, assessment score, or sensitive profile data is stored.
+- Required: primary goal, familiarity, at least one preference, and pace
+- Loading saved profile, new profile, editable saved profile, inline validation, save failure, and success handoff
+- A missing backend profile starts an empty form; any other API failure remains visible to the learner
 
 ## Dependencies
 
-- Valid Learner/API/bypass session
-- Valid demo course ID
-- Function 09 must use this profile as context without treating familiarity as an assessment result
+A Learner API session is required for API mode. Pre-assessment requires a saved profile.
 
-## Transition to Function 09
+## Known limitation
 
-Valid submission opens the Pre-Assessment intro. Function 09 now delivers the saved-answer assessment, scoring, and Skill Gap transition while keeping self-rated familiarity separate from evidence.
-
-## Known limitations
-
-- One mock learner course is available
-- No backend enrollment, catalog, profile, or assessment integration
-- Learner Home is deliberately minimal rather than a full dashboard
-- Learning-profile data remains local and has no backend contract
-
-## Future API integration
-
-Replace the local learning-profile service with documented learner-profile endpoints when available. Keep the UI types and validation independent from transport, and preserve the dependency order Goal/Profile → Pre-Assessment → Skill Gap → Personalized Path.
+The personalized-profile API is learner-scoped today, not course-scoped. Its settings therefore apply to the current learner across the mock MVP.

@@ -2,52 +2,34 @@
 
 ## Purpose
 
-Create a visibly personalized course sequence from assessment evidence, learner goal, content preferences, and pace.
+Generate and show a learner-specific lesson order based on saved preferences and the latest pre-assessment.
 
-## Primary user
-
-Learner.
-
-## Routes
+## Route
 
 - `/learner/courses/[courseId]/learning-path`
-- Bypass states: `?view=generating`, `?view=result`, and `?state=failed`
-- Function 12 entry: `/learner/courses/[courseId]/learn`
+- Generate: `/learner/courses/[courseId]/learning-path?view=generating`
 
-## User flow
+## API integration
 
-Skill Gap → staged path generation → path result → intentional Learning Experience destination.
+API learner sessions use:
 
-## Main components
+- `POST /api/learning/paths` — create a personalized path from the latest profile and assessment
+- `GET /api/learning/paths/current` — load the latest path without regenerating it
 
-- `LearningPathWorkspace`
-- pure `createPersonalizedLearningPath` generator
-- shared progress, status, card, and action components
+The page renders only API-returned fields: learning goal, target role, learning styles, overall level, weak topics, lesson order, time estimates, reasons, and study recommendations. The backend’s `version` and `is_adaptive` status are displayed accurately.
 
-## Data model
+## States
 
-`PersonalizedLearningPath` records `pathVersion`, `generatedAt`, internal `sourceAssessmentId`, status, pace, preferences used, estimates, and ordered items. Items carry Priority, Recommended, or Quick refresher emphasis plus reason, time, activities, and skill addressed. The product UI presents assessment provenance as a completed assessment and date rather than exposing the internal attempt identifier.
+- Loading current path
+- Generating from the backend
+- Missing profile/assessment/path guidance
+- Request failure with a safe return to skill gap
+- Ready path
 
-## Personalization logic
+## Demo behavior
 
-Skills below 60% come first with more lesson/practice/quiz activity. Proficient areas receive recommended reinforcement. Scores of 80% or more retain required concepts as concise refreshers rather than being silently skipped. Function 08 preferences add matching activity formats; pace adjusts presentation time without skipping competency content.
+Demo/bypass sessions retain the existing deterministic local path generator and staged preview states. API sessions never use demo lessons or demo progress as a fallback.
 
-## Validation and states
+## Known limitation
 
-Normal mode blocks generation without a complete learning profile and completed assessment. States include loading, missing dependency, generating, ready, failure, and retry.
-
-## Mock behavior and persistence
-
-Generation uses short staged timers and a deterministic local catalog. The generated path persists in the shared learner-journey record with evidence/version metadata. New assessment results clear the old path.
-
-## Dependencies
-
-Requires Functions 08–10. Function 12 now consumes the saved path while Function 11 remains responsible only for path generation and ordering.
-
-## Known limitations
-
-No backend generator, live adaptation, enrollment rules, prerequisite resolver, or server time estimate. Lesson delivery and completion remain owned by Function 12.
-
-## Future backend/API integration
-
-`API_doc.md` has a generic course learning-path read endpoint and states that the backend should determine order. A personalized generation/result schema is not yet documented; preserve this frontend boundary until it is.
+Function 12 lesson delivery/progress has an existing frontend, but it is not connected to this personalized-path API yet. The ready state therefore returns the learner home instead of entering a mock lesson as if the API path had persisted lesson progress.

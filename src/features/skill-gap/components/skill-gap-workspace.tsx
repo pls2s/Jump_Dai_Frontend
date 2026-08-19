@@ -19,6 +19,8 @@ import { assessmentSkills } from "@/data/mock";
 import { getAuthSession } from "@/features/auth/lib/auth-session";
 import { skillStatusLabel } from "@/features/learner-assessment/lib/assessment-config";
 import { loadLearnerJourney } from "@/features/learner-journey/services/learner-journey-service";
+import { ApiSkillGapWorkspace } from "@/features/personalized-learning/components/api-learning-flow";
+import { useApiLearningMode } from "@/features/personalized-learning/lib/use-api-learning-mode";
 import type { LearnerJourneyState, SkillLevelStatus } from "@/features/learner-journey/types";
 
 const statusVariant: Record<SkillLevelStatus, "error" | "warning" | "info" | "success"> = {
@@ -29,6 +31,13 @@ const statusVariant: Record<SkillLevelStatus, "error" | "warning" | "info" | "su
 };
 
 export function SkillGapWorkspace({ courseId, courseTitle }: { courseId: string; courseTitle: string }) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Preparing your skill snapshot…</div></ContentContainer>;
+  if (mode === "api") return <ApiSkillGapWorkspace courseId={courseId} courseTitle={courseTitle} />;
+  return <DemoSkillGapWorkspace courseId={courseId} courseTitle={courseTitle} />;
+}
+
+function DemoSkillGapWorkspace({ courseId, courseTitle }: { courseId: string; courseTitle: string }) {
   const router = useRouter();
   const [journey, setJourney] = useState<LearnerJourneyState | null>(null);
 

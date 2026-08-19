@@ -26,6 +26,8 @@ import { loadLearnerJourney, savePersonalizedPath } from "@/features/learner-jou
 import type { LearnerLearningProfile } from "@/features/learner-onboarding/types";
 import type { LearnerJourneyState, LearningPathItemEmphasis, PersonalizedLearningPath } from "@/features/learner-journey/types";
 import { createPersonalizedLearningPath, formatLearningTime } from "@/features/personalized-learning/lib/path-generator";
+import { ApiLearningPathWorkspace } from "./api-learning-flow";
+import { useApiLearningMode } from "../lib/use-api-learning-mode";
 import { cn } from "@/lib/cn";
 
 type ScreenState = "loading" | "missing-profile" | "missing-assessment" | "generating" | "failed" | "ready";
@@ -45,6 +47,23 @@ const emphasisCopy: Record<LearningPathItemEmphasis, { label: string; variant: "
 };
 
 export function LearningPathWorkspace({
+  courseId,
+  courseTitle,
+  previewView,
+  previewState,
+}: {
+  courseId: string;
+  courseTitle: string;
+  previewView?: string;
+  previewState?: string;
+}) {
+  const mode = useApiLearningMode();
+  if (mode === "loading") return <ContentContainer className="flex min-h-[calc(100dvh-4.5rem)] items-center justify-center"><div role="status" className="flex items-center gap-3 text-text-secondary"><Spinner />Loading your learning plan…</div></ContentContainer>;
+  if (mode === "api") return <ApiLearningPathWorkspace courseId={courseId} courseTitle={courseTitle} generate={previewView === "generating"} />;
+  return <DemoLearningPathWorkspace courseId={courseId} courseTitle={courseTitle} previewView={previewView} previewState={previewState} />;
+}
+
+function DemoLearningPathWorkspace({
   courseId,
   courseTitle,
   previewView,

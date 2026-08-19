@@ -2,55 +2,34 @@
 
 ## Purpose
 
-Measure course-relevant knowledge before a personalized path is created. Self-rated familiarity from Function 08 remains context and never substitutes for assessment evidence.
+Establish topic-level baseline scores before the system calculates gaps and generates a personalized path.
 
-## Primary user
-
-Learner.
-
-## Routes
+## Route
 
 - `/learner/courses/[courseId]/pre-assessment`
-- Bypass previews: `?view=intro`, `?view=question`, and `?view=processing`
+- Next: `/learner/courses/[courseId]/skill-gap`
 
-## User flow
+## API integration
 
-Learning preferences → intro → one question at a time → answer review → submit confirmation → staged evaluation → Skill Gap.
+The current frontend question set remains the assessment UI. When the learner submits, the frontend computes an exact-correct score for each topic and sends only those aggregate scores:
 
-## Main components
+- `POST /api/learning/pre-assessments`
 
-- `PreAssessmentWorkspace`
-- shared `Progress`, `Badge`, `Card`, `Button`, and `ConfirmationDialog`
-- typed question fixtures and an assessment engine outside JSX
+Request fields: `assessment_title`, `topic_scores[]`, and `passing_score` (70). The backend returns a persisted assessment with overall score and learner level.
 
-## Data model
+The backend does not currently accept or retain individual answers, attempt position, partial credit, or a question bank. The UI explicitly describes this boundary and does not present unsaved answers as server data.
 
-`PreAssessmentDefinition`, `AssessmentQuestion`, `AssessmentResponse`, `PreAssessmentAttempt`, and `PreAssessmentResult`. Eight questions cover four competencies and support multiple-choice and multiple-select answers.
+## Validation and states
 
-## Validation
+- A saved learning profile is required (`GET /api/learning/profile`)
+- Each question needs an answer before moving forward
+- All questions need answers before submission
+- Profile-missing guidance, loading, question, review, submit failure, and success handoff are represented
 
-The current question needs at least one answer before Next. Submission stays disabled until all eight questions are answered. Errors are associated with the answer fieldset.
+## Demo behavior
 
-## States
-
-Intro, in progress, resumed, answer review, evaluating, completed, missing learning profile, and unknown course.
-
-## Mock logic and persistence
-
-Answers, position, attempt status, and result persist in one `skillsync-learner-journey:{learnerId}:{courseId}` localStorage record. Evaluation uses deterministic typed fixtures and a configurable scoring utility. Correct answers remain hidden until submission.
-
-## Scoring and rule logic
-
-Multiple-choice questions score 100 for an exact correct answer and 0 otherwise. Multiple-select questions award deterministic partial credit based on correctly classified options while retaining a separate exact-correctness flag for answer review. Question scores are averaged per competency and across the assessment; scores below the centralized 60% threshold become focus areas. A completed assessment result is required before Skill Gap or learning-path generation can continue outside bypass preview mode.
+Demo/bypass sessions retain the existing local attempt, partial-credit scoring, staged evaluation, and review flow. API sessions use the backend result instead.
 
 ## Dependencies
 
-Requires a valid learner course and completed Function 08 profile. Completion supplies the evidence required by Functions 10 and 11.
-
-## Known limitations
-
-No timer, randomized question bank, server attempt authority, proctoring, or backend grading. Bypass mode may hydrate reusable preview fixtures.
-
-## Future backend/API integration
-
-`API_doc.md` documents general assessment endpoints and conceptual pre-test paths, but the pre-test request/response schemas are incomplete. Do not integrate until the contract defines attempt, answer, scoring, and result payloads.
+Requires Function 08 completion. Successful submission provides the evidence for Function 10.
