@@ -6,6 +6,6 @@ export default async function KnowledgeSourcesPage({ params, searchParams }: { p
   const { courseId } = await params;
   if (!isKnownCourseRouteId(courseId)) notFound();
   const query = await searchParams;
-  const initialMode: SourceAddMode = query.view === "text" || query.view === "url" ? query.view : "file";
+  const initialMode: SourceAddMode = query.view === "url" ? "url" : "file";
   return <SourceManager courseId={courseId} initialMode={initialMode} />;
 }

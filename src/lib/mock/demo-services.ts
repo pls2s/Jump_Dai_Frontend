@@ -10,7 +10,7 @@ export async function fetchDemoUrl(url: string) {
     throw new Error("Use a complete http:// or https:// URL.");
   }
   if (parsed.hostname.includes("fail") || parsed.hostname.includes("invalid")) {
-    throw new Error("We couldn’t fetch this page. Check the URL or paste the content instead.");
+    throw new Error("We couldn’t fetch this page. Check the URL and try again.");
   }
 
   return {

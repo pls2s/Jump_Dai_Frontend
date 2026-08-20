@@ -88,10 +88,10 @@ No granular requirement identifiers were available beyond Function IDs 00–20.
 - **Requirement IDs:** 03
 - **Current routes:** `/creator/courses/digital-marketing-foundations/sources`.
 - **Current status:** Implemented (frontend).
-- **Implemented behavior:** PDF/document/slide file selection and drag/drop; file size/type validation; upload progress; processing; ready; failure; retry; manual text validation; URL validation; mock fetch/preview/error; delete confirmation; empty state; persistent mock sources; explicit AI readiness rule.
+- **Implemented behavior:** PDF/document/slide file selection and drag/drop; multi-file batch validation (maximum 10 uploaded files per course and 25 MB per file); upload progress; processing; ready; failure; retry; URL validation with multiple URL support and duplicate prevention; mock fetch/preview/error; delete confirmation; empty state; persistent mock sources; explicit AI readiness rule.
 - **Missing behavior:** Real storage, parsing, virus scanning, URL retrieval, extraction details, and backend persistence.
-- **Flow problems found:** Unsupported/oversized files were silently accepted; text relied only on native validation; URL fetch could not fail; source state reset on reload; AI dependency could be bypassed by manually opening analysis after deleting sources.
-- **Changes made:** Added specific errors and recovery copy, source persistence, success feedback, retry behavior, disabled reason, cross-route ready-source guard, and mode-aware separation between slug-based local sources and numeric API documents.
+- **Flow problems found:** File batches could be partially accepted; the file count limit was not enforced; URL duplicates were possible; source state reset on reload; AI dependency could be bypassed by manually opening analysis after deleting sources.
+- **Changes made:** Added centralized file-count/size limits, whole-batch validation, explicit upload capacity guidance, multiple URL entry with validation and duplicate prevention, source persistence, success feedback, retry behavior, disabled reason, cross-route ready-source guard, and mode-aware separation between slug-based local sources and numeric API documents.
 - **Remaining work:** Replace simulated timers and local data with upload/processing services.
 
 ### 04 — AI Knowledge Processing

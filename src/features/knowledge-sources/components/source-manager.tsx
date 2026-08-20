@@ -14,7 +14,6 @@ import {
   ArrowRight,
   CheckCircle2,
   File,
-  FileText,
   Globe2,
   Link2,
   Plus,
@@ -37,7 +36,6 @@ import {
   FieldLabel,
   Input,
   Progress,
-  Textarea,
 } from "@/components/ui";
 import { initialKnowledgeSources } from "@/data/mock/product";
 import { getAuthSession } from "@/features/auth/lib/auth-session";
@@ -54,12 +52,17 @@ import { cn } from "@/lib/cn";
 import { fetchDemoUrl } from "@/lib/mock/demo-services";
 import { readMockSources, writeMockSources } from "@/lib/mock/source-store";
 import type { KnowledgeSource, SourceStatus, SourceType } from "@/types/product";
+import {
+  isUploadedFileSource,
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_MB,
+  MAX_UPLOAD_FILES,
+  normalizeSourceUrl,
+  SUPPORTED_FILE_EXTENSIONS,
+} from "@/features/knowledge-sources/lib/source-config";
 
-export type SourceAddMode = "file" | "text" | "url";
+export type SourceAddMode = "file" | "url";
 type Feedback = { tone: "error" | "success"; text: string };
-
-const MAX_FILE_SIZE = 25 * 1024 * 1024;
-const allowedExtensions = ["pdf", "doc", "docx", "ppt", "pptx", "txt", "md"];
 
 const statusConfig: Record<SourceStatus, { variant: "info" | "warning" | "success" | "error"; icon: typeof CheckCircle2 }> = {
   Uploading: { variant: "info", icon: UploadCloud },
@@ -111,6 +114,7 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
   const router = useRouter();
   const backendCourseId = /^\d+$/.test(courseId) ? Number(courseId) : null;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const urlFormRef = useRef<HTMLFormElement>(null);
   const timersRef = useRef<number[]>([]);
   const [sources, setSources] = useState<KnowledgeSource[]>(() => backendCourseId === null ? initialKnowledgeSources : []);
   const idCounterRef = useRef(sources.length);
@@ -120,12 +124,13 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
   const [urlPreview, setUrlPreview] = useState<{ url: string; title: string; domain: string } | null>(null);
   const [fetchingUrl, setFetchingUrl] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [textErrors, setTextErrors] = useState<{ title?: string; content?: string }>({});
   const [urlError, setUrlError] = useState("");
   const [loadingSources, setLoadingSources] = useState(backendCourseId !== null);
   const [deletingSource, setDeletingSource] = useState(false);
   const [processingSources, setProcessingSources] = useState(false);
   const readyCount = sources.filter((source) => source.status === "Ready").length;
+  const uploadedFileCount = sources.filter((source) => isUploadedFileSource(source.type)).length;
+  const uploadCapacityReached = uploadedFileCount >= MAX_UPLOAD_FILES;
 
   const loadBackendDocuments = useCallback(async () => {
     if (backendCourseId === null) return;
@@ -264,16 +269,6 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
   }
 
   function simulateFile(file: globalThis.File) {
-    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-    if (!allowedExtensions.includes(extension)) {
-      setFeedback({ tone: "error", text: `${file.name} isn’t a supported file. Choose a PDF, document, or slide deck.` });
-      return;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      setFeedback({ tone: "error", text: `${file.name} is larger than 25 MB. Your existing sources are safe; choose a smaller file.` });
-      return;
-    }
-
     const id = nextSourceId("file");
     if (backendCourseId !== null) {
       const session = getAuthSession();
@@ -339,36 +334,49 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
   }
 
   function handleFiles(fileList: FileList | null) {
-    Array.from(fileList ?? []).forEach(simulateFile);
+    const selectedFiles = Array.from(fileList ?? []);
+    if (selectedFiles.length === 0) return;
+
+    const nextFileCount = uploadedFileCount + selectedFiles.length;
+    if (nextFileCount > MAX_UPLOAD_FILES) {
+      setFeedback({
+        tone: "error",
+        text: `You can upload up to ${MAX_UPLOAD_FILES} files per course. You already have ${uploadedFileCount}. Remove a file before adding more.`,
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const unsupported = selectedFiles
+      .map((file) => file.name.split(".").pop()?.toLowerCase() ?? "")
+      .map((extension, index) => ({ extension, file: selectedFiles[index] }))
+      .filter(({ extension }) => !SUPPORTED_FILE_EXTENSIONS.includes(extension as (typeof SUPPORTED_FILE_EXTENSIONS)[number]));
+    if (unsupported.length > 0) {
+      setFeedback({
+        tone: "error",
+        text: `${unsupported.map(({ file }) => file.name).join(", ")} ${unsupported.length === 1 ? "is" : "are"} not supported. Choose PDF, document, slide, TXT, or Markdown files.`,
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const oversized = selectedFiles.filter((file) => file.size > MAX_FILE_SIZE_BYTES);
+    if (oversized.length > 0) {
+      setFeedback({
+        tone: "error",
+        text: `${oversized.map((file) => `${file.name} is larger than ${MAX_FILE_SIZE_MB} MB`).join("; ")}. Remove the oversized file${oversized.length === 1 ? "" : "s"} and try again.`,
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    selectedFiles.forEach(simulateFile);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     handleFiles(event.dataTransfer.files);
-  }
-
-  function addText(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const title = String(data.get("title") ?? "").trim();
-    const text = String(data.get("content") ?? "").trim();
-    const nextErrors: { title?: string; content?: string } = {};
-    if (title.length < 3) nextErrors.title = "Enter a source title with at least 3 characters.";
-    if (text.length < 20) nextErrors.content = "Add at least 20 characters of source material.";
-    setTextErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-
-    setSources((current) => [{
-      id: nextSourceId("text"),
-      name: title,
-      type: "Text",
-      meta: `${text.split(/\s+/).filter(Boolean).length} words`,
-      status: "Ready",
-      updatedAt: "Just now",
-    }, ...current]);
-    setFeedback({ tone: "success", text: `${title} was added and is ready for analysis.` });
-    event.currentTarget.reset();
   }
 
   async function fetchUrl(event: FormEvent<HTMLFormElement>) {
@@ -378,10 +386,23 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
     setFetchingUrl(true);
     setUrlError("");
     setUrlPreview(null);
+    let normalizedUrl: string;
     try {
-      setUrlPreview(await fetchDemoUrl(url));
+      normalizedUrl = normalizeSourceUrl(url);
+    } catch {
+      setUrlError("Enter a valid URL.");
+      setFetchingUrl(false);
+      return;
+    }
+    if (sources.some((source) => source.type === "URL" && source.sourceUrl && normalizeSourceUrl(source.sourceUrl) === normalizedUrl)) {
+      setUrlError("This URL has already been added.");
+      setFetchingUrl(false);
+      return;
+    }
+    try {
+      setUrlPreview({ ...await fetchDemoUrl(normalizedUrl), url: normalizedUrl });
     } catch (error) {
-      setUrlError(error instanceof Error ? error.message : "We couldn’t fetch this page. Try again or paste the content instead.");
+      setUrlError(error instanceof Error ? error.message : "We couldn’t fetch this page. Check the URL and try again.");
     } finally {
       setFetchingUrl(false);
     }
@@ -394,6 +415,7 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
       id,
       name: urlPreview.title,
       type: "URL",
+      sourceUrl: urlPreview.url,
       meta: urlPreview.domain,
       status: "Processing",
       updatedAt: "Just now",
@@ -401,6 +423,14 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
     schedule(() => updateSource(id, { status: "Ready", updatedAt: "Just now" }), 1400);
     setFeedback({ tone: "success", text: `${urlPreview.domain} was added and is being processed.` });
     setUrlPreview(null);
+    urlFormRef.current?.reset();
+    setUrlError("");
+  }
+
+  function cancelUrlPreview() {
+    setUrlPreview(null);
+    setUrlError("");
+    urlFormRef.current?.reset();
   }
 
   function retrySource(id: string) {
@@ -471,51 +501,44 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
               <h2 className="type-title-large">Add material</h2>
               <p className="type-body-small mt-1 text-text-secondary">Choose one source type at a time. Your existing sources stay in the list below.</p>
             </div>
-            <div className="grid grid-cols-3 border-b border-border-default bg-neutral-25 p-2" role="tablist" aria-label="Source type">
+            <div className="grid grid-cols-2 border-b border-border-default bg-neutral-25 p-2" role="tablist" aria-label="Source type">
               {([
                 ["file", "Upload files", UploadCloud],
-                ["text", "Paste text", FileText],
                 ["url", "Add URL", Link2],
               ] as const).map(([id, label, Icon]) => (
                 <button key={id} id={`source-tab-${id}`} type="button" role="tab" aria-selected={mode === id} aria-controls="source-tab-panel" onClick={() => { setMode(id); setFeedback(null); }} className={cn("flex min-h-11 items-center justify-center gap-2 rounded-md px-3 text-sm font-semibold transition", mode === id ? "bg-surface-default text-blue-800 shadow-sm" : "text-text-secondary hover:bg-neutral-100 hover:text-text-primary")}>
-                  <Icon className="size-4" aria-hidden="true" /><span className="hidden sm:inline">{label}</span><span className="sm:hidden">{id === "file" ? "File" : id === "text" ? "Text" : "URL"}</span>
+                  <Icon className="size-4" aria-hidden="true" /><span className="hidden sm:inline">{label}</span><span className="sm:hidden">{id === "file" ? "File" : "URL"}</span>
                 </button>
               ))}
             </div>
 
             <div id="source-tab-panel" role="tabpanel" aria-labelledby={`source-tab-${mode}`} className="p-5 sm:p-6">
-              {backendCourseId !== null && mode !== "file" && <p className="type-body-small mb-5 rounded-md bg-yellow-50 p-3 text-neutral-700">The current API contract has no {mode === "text" ? "manual-text" : "URL-source"} endpoint. This control remains a frontend-only prototype and is not sent to the backend.</p>}
               {mode === "file" && (
-                <div onDragOver={(event) => event.preventDefault()} onDrop={handleDrop} className="rounded-lg border-2 border-dashed border-blue-200 bg-blue-50/50 p-8 text-center transition hover:border-blue-400 hover:bg-blue-50">
+                <div onDragOver={(event) => event.preventDefault()} onDrop={handleDrop} aria-describedby="file-upload-guidance" className={cn("rounded-lg border-2 border-dashed border-blue-200 bg-blue-50/50 p-8 text-center transition hover:border-blue-400 hover:bg-blue-50", uploadCapacityReached && "border-neutral-300 bg-neutral-50 hover:border-neutral-300 hover:bg-neutral-50")}>
                   <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-700"><UploadCloud className="size-6" aria-hidden="true" /></span>
                   <h3 className="mt-4 font-semibold">Drag and drop files here</h3>
-                  <p className="type-body-small mt-1 text-text-secondary">PDF, DOC, DOCX, PPT, PPTX, TXT, or Markdown · up to 25 MB each</p>
-                  <input ref={fileInputRef} className="sr-only" type="file" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md" onChange={(event) => handleFiles(event.target.files)} />
-                  <Button variant="secondary" className="mt-5" onClick={() => fileInputRef.current?.click()}>Choose files</Button>
+                  <p id="file-upload-guidance" className="type-body-small mt-1 text-text-secondary">PDF, DOC, DOCX, PPT, PPTX, TXT, or Markdown · up to {MAX_UPLOAD_FILES} files · maximum {MAX_FILE_SIZE_MB} MB per file</p>
+                  <p className="type-caption mt-2 text-text-tertiary">{uploadedFileCount} / {MAX_UPLOAD_FILES} files uploaded</p>
+                  <input ref={fileInputRef} className="sr-only" type="file" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md" disabled={uploadCapacityReached} onChange={(event) => handleFiles(event.target.files)} />
+                  <Button variant="secondary" className="mt-5" disabled={uploadCapacityReached} aria-describedby="file-upload-capacity" onClick={() => fileInputRef.current?.click()}>Choose files</Button>
+                  {uploadCapacityReached && <p id="file-upload-capacity" className="type-body-small mt-3 text-text-secondary">Maximum of {MAX_UPLOAD_FILES} files reached. Remove a file before adding another.</p>}
                 </div>
-              )}
-              {mode === "text" && (
-                <form onSubmit={addText} className="grid gap-5" noValidate>
-                  <Field><FieldLabel htmlFor="source-title">Source title</FieldLabel><Input id="source-title" name="title" placeholder="Campaign Planning Notes" validation={textErrors.title ? "error" : "default"} aria-describedby={textErrors.title ? "source-title-error" : undefined} />{textErrors.title && <FieldError id="source-title-error">{textErrors.title}</FieldError>}</Field>
-                  <Field><FieldLabel htmlFor="source-text">Source text</FieldLabel><Textarea id="source-text" name="content" rows={7} placeholder="Paste notes, guidelines, or other trusted source material here…" validation={textErrors.content ? "error" : "default"} aria-describedby={textErrors.content ? "source-text-error" : "source-text-guidance"} />{textErrors.content ? <FieldError id="source-text-error">{textErrors.content}</FieldError> : <FieldDescription id="source-text-guidance">Plain text works best. Formatting will be simplified.</FieldDescription>}</Field>
-                  <div><Button type="submit">Add source</Button></div>
-                </form>
               )}
               {mode === "url" && (
                 <div>
-                  <form onSubmit={fetchUrl} className="flex flex-col gap-3 sm:flex-row" noValidate>
+                  <form ref={urlFormRef} onSubmit={fetchUrl} className="flex flex-col gap-3 sm:flex-row" noValidate>
                     <Field className="flex-1"><FieldLabel htmlFor="source-url">Web page URL</FieldLabel><Input id="source-url" name="url" type="url" placeholder="https://example.com/marketing-guide" validation={urlError ? "error" : "default"} aria-describedby={urlError ? "source-url-error" : "source-url-guidance"} />{urlError ? <FieldError id="source-url-error">{urlError}</FieldError> : <FieldDescription id="source-url-guidance">Use a complete http:// or https:// URL.</FieldDescription>}</Field>
-                    <Button type="submit" className="sm:mt-7" isLoading={fetchingUrl} loadingLabel="Fetching…">Fetch content</Button>
+                    <Button type="submit" className="sm:mt-7" isLoading={fetchingUrl} loadingLabel="Checking URL…">Check URL</Button>
                   </form>
-                  <p className="type-caption mt-3 text-text-tertiary">Demo behavior: SkillSync creates a safe preview without scraping the page. URLs on a domain containing “fail” return a recoverable error.</p>
-                  {urlPreview && <div className="mt-5 flex flex-col gap-4 rounded-lg border border-border-default bg-neutral-25 p-4 sm:flex-row sm:items-center"><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-700"><Globe2 className="size-5" aria-hidden="true" /></span><div className="min-w-0 flex-1"><p className="font-semibold">{urlPreview.title}</p><p className="type-body-small truncate text-text-secondary">{urlPreview.domain}</p></div><Button onClick={addUrl}>Add source</Button></div>}
+                  <p className="type-caption mt-3 text-text-tertiary">SkillSync creates a safe preview before adding the URL. You can add multiple URLs to this course.</p>
+                  {urlPreview && <div className="mt-5 flex flex-col gap-4 rounded-lg border border-border-default bg-neutral-25 p-4 sm:flex-row sm:items-center"><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-700"><Globe2 className="size-5" aria-hidden="true" /></span><div className="min-w-0 flex-1"><p className="font-semibold">{urlPreview.title}</p><p className="type-body-small break-all text-text-secondary">{urlPreview.url}</p></div><div className="flex shrink-0 gap-2"><Button type="button" variant="ghost" onClick={cancelUrlPreview}>Cancel</Button><Button type="button" onClick={addUrl}>Add URL</Button></div></div>}
                 </div>
               )}
             </div>
           </Card>
 
           <section className="mt-8" aria-labelledby="source-list-heading">
-            <div className="mb-4"><h2 id="source-list-heading" className="type-title-large">Course sources</h2><p className="type-body-small mt-1 text-text-secondary">{sources.length} sources · {readyCount} ready for analysis</p></div>
+            <div className="mb-4"><h2 id="source-list-heading" className="type-title-large">Course sources</h2><p className="type-body-small mt-1 text-text-secondary">{sources.length} sources · {uploadedFileCount} / {MAX_UPLOAD_FILES} files · {readyCount} ready for analysis</p></div>
             {loadingSources ? <Card className="p-6 text-text-secondary">Loading documents from the backend…</Card> : sources.length === 0 ? <EmptySources onAdd={scrollToAddSource} /> : <div className="grid gap-3">{sources.map((source) => <SourceRow key={source.id} source={source} onDelete={() => setDeleteTarget(source)} onRetry={() => retrySource(source.id)} />)}</div>}
           </section>
         </div>
@@ -546,9 +569,9 @@ export function SourceManager({ courseId, initialMode = "file" }: { courseId: st
 function SourceRow({ source, onDelete, onRetry }: { source: KnowledgeSource; onDelete: () => void; onRetry: () => void }) {
   const config = statusConfig[source.status];
   const StatusIcon = config.icon;
-  return <Card className="p-4 sm:p-5"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-neutral-100 text-text-secondary"><File className="size-5" aria-hidden="true" /></span><div className="min-w-0 flex-1"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><h3 className="truncate font-semibold">{source.name}</h3><p className="type-caption mt-0.5 text-text-tertiary">{source.type} · {source.meta} · {source.updatedAt}</p></div><div className="flex shrink-0 items-center gap-2"><Badge variant={config.variant}><StatusIcon className={cn("size-3.5", source.status === "Processing" && "animate-spin")} aria-hidden="true" />{source.status}</Badge>{source.status === "Failed" && <Button variant="ghost" size="sm" onClick={onRetry}><RefreshCw className="size-4" aria-hidden="true" />Retry</Button>}<Button variant="ghost" size="icon" onClick={onDelete} aria-label={`Delete ${source.name}`}><Trash2 className="size-4" aria-hidden="true" /></Button></div></div>{source.status === "Uploading" && <Progress value={source.progress ?? 0} showValue size="sm" className="mt-3" />}{source.status === "Failed" && <p className="type-caption mt-2 flex items-center gap-1.5 text-status-error"><AlertTriangle className="size-3.5" aria-hidden="true" />{source.processingError ?? "We couldn’t read this file. Your other sources are safe. Retry it or upload a new copy."}</p>}</div></div></Card>;
+  return <Card className="p-4 sm:p-5"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-neutral-100 text-text-secondary"><File className="size-5" aria-hidden="true" /></span><div className="min-w-0 flex-1"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><h3 className="truncate font-semibold">{source.name}</h3><p className="type-caption mt-0.5 break-words text-text-tertiary">{source.type} · {source.sourceUrl ?? source.meta} · {source.updatedAt}</p></div><div className="flex shrink-0 items-center gap-2"><Badge variant={config.variant}><StatusIcon className={cn("size-3.5", source.status === "Processing" && "animate-spin")} aria-hidden="true" />{source.status}</Badge>{source.status === "Failed" && <Button variant="ghost" size="sm" onClick={onRetry}><RefreshCw className="size-4" aria-hidden="true" />Retry</Button>}<Button variant="ghost" size="icon" onClick={onDelete} aria-label={`Delete ${source.name}`}><Trash2 className="size-4" aria-hidden="true" /> </Button></div></div>{source.status === "Uploading" && <Progress value={source.progress ?? 0} showValue size="sm" className="mt-3" />}{source.status === "Failed" && <p className="type-caption mt-2 flex items-center gap-1.5 text-status-error"><AlertTriangle className="size-3.5" aria-hidden="true" />{source.processingError ?? "We couldn’t read this file. Your other sources are safe. Retry it or upload a new copy."}</p>}</div></div></Card>;
 }
 
 function EmptySources({ onAdd }: { onAdd: () => void }) {
-  return <Card className="flex flex-col items-center px-5 py-12 text-center"><span className="flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-700"><UploadCloud className="size-6" aria-hidden="true" /></span><h3 className="type-title-medium mt-4">No sources yet</h3><p className="type-body-small mt-2 max-w-md text-text-secondary">Upload a file, paste your own notes, or add a URL. You can combine all three.</p><Button className="mt-5" onClick={onAdd}><Plus className="size-4" aria-hidden="true" />Add your first source</Button></Card>;
+  return <Card className="flex flex-col items-center px-5 py-12 text-center"><span className="flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-700"><UploadCloud className="size-6" aria-hidden="true" /></span><h3 className="type-title-medium mt-4">No sources yet</h3><p className="type-body-small mt-2 max-w-md text-text-secondary">Upload a file or add a URL to give SkillSync trusted material for analysis.</p><Button className="mt-5" onClick={onAdd}><Plus className="size-4" aria-hidden="true" />Add your first source</Button></Card>;
 }

@@ -6,7 +6,7 @@ Let creators assemble the trusted source-of-truth material SkillSync will use fo
 
 ## User goal
 
-Combine files, notes, and web sources; understand processing state; recover from errors; and start AI analysis when usable material is ready.
+Combine files and web sources; understand processing state; recover from errors; and start AI analysis when usable material is ready.
 
 ## Routes
 
@@ -14,7 +14,7 @@ Combine files, notes, and web sources; understand processing state; recover from
 
 ## Main screens
 
-- Add material workspace with Upload files, Paste text, and Add URL modes
+- Add material workspace with Upload files and Add URL modes
 - Source list with name, type, size/domain, last updated, and explicit status
 - Empty state when all sources have been deleted
 - Analysis readiness card and CTA
@@ -30,10 +30,11 @@ Combine files, notes, and web sources; understand processing state; recover from
 
 - For numeric backend course IDs, drag/drop or file picker sends multipart field `file` to `POST /api/courses/{course_id}/documents`
 - Backend sources load from `GET /api/courses/{course_id}/knowledge-sources`; confirmed deletion calls `DELETE /api/documents/{document_id}`
-- Unsupported and oversized files show specific, recoverable errors
+- A batch is validated before upload: no more than 10 uploaded files per course and no file larger than 25 MB
+- Unsupported and oversized files, and batches over the file limit, show specific recoverable errors without partial upload
 - Backend uploads move through Uploading → Uploaded; Knowledge Processing then moves supported files through Processing → Ready or Failed
-- Pasted text is added as a ready source with a computed word count
-- URL fetch shows a safe mock preview before addition
+- URL fetch shows a safe mock preview before addition; multiple URLs are supported
+- URLs receive basic format validation and exact normalized duplicates are rejected
 - Invalid or simulated-unavailable URLs show an error and alternate next action
 - Failed backend sources retry through the Knowledge Processing endpoint
 - Delete requires confirmation
@@ -43,19 +44,19 @@ Combine files, notes, and web sources; understand processing state; recover from
 
 - Empty, uploading with progress, processing, ready, and failed
 - URL fetching and preview
-- File, manual-text, and URL validation errors
+- File and URL validation errors, including file-count, file-size, and duplicate-URL errors
 - Retry feedback
 - Disabled AI CTA with explanatory guidance
 - Responsive source cards instead of a rigid desktop-only table
 
 ## Mock behavior
 
-Seeded slug-based demo courses retain local ready/failed sources and browser timers. Frontend Demo Mode routes newly configured courses to this slug-based flow, so it makes no document API calls. Numeric backend course routes use documented file APIs and Knowledge Processing in API mode. Manual text and the current URL-preview UI remain frontend-only.
+Seeded slug-based demo courses retain local ready/failed sources and browser timers. Frontend Demo Mode routes newly configured courses to this slug-based flow, so it makes no document API calls. Numeric backend course routes use documented file APIs and Knowledge Processing in API mode. File limits and URL validation are enforced in the frontend in both modes; URL metadata/content remains mocked where no documented endpoint exists.
 
 ## Known limitations
 
 - Processing is user-triggered; no automatic polling interval is assumed, so users can refresh source status manually
-- Manual-text is not persisted to the backend; the URL endpoint exists but is not wired to the current URL-preview UI yet
-- API-mode files use the backend's 25 MB upload limit and supported-type validation
+- Existing manually-entered sources may remain visible for backward compatibility, but new manual-text entry is no longer exposed
+- API-mode files still depend on the documented backend upload contract; frontend validation is an additional guard
 - URL metadata and content preview are static mock values
 - The topic-graph analysis workspace remains frontend mock data; it is separate from source extraction and chunking

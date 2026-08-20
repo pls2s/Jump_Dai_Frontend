@@ -45,7 +45,6 @@ export const frontendPreviewGroups: FrontendPreviewGroup[] = [
     routes: [
       { label: "Sources", href: `${courseRoot}/sources`, description: "Source list and management" },
       { label: "Upload Files", href: `${courseRoot}/sources?view=file`, description: "Upload and drag-and-drop state" },
-      { label: "Manual Text", href: `${courseRoot}/sources?view=text`, description: "Title and pasted text source" },
       { label: "URL Source", href: `${courseRoot}/sources?view=url`, description: "URL fetch preview and validation" },
     ],
   },

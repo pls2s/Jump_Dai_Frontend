@@ -17,6 +17,7 @@ export interface KnowledgeSource {
   id: string;
   name: string;
   type: SourceType;
+  sourceUrl?: string;
   meta: string;
   status: SourceStatus;
   updatedAt: string;

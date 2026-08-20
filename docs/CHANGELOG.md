@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-20 — Knowledge source upload limits and URL entry
+
+### Added
+
+- Limited new knowledge-source entry to Upload File and Add URL in the Creator UI.
+- Added centralized validation for up to 10 uploaded files per course and a maximum 25 MB per file, including drag-and-drop and whole-batch rejection.
+- Added repeatable URL entry, inline URL validation, normalized duplicate prevention, and persisted URL metadata.
+
+### Changed
+
+- Removed the current Paste Text/manual-text entry flow without deleting the legacy internal source type used by older persisted demo data.
+
 ## 2026-08-18 — Notifications, reports, and supporting states
 
 ### Added
